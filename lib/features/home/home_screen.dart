@@ -29,31 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _addCustom() async {
-    final text = TextEditingController();
     final value = await showDialog<int>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Özel miktar (ml)'),
-        content: TextField(
-          controller: text,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: 'Örn. 200'),
-          onSubmitted: (v) => Navigator.pop(context, int.tryParse(v)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Vazgeç'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, int.tryParse(text.text)),
-            child: const Text('Ekle'),
-          ),
-        ],
-      ),
+      builder: (context) => const CustomAmountDialog(),
     );
-    text.dispose();
     if (value != null) _controller.add(value);
   }
 
@@ -148,6 +127,60 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static String _formatTime(DateTime t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+}
+
+/// Özel miktar penceresi. Metin denetleyicisini kendi ömrüyle yönetir; böylece
+/// pencere kapanma animasyonu sürerken denetleyici erken atılmaz.
+class CustomAmountDialog extends StatefulWidget {
+  const CustomAmountDialog({super.key});
+
+  static const maxMl = 5000;
+
+  @override
+  State<CustomAmountDialog> createState() => _CustomAmountDialogState();
+}
+
+class _CustomAmountDialogState extends State<CustomAmountDialog> {
+  final _text = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final v = int.tryParse(_text.text.trim());
+    if (v == null || v <= 0 || v > CustomAmountDialog.maxMl) {
+      setState(
+        () => _error = '1–${CustomAmountDialog.maxMl} arasında bir sayı gir',
+      );
+      return;
+    }
+    Navigator.pop(context, v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Özel miktar (ml)'),
+      content: TextField(
+        controller: _text,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(hintText: 'Örn. 200', errorText: _error),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Vazgeç'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Ekle')),
+      ],
+    );
+  }
 }
 
 class _ProgressRing extends StatelessWidget {
