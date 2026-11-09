@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../data/water_repository.dart';
+import '../thermos/thermos_theme.dart';
+import '../thermos/thermos_view.dart';
 import 'water_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +17,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final WaterController _controller;
   static const _quickAmounts = [150, 250, 330, 500];
+
+  /// Şimdilik bellekte; ayarlar ekranıyla kalıcı olacak.
+  ThermosShape _shape = ThermosShape.chubby;
 
   @override
   void initState() {
@@ -62,7 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
-                        _ProgressRing(controller: _controller),
+                        _ThermosSection(
+                          controller: _controller,
+                          shape: _shape,
+                          onShapeChanged: (s) => setState(() => _shape = s),
+                        ),
                         const SizedBox(height: 24),
                         Wrap(
                           alignment: WrapAlignment.center,
@@ -183,55 +192,55 @@ class _CustomAmountDialogState extends State<CustomAmountDialog> {
   }
 }
 
-class _ProgressRing extends StatelessWidget {
-  const _ProgressRing({required this.controller});
+class _ThermosSection extends StatelessWidget {
+  const _ThermosSection({
+    required this.controller,
+    required this.shape,
+    required this.onShapeChanged,
+  });
 
   final WaterController controller;
+  final ThermosShape shape;
+  final ValueChanged<ThermosShape> onShapeChanged;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final percent = (controller.progress * 100).round();
+    final text = Theme.of(context).textTheme;
     return Column(
       children: [
         SizedBox(
-          width: 220,
-          height: 220,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: controller.progress),
-            duration: const Duration(milliseconds: 400),
-            builder: (context, value, _) => Stack(
-              fit: StackFit.expand,
-              children: [
-                CircularProgressIndicator(
-                  value: value,
-                  strokeWidth: 16,
-                  strokeCap: StrokeCap.round,
-                  backgroundColor: scheme.surfaceContainerHighest,
-                ),
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${controller.totalMl} ml',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      Text(
-                        'hedef ${controller.goalMl} ml',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          height: 340,
+          child: ThermosView(
+            progress: controller.progress,
+            goalMl: controller.goalMl,
+            shape: shape,
           ),
         ),
         const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text('${controller.totalMl} ml', style: text.headlineMedium),
+            const SizedBox(width: 8),
+            Text('hedef ${controller.goalMl} ml', style: text.bodyMedium),
+          ],
+        ),
         Text(
           controller.progress >= 1 ? 'Hedefe ulaştın!' : '%$percent tamamlandı',
-          style: Theme.of(context).textTheme.titleMedium,
+          style: text.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        SegmentedButton<ThermosShape>(
+          segments: [
+            for (final s in ThermosShape.values)
+              ButtonSegment(value: s, label: Text(s.label)),
+          ],
+          selected: {shape},
+          showSelectedIcon: false,
+          onSelectionChanged: (s) => onShapeChanged(s.first),
         ),
       ],
     );
