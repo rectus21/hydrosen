@@ -1,0 +1,23 @@
+import 'package:flutter/material.dart';
+
+import '../features/home/home_screen.dart';
+
+class HydroSenApp extends StatelessWidget {
+  const HydroSenApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'HydroSen',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1E88E5),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}
