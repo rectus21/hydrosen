@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/water_repository.dart';
 import '../features/home/home_screen.dart';
 
 class HydroSenApp extends StatelessWidget {
-  const HydroSenApp({super.key});
+  const HydroSenApp({super.key, this.repository});
+
+  /// Verilmezse cihazda kalıcı depolama kullanılır; testler sahte bir depo verir.
+  final WaterRepository? repository;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +21,7 @@ class HydroSenApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: HomeScreen(repository: repository ?? SharedPrefsWaterRepository()),
     );
   }
 }

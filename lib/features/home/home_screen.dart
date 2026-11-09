@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../data/water_repository.dart';
 import 'water_controller.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.repository});
+
+  final WaterRepository repository;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final WaterController _controller = WaterController();
+  late final WaterController _controller;
   static const _quickAmounts = [150, 250, 330, 500];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WaterController(repository: widget.repository)..load();
+  }
 
   @override
   void dispose() {
@@ -33,7 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
           onSubmitted: (v) => Navigator.pop(context, int.tryParse(v)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Vazgeç')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Vazgeç'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, int.tryParse(text.text)),
             child: const Text('Ekle'),
@@ -52,64 +64,83 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: ListenableBuilder(
           listenable: _controller,
-          builder: (context, _) => Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _ProgressRing(controller: _controller),
-                  const SizedBox(height: 24),
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      for (final ml in _quickAmounts)
-                        FilledButton.tonalIcon(
-                          onPressed: () => _controller.add(ml),
-                          icon: const Icon(Icons.water_drop_outlined),
-                          label: Text('$ml ml'),
-                        ),
-                      OutlinedButton.icon(
-                        onPressed: _addCustom,
-                        icon: const Icon(Icons.edit_outlined),
-                        label: const Text('Özel'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  Text('Bugün', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  if (_controller.entries.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                        'Henüz su kaydı yok. Yukarıdan ilk bardağını ekle.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+          builder: (context, _) => !_controller.loaded
+              ? const Center(child: CircularProgressIndicator())
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        if (_controller.saveFailed)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              'Kayıtlar cihaza saklanamadı; uygulamayı kapatırsan kaybolabilir.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                             ),
-                      ),
-                    )
-                  else
-                    for (final e in _controller.entries)
-                      ListTile(
-                        key: ValueKey(e.id),
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.water_drop),
-                        title: Text('${e.amountMl} ml'),
-                        subtitle: Text(_formatTime(e.time)),
-                        trailing: IconButton(
-                          tooltip: 'Sil',
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => _controller.remove(e.id),
+                          ),
+                        _ProgressRing(controller: _controller),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            for (final ml in _quickAmounts)
+                              FilledButton.tonalIcon(
+                                onPressed: () => _controller.add(ml),
+                                icon: const Icon(Icons.water_drop_outlined),
+                                label: Text('$ml ml'),
+                              ),
+                            OutlinedButton.icon(
+                              onPressed: _addCustom,
+                              icon: const Icon(Icons.edit_outlined),
+                              label: const Text('Özel'),
+                            ),
+                          ],
                         ),
-                      ),
-                ],
-              ),
-            ),
-          ),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Bugün',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        if (_controller.todayEntries.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Text(
+                              'Henüz su kaydı yok. Yukarıdan ilk bardağını ekle.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                          )
+                        else
+                          for (final e in _controller.todayEntries)
+                            ListTile(
+                              key: ValueKey(e.id),
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.water_drop),
+                              title: Text('${e.amountMl} ml'),
+                              subtitle: Text(_formatTime(e.time)),
+                              trailing: IconButton(
+                                tooltip: 'Sil',
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () => _controller.remove(e.id),
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
+                ),
         ),
       ),
     );
