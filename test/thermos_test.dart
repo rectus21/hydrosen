@@ -36,21 +36,49 @@ void main() {
     });
   });
 
+  void paintOnce(
+    ThermosTheme theme,
+    ThermosShape shape,
+    double level, {
+    bool happy = false,
+  }) {
+    final recorder = PictureRecorder();
+    final canvas = Canvas(recorder);
+    ThermosPainter(
+      shape: shape,
+      theme: theme,
+      level: level,
+      goalMl: 2000,
+      time: 1.2,
+      slosh: 3,
+      happy: happy,
+    ).paint(canvas, const Size(330, 380));
+    recorder.endRecording().dispose();
+  }
+
   group('ThermosPainter', () {
     for (final shape in ThermosShape.values) {
       for (final level in [0.0, 0.5, 1.0, 1.4]) {
         test('${shape.label} biçim, doluluk $level hatasız çizilir', () {
-          final recorder = PictureRecorder();
-          final canvas = Canvas(recorder);
-          ThermosPainter(
-            shape: shape,
-            theme: ThermosTheme.classic,
-            level: level,
-            goalMl: 2000,
-            time: 1.2,
-            slosh: 3,
-          ).paint(canvas, const Size(220, 340));
-          recorder.endRecording().dispose();
+          paintOnce(ThermosTheme.classic, shape, level);
+        });
+      }
+    }
+  });
+
+  group('Temalar', () {
+    test('8 tema, benzersiz kimlikler', () {
+      expect(ThermosTheme.all.length, 8);
+      expect(ThermosTheme.all.map((t) => t.id).toSet().length, 8);
+      expect(ThermosTheme.byId('panda'), ThermosTheme.panda);
+      expect(ThermosTheme.byId('yok-boyle-tema'), ThermosTheme.classic);
+    });
+
+    for (final theme in ThermosTheme.all) {
+      for (final shape in ThermosShape.values) {
+        test('${theme.name} × ${shape.label} (normal ve mutlu) çizilir', () {
+          paintOnce(theme, shape, 0.6);
+          paintOnce(theme, shape, 1.0, happy: true);
         });
       }
     }

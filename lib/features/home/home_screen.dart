@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Şimdilik bellekte; ayarlar ekranıyla kalıcı olacak.
   ThermosShape _shape = ThermosShape.chubby;
+  ThermosTheme _theme = ThermosTheme.classic;
 
   @override
   void initState() {
@@ -70,7 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         _ThermosSection(
                           controller: _controller,
                           shape: _shape,
+                          theme: _theme,
                           onShapeChanged: (s) => setState(() => _shape = s),
+                          onThemeChanged: (t) => setState(() => _theme = t),
                         ),
                         const SizedBox(height: 24),
                         Wrap(
@@ -196,12 +199,16 @@ class _ThermosSection extends StatelessWidget {
   const _ThermosSection({
     required this.controller,
     required this.shape,
+    required this.theme,
     required this.onShapeChanged,
+    required this.onThemeChanged,
   });
 
   final WaterController controller;
   final ThermosShape shape;
+  final ThermosTheme theme;
   final ValueChanged<ThermosShape> onShapeChanged;
+  final ValueChanged<ThermosTheme> onThemeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -210,11 +217,12 @@ class _ThermosSection extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          height: 340,
+          height: 380,
           child: ThermosView(
             progress: controller.progress,
             goalMl: controller.goalMl,
             shape: shape,
+            theme: theme,
           ),
         ),
         const SizedBox(height: 12),
@@ -241,6 +249,20 @@ class _ThermosSection extends StatelessWidget {
           selected: {shape},
           showSelectedIcon: false,
           onSelectionChanged: (s) => onShapeChanged(s.first),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final t in ThermosTheme.all)
+              ChoiceChip(
+                label: Text(t.name),
+                selected: t == theme,
+                onSelected: (_) => onThemeChanged(t),
+              ),
+          ],
         ),
       ],
     );

@@ -78,25 +78,16 @@ class _ThermosViewState extends State<ThermosView>
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: widget.theme.background,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: AspectRatio(
-          aspectRatio: designRect.width / designRect.height,
-          child: CustomPaint(
-            painter: ThermosPainter(
-              shape: widget.shape,
-              theme: widget.theme,
-              level: _shown,
-              goalMl: widget.goalMl,
-              time: _time,
-              slosh: _slosh,
-            ),
-          ),
+    return AspectRatio(
+      aspectRatio: designRect.width / designRect.height,
+      child: CustomPaint(
+        painter: ThermosPainter(
+          shape: widget.shape,
+          theme: widget.theme,
+          level: _shown,
+          goalMl: widget.goalMl,
+          time: _time,
+          slosh: _slosh,
         ),
       ),
     );

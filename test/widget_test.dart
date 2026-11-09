@@ -110,6 +110,13 @@ void main() {
     await tester.tap(find.text('İnce'));
     await tester.pumpAndSettle();
     expect(shape(), ThermosShape.slim);
+
+    ThermosTheme theme() =>
+        tester.widget<ThermosView>(find.byType(ThermosView)).theme;
+    expect(theme(), ThermosTheme.classic);
+    await tester.tap(find.text('Panda'));
+    await tester.pumpAndSettle();
+    expect(theme(), ThermosTheme.panda);
     expect(tester.takeException(), isNull);
   });
 

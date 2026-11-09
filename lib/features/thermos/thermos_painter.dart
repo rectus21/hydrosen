@@ -2,11 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
+import 'art.dart';
 import 'svg_path.dart';
 import 'thermos_theme.dart';
 
-/// Taslaklardaki koordinat sistemi (680x520 tuvalin termosu içeren bölümü).
-const designRect = Rect.fromLTWH(200, 20, 300, 480);
+/// Taslaklardaki koordinat sistemi: 680x520 tuvalin arka plan kartı.
+const designRect = Rect.fromLTWH(120, 8, 440, 504);
 
 class _Geometry {
   const _Geometry({
@@ -62,6 +63,7 @@ class ThermosPainter extends CustomPainter {
     required this.goalMl,
     required this.time,
     required this.slosh,
+    this.happy = false,
   });
 
   final ThermosShape shape;
@@ -76,6 +78,9 @@ class ThermosPainter extends CustomPainter {
 
   /// Çalkalanma şiddeti; su eklenince artar, zamanla söner.
   final double slosh;
+
+  /// Hedefe ulaşıldı mı (kapak ifadesi; kutlama adımında kullanılacak).
+  final bool happy;
 
   static final _paths = <String, Path>{};
   static Path _p(String d) => _paths.putIfAbsent(d, () => svgPath(d));
@@ -96,6 +101,14 @@ class ThermosPainter extends CustomPainter {
     );
     canvas.scale(scale);
     canvas.translate(-designRect.left, -designRect.top);
+
+    // Temanın arka planı (köşeleri yuvarlatılmış kart).
+    canvas.save();
+    canvas.clipRRect(
+      RRect.fromRectAndRadius(designRect, const Radius.circular(24)),
+    );
+    theme.background(Art(canvas));
+    canvas.restore();
 
     final geo = _g;
     final body = _p(geo.body);
@@ -183,7 +196,8 @@ class ThermosPainter extends CustomPainter {
 
     _bands(canvas, geo);
     _marks(canvas, geo);
-    _classicCap(canvas);
+    final cap = shape == ThermosShape.chubby ? theme.capChubby : theme.capSlim;
+    cap(Art(canvas), happy);
     canvas.restore();
   }
 
@@ -212,6 +226,14 @@ class ThermosPainter extends CustomPainter {
           ..strokeWidth = 10
           ..strokeCap = StrokeCap.round
           ..color = theme.band,
+      );
+      canvas.drawPath(
+        _p('M304 90 Q304 48 340 48'),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..strokeCap = StrokeCap.round
+          ..color = theme.bandLight,
       );
     }
   }
@@ -249,44 +271,6 @@ class ThermosPainter extends CustomPainter {
     return s.replaceAll('.', ',');
   }
 
-  void _classicCap(Canvas canvas) {
-    final base = Paint()..color = const Color(0xFF888780);
-    final hi = Paint()..color = const Color(0xFFD3D1C7);
-    final lo = Paint()..color = const Color(0xFF5F5E5A);
-    final ridge = Paint()..color = const Color(0xFFB4B2A9);
-    if (shape == ThermosShape.chubby) {
-      canvas.drawPath(
-        _p(
-          'M262 204 L262 110 Q262 66 306 62 L374 62 Q418 66 418 110 L418 204 Z',
-        ),
-        base,
-      );
-      canvas.drawPath(
-        _p('M262 204 L262 110 Q262 70 296 63 Q280 84 280 114 L280 204 Z'),
-        hi,
-      );
-      canvas.drawPath(_p('M394 66 Q418 76 418 110 L418 204 L400 204 Z'), lo);
-      for (var i = 0; i < 11; i++) {
-        canvas.drawRect(Rect.fromLTWH(290 + i * 10.0, 70, 3, 130), ridge);
-      }
-    } else {
-      canvas.drawPath(
-        _p(
-          'M284 164 L284 116 Q284 92 310 90 L370 90 Q396 92 396 116 L396 164 Z',
-        ),
-        base,
-      );
-      canvas.drawPath(
-        _p('M284 164 L284 116 Q284 94 302 91 Q296 104 296 120 L296 164 Z'),
-        hi,
-      );
-      canvas.drawPath(_p('M380 92 Q396 96 396 116 L396 164 L384 164 Z'), lo);
-      for (var i = 0; i < 8; i++) {
-        canvas.drawRect(Rect.fromLTWH(304 + i * 10.0, 98, 3, 62), ridge);
-      }
-    }
-  }
-
   @override
   bool shouldRepaint(ThermosPainter old) =>
       old.level != level ||
@@ -294,5 +278,6 @@ class ThermosPainter extends CustomPainter {
       old.slosh != slosh ||
       old.shape != shape ||
       old.theme != theme ||
+      old.happy != happy ||
       old.goalMl != goalMl;
 }
