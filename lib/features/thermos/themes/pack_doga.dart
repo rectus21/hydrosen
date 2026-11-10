@@ -146,6 +146,49 @@ const List<ThermosTheme> dogaThemes = [
       0xF2B134,
     ]),
   ),
+  ThermosTheme(
+    id: 'ayi',
+    name: 'Ayı',
+    glass: Color(0xFFFFF4DA),
+    edge: Color(0xFF7A4A1C),
+    water: Color(0xFFE39A14),
+    deepWater: Color(0xFF9A5208),
+    waterSurface: Color(0xFFFFDE8C),
+    mark: Color(0xFF4E2D10),
+    label: Color(0xFF4E2D10),
+    band: Color(0xFF8B5A2B),
+    bandLight: Color(0xFFC08A55),
+    background: _ayiBg,
+    capChubby: _ayiA,
+    capSlim: _ayiB,
+    celebration: CelebrationStyle(CelebrationKind.confetti, [
+      0xF2B632,
+      0xE39A14,
+      0xFFDE8C,
+      0x8B5A2B,
+    ]),
+  ),
+  ThermosTheme(
+    id: 'kurbaga',
+    name: 'Kurbağa',
+    glass: Color(0xFFEFF6E2),
+    edge: Color(0xFF2F6B2A),
+    water: Color(0xFF38B05A),
+    deepWater: Color(0xFF1B6B36),
+    waterSurface: Color(0xFFC6F0CC),
+    mark: Color(0xFF1F4D22),
+    label: Color(0xFF1F4D22),
+    band: Color(0xFFE0617A),
+    bandLight: Color(0xFFF197A8),
+    background: _kurbagaBg,
+    capChubby: _kurbagaA,
+    capSlim: _kurbagaB,
+    celebration: CelebrationStyle(CelebrationKind.bubbles, [
+      0x8FE3B0,
+      0xC6F0CC,
+      0xFFFFFF,
+    ]),
+  ),
 ];
 
 // --- Okyanus ---------------------------------------------------------------
@@ -661,4 +704,274 @@ void _sonbaharB(Art a, bool happy) {
   a.o(300, 142, 7, 4, 0xED93B1, op: 0.7);
   a.o(380, 142, 7, 4, 0xED93B1, op: 0.7);
   _sbLeaf(a, 372, 64, -30, 0xD2691E, 1);
+}
+
+// --- Ayı -------------------------------------------------------------------
+
+String _ayiHex(num cx, num cy, num r) {
+  final b = StringBuffer();
+  for (var i = 0; i < 6; i++) {
+    final ang = (60 * i - 90) * math.pi / 180;
+    b.write(i == 0 ? 'M' : 'L');
+    b.write('${cx + r * math.cos(ang)} ${cy + r * math.sin(ang)} ');
+  }
+  b.write('Z');
+  return b.toString();
+}
+
+void _ayiPine(Art a, num x, num y, num s, int hex) {
+  for (var i = 0; i < 3; i++) {
+    final yy = y - i * 34 * s;
+    final w = (46 - i * 11) * s;
+    a.p('M${x - w} $yy L$x ${yy - 54 * s} L${x + w} $yy Z', hex);
+  }
+  a.p('M${x - 6 * s} $y h${12 * s} v${22 * s} h${-12 * s} Z', 0x6B4423);
+}
+
+void _ayiBg(Art a) {
+  a.p(_dogaFull, 0xEAF3C9);
+  a.c(204, 92, 36, 0xFFF3B0);
+  a.c(204, 92, 24, 0xFFE27A);
+  // Uzak orman
+  a.p(
+    'M120 330 Q200 270 280 320 Q370 260 450 320 Q510 290 560 310 V512 H120 Z',
+    0xB7D9A0,
+  );
+  _ayiPine(a, 160, 380, 1.1, 0x8DBE79);
+  _ayiPine(a, 520, 370, 1.2, 0x8DBE79);
+  _ayiPine(a, 460, 400, 0.9, 0x6FA85A);
+  _ayiPine(a, 210, 410, 0.8, 0x6FA85A);
+  // Ön tepe
+  a.p('M120 430 Q250 396 360 428 Q470 456 560 420 V512 H120 Z', 0x6FA85A);
+  a.p('M120 472 Q300 448 560 476 V512 H120 Z', 0x4F8F46);
+  // Ağaç gövdesi ve petek
+  a.p('M500 120 h34 v300 h-34 Z', 0x7A5230);
+  a.c(512, 96, 36, 0x5E9E48);
+  a.c(540, 120, 26, 0x4F8F46);
+  for (final h in const [
+    [506.0, 220.0],
+    [530.0, 220.0],
+    [518.0, 242.0],
+    [494.0, 242.0],
+    [506.0, 264.0],
+  ]) {
+    a.p(_ayiHex(h[0], h[1], 14), 0xF2B632);
+    a.p(_ayiHex(h[0], h[1], 9), 0xE39A14, op: 0.7);
+  }
+  a.p('M492 270 q4 24 8 0 Z M524 250 q4 30 8 0 Z', 0xF2B632);
+  // Arılar
+  for (final b in const [
+    [250.0, 190.0],
+    [292.0, 224.0],
+  ]) {
+    a.o(b[0], b[1], 8, 5.5, 0xF2B632);
+    a.s('M${b[0] - 3} ${b[1] - 5} v10 M${b[0] + 3} ${b[1] - 5} v10', k, 1.6);
+    a.o(b[0] - 2, b[1] - 8, 6, 3, w, op: 0.8, rot: -30);
+    a.o(b[0] + 4, b[1] - 8, 6, 3, w, op: 0.8, rot: 30);
+  }
+  // Bal küpü
+  a.o(180, 476, 38, 7, 0x3C6B36, op: 0.5);
+  a.p('M146 430 Q142 468 160 476 L200 476 Q218 468 214 430 Z', 0xA9683A);
+  a.o(180, 430, 36, 9, 0x8B5230);
+  a.o(180, 430, 29, 6, 0xF2B632);
+  a.p('M160 432 q3 22 7 0 Z M190 434 q3 16 7 0 Z', 0xF2B632);
+  a.p('M152 444 h56 v20 h-56 Z', 0xF7E7C0);
+  a.s('M164 454 h32', 0xA9683A, 3);
+}
+
+void _ayiEars(Art a, num y, num dx, num r) {
+  for (final d in const [-1, 1]) {
+    a.c(340 + d * dx, y, r, 0x8B5A2B);
+    a.c(340 + d * dx, y + r * 0.1, r * 0.58, 0xE9B98C);
+    a.c(340 + d * dx, y + r * 0.2, r * 0.38, 0xC98A62, op: 0.6);
+  }
+}
+
+void _ayiA(Art a, bool happy) {
+  _ayiEars(a, 74, 74, 34);
+  a.dome(0x8B5A2B, 0xB57A47, 0x5E3A1B);
+  // Tüy dokusu
+  a.s('M318 70 q4 -8 8 0 M340 62 q4 -8 8 0 M362 70 q4 -8 8 0', 0x5E3A1B, 2.5);
+  // Kaşlar
+  a.o(304, 100, 10, 4, 0x6B4423, rot: -10);
+  a.o(376, 100, 10, 4, 0x6B4423, rot: 10);
+  // Peluş burun bölgesi
+  a.o(340, 168, 54, 38, 0xF3DDB5);
+  a.o(334, 156, 30, 14, w, op: 0.2);
+  a.cheeks(146, 0.45);
+  if (happy) {
+    a.s('M296 120 Q308 104 320 120 M360 120 Q372 104 384 120', k, 4.5);
+  } else {
+    a.eye(308, 122, 9);
+    a.eye(372, 122, 9);
+  }
+  a.o(340, 146, 17, 12, 0x2E2018);
+  a.o(334, 142, 6, 3.5, w, op: 0.55);
+  if (happy) {
+    a.p('M308 170 Q340 218 372 170 Q340 184 308 170 Z', 0x5A1F22);
+    a.o(340, 192, 15, 9, 0xE8758F);
+    a.s('M340 158 V170', k, 3);
+  } else {
+    a.s(
+      'M340 158 V168 M340 168 Q328 180 316 172 M340 168 Q352 180 364 172',
+      k,
+      3.2,
+    );
+  }
+}
+
+void _ayiB(Art a, bool happy) {
+  _ayiEars(a, 98, 44, 21);
+  a.box(0x8B5A2B, 0xB57A47, 0x5E3A1B);
+  a.o(340, 148, 30, 20, 0xF3DDB5);
+  if (happy) {
+    a.s('M308 118 Q318 106 328 118 M352 118 Q362 106 372 118', k, 3.5);
+  } else {
+    a.c(318, 118, 5, k);
+    a.c(362, 118, 5, k);
+    a.c(316, 116, 1.6, w);
+    a.c(360, 116, 1.6, w);
+  }
+  a.o(340, 134, 10, 7, 0x2E2018);
+  a.o(336, 131, 3.5, 2, w, op: 0.55);
+  if (happy) {
+    a.p('M326 146 Q340 166 354 146 Q340 154 326 146 Z', 0x5A1F22);
+    a.o(340, 157, 6, 3.5, 0xE8758F);
+  } else {
+    a.s(
+      'M340 141 V146 M340 146 Q334 153 327 149 M340 146 Q346 153 353 149',
+      k,
+      2.2,
+    );
+  }
+}
+
+// --- Kurbağa ---------------------------------------------------------------
+
+void _kurbagaPad(Art a, num x, num y, num rx, int hex) {
+  final ry = rx * 0.38;
+  a.o(x, y, rx, ry, hex);
+  a.o(x - rx * 0.2, y - ry * 0.25, rx * 0.55, ry * 0.4, w, op: 0.15);
+  a.p(
+    'M$x $y L${x + rx * 0.95} ${y - ry * 0.35} L${x + rx * 0.95} ${y + ry * 0.1} Z',
+    0x6DBBB0,
+  );
+}
+
+void _kurbagaBg(Art a) {
+  a.p(_dogaFull, 0xD3EEDF);
+  a.c(490, 80, 34, 0xFFF3B0);
+  a.c(490, 80, 22, 0xFFE27A);
+  // Uzak kıyı
+  a.p(
+    'M120 250 Q200 214 280 246 Q380 206 470 244 Q520 232 560 250 V512 H120 Z',
+    0x9FCDA4,
+  );
+  // Su
+  a.p('M120 290 H560 V512 H120 Z', 0x8ED0C4);
+  a.p('M120 360 H560 V512 H120 Z', 0x6DBBB0);
+  a.p('M120 440 H560 V512 H120 Z', 0x56A89E);
+  // Halkalar
+  a.o(430, 330, 40, 9, w, op: 0.55, strokeWidth: 2);
+  a.o(430, 330, 24, 5, w, op: 0.5, strokeWidth: 2);
+  a.o(210, 400, 34, 8, w, op: 0.5, strokeWidth: 2);
+  // Kamışlar
+  for (final r in const [
+    [140.0, 290.0, 130.0],
+    [156.0, 290.0, 100.0],
+    [532.0, 290.0, 120.0],
+    [546.0, 290.0, 90.0],
+  ]) {
+    a.s(
+      'M${r[0]} ${r[1]} Q${r[0] + 4} ${r[1] - r[2] / 2} ${r[0] - 2} ${r[1] - r[2]}',
+      0x4F8F46,
+      5,
+    );
+    a.o(r[0] - 2, r[1] - r[2] - 14, 6, 17, 0x7A4A2A);
+  }
+  // Nilüfer yaprakları
+  _kurbagaPad(a, 190, 330, 46, 0x4FA84A);
+  _kurbagaPad(a, 500, 380, 52, 0x5FBA55);
+  _kurbagaPad(a, 150, 470, 56, 0x4FA84A);
+  _kurbagaPad(a, 520, 480, 44, 0x3E983E);
+  _kurbagaPad(a, 330, 500, 48, 0x5FBA55);
+  // Nilüfer çiçeği
+  for (final d in const [-1, 0, 1]) {
+    a.o(190 + d * 9, 316, 6, 14, 0xF6A7C1, rot: d * 28);
+  }
+  a.c(190, 322, 4, 0xFFE27A);
+  // Yusufçuk
+  a.o(280, 160, 12, 2.4, 0x2F8FC4);
+  a.o(274, 154, 9, 3, w, op: 0.7, rot: -20);
+  a.o(286, 154, 9, 3, w, op: 0.7, rot: 20);
+  a.c(292, 160, 3, 0x1F6B96);
+}
+
+void _kurbagaEye(Art a, num x, num y, num r) {
+  a.c(x, y, r, 0xF4F8DC);
+  a.c(x, y + r * 0.1, r, 0x3A7D2E, op: 0.25);
+  a.c(x, y - r * 0.05, r * 0.72, 0xFFFBE8);
+  a.o(x, y, r * 0.38, r * 0.5, k);
+  a.c(x - r * 0.15, y - r * 0.2, r * 0.14, w);
+}
+
+void _kurbagaA(Art a, bool happy) {
+  a.dome(0x5DB04A, 0x8AD36F, 0x3A7D2E);
+  // Çıkık gözler
+  for (final d in const [-1, 1]) {
+    a.c(340 + d * 58, 70, 33, 0x5DB04A);
+    a.c(340 + d * 58, 74, 33, 0x3A7D2E, op: 0.25);
+    a.c(340 + d * 58, 68, 26, 0x6FC15A);
+  }
+  _kurbagaEye(a, 282, 66, 21);
+  _kurbagaEye(a, 398, 66, 21);
+  if (happy) {
+    // Mutlu kısık göz kapağı
+    a.p('M258 66 Q282 36 306 66 Z', 0x5DB04A);
+    a.p('M374 66 Q398 36 422 66 Z', 0x5DB04A);
+    a.s('M262 68 Q282 52 302 68 M378 68 Q398 52 418 68', 0x2C5A22, 3);
+  }
+  // Benekler
+  a.c(318, 108, 6, 0x4A9A3C, op: 0.8);
+  a.c(364, 104, 8, 0x4A9A3C, op: 0.8);
+  a.c(340, 92, 5, 0x4A9A3C, op: 0.8);
+  a.o(342, 154, 66, 38, 0x8AD36F, op: 0.55);
+  // Burun delikleri
+  a.c(330, 130, 3.2, 0x2C5A22);
+  a.c(350, 130, 3.2, 0x2C5A22);
+  a.cheeks(150, 0.5);
+  if (happy) {
+    a.p('M262 162 Q340 224 418 162 Q340 176 262 162 Z', 0x5A1F22);
+    // Dil dışarıda
+    a.p('M322 180 Q340 188 358 180 L358 214 Q340 244 322 214 Z', 0xF0607D);
+    a.s('M340 186 V220', 0xC73F5D, 2.5);
+  } else {
+    a.s('M262 162 Q340 196 418 162', 0x2C5A22, 4);
+    a.s('M262 162 q-6 -4 -10 -10 M418 162 q6 -4 10 -10', 0x2C5A22, 3);
+  }
+}
+
+void _kurbagaB(Art a, bool happy) {
+  a.box(0x5DB04A, 0x8AD36F, 0x3A7D2E);
+  for (final d in const [-1, 1]) {
+    a.c(340 + d * 30, 88, 20, 0x5DB04A);
+    a.c(340 + d * 30, 86, 15, 0x6FC15A);
+  }
+  _kurbagaEye(a, 310, 86, 13);
+  _kurbagaEye(a, 370, 86, 13);
+  if (happy) {
+    a.p('M296 86 Q310 68 324 86 Z', 0x5DB04A);
+    a.p('M356 86 Q370 68 384 86 Z', 0x5DB04A);
+    a.s('M298 88 Q310 76 322 88 M358 88 Q370 76 382 88', 0x2C5A22, 2.5);
+  }
+  a.c(332, 114, 2.6, 0x2C5A22);
+  a.c(348, 114, 2.6, 0x2C5A22);
+  a.o(298, 132, 8, 5, 0xED93B1, op: 0.5);
+  a.o(382, 132, 8, 5, 0xED93B1, op: 0.5);
+  if (happy) {
+    a.p('M298 136 Q340 168 382 136 Q340 144 298 136 Z', 0x5A1F22);
+    a.p('M330 148 Q340 152 350 148 L350 164 Q340 178 330 164 Z', 0xF0607D);
+  } else {
+    a.s('M298 136 Q340 156 382 136', 0x2C5A22, 3);
+  }
 }
