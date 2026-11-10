@@ -143,6 +143,27 @@ const List<ThermosTheme> fantastikThemes = [
       0xFFFFFF,
     ]),
   ),
+  ThermosTheme(
+    id: 'maviejderha',
+    name: 'Mavi Ejderha',
+    glass: Color(0xFFE2ECF8),
+    edge: Color(0xFF244C8C),
+    water: Color(0xFF2E8CE6),
+    deepWater: Color(0xFF123F8C),
+    waterSurface: Color(0xFFBFE4FF),
+    mark: Color(0xFFEAF3FF),
+    label: Color(0xFFEAF3FF),
+    band: Color(0xFF2F66C8),
+    bandLight: Color(0xFF7FB0F0),
+    background: _maviEjderhaBg,
+    capChubby: _maviEjderhaA,
+    capSlim: _maviEjderhaB,
+    celebration: CelebrationStyle(CelebrationKind.stardust, [
+      0x38D6F5,
+      0x8FD0FF,
+      0xE6F6FF,
+    ]),
+  ),
 ];
 
 // --- Ejderha ---------------------------------------------------------------
@@ -741,4 +762,196 @@ void _sihirbazB(Art a, bool happy) {
     a.c(356, 120, 1.5, w);
   }
   _sihirbazHat(a, slim: true);
+}
+
+// --- Mavi Ejderha ----------------------------------------------------------
+
+void _maviPagoda(Art a, num cx, num base, num s, int hex) {
+  var y = base.toDouble();
+  for (var i = 0; i < 4; i++) {
+    final w = (34 - i * 6) * s;
+    a.p(
+      'M${cx - w + 8 * s} $y h${2 * (w - 8 * s)} v${-20 * s} h${-2 * (w - 8 * s)} Z',
+      hex,
+    );
+    final ry = y - 20 * s;
+    a.p(
+      'M${cx - w - 10 * s} ${ry + 2 * s} Q${cx - w + 6 * s} ${ry + 8 * s} ${cx - w + 16 * s} $ry '
+      'L${cx + w - 16 * s} $ry Q${cx + w - 6 * s} ${ry + 8 * s} ${cx + w + 10 * s} ${ry + 2 * s} '
+      'Q${cx + w - 8 * s} ${ry - 4 * s} $cx ${ry - 22 * s} '
+      'Q${cx - w + 8 * s} ${ry - 4 * s} ${cx - w - 10 * s} ${ry + 2 * s} Z',
+      hex,
+    );
+    y = ry - 14 * s;
+  }
+  a.p('M${cx - 1.5 * s} ${y - 6 * s} h${3 * s} v${-24 * s} h${-3 * s} Z', hex);
+}
+
+void _maviEjderhaBg(Art a) {
+  a.p(_fFull, 0x14224A);
+  a.p('M120 8 H560 V260 H120 Z', 0x1B2E62, op: 0.6);
+  // Yıldızlar
+  for (final st in const [
+    [150.0, 40.0],
+    [210.0, 80.0],
+    [260.0, 30.0],
+    [330.0, 64.0],
+    [400.0, 28.0],
+    [450.0, 90.0],
+    [520.0, 50.0],
+    [170.0, 130.0],
+    [300.0, 120.0],
+    [380.0, 150.0],
+    [540.0, 140.0],
+  ]) {
+    a.c(st[0], st[1], 2, 0xE6F0FF, op: 0.85);
+  }
+  // Ay
+  a.c(210, 150, 52, 0xCFE4FF, op: 0.12);
+  a.c(210, 150, 40, 0xCFE4FF, op: 0.2);
+  a.c(210, 150, 30, 0xEAF3FF);
+  a.c(200, 142, 6, 0xC2D6F0, op: 0.7);
+  a.c(220, 160, 4, 0xC2D6F0, op: 0.7);
+  // Uzak dağlar
+  a.p(
+    'M120 330 L180 250 L230 300 L300 220 L370 310 L440 250 L500 300 L560 240 V512 H120 Z',
+    0x2B4A86,
+  );
+  _maviPagoda(a, 440, 270, 0.9, 0x0F1B3E);
+  // Sis
+  a.o(250, 320, 150, 20, 0xA9C6F0, op: 0.18);
+  a.o(480, 350, 110, 16, 0xA9C6F0, op: 0.16);
+  a.p(
+    'M120 380 L190 310 L250 360 L330 290 L420 380 L490 330 L560 370 V512 H120 Z',
+    0x223C70,
+  );
+  a.o(330, 400, 170, 22, 0xA9C6F0, op: 0.2);
+  a.p(
+    'M120 440 L220 380 L300 430 L400 370 L480 430 L560 400 V512 H120 Z',
+    0x1A2F5C,
+  );
+  a.o(200, 460, 130, 18, 0xA9C6F0, op: 0.18);
+  a.p('M120 480 Q250 450 360 480 Q470 500 560 470 V512 H120 Z', 0x0F1B3E);
+  // Bulutlar
+  for (final cl in const [
+    [440.0, 120.0, 1.0],
+    [160.0, 230.0, 0.8],
+  ]) {
+    final x = cl[0], y = cl[1], s = cl[2];
+    a.o(x, y, 44 * s, 10 * s, 0x6C8CC4, op: 0.5);
+    a.o(x - 14 * s, y - 8 * s, 22 * s, 9 * s, 0x6C8CC4, op: 0.5);
+    a.o(x + 16 * s, y - 6 * s, 18 * s, 8 * s, 0x6C8CC4, op: 0.5);
+  }
+}
+
+/// Geriye ve yukarıya kıvrılan boynuz (d: -1 sol, 1 sağ).
+String _maviHorn(int d, num x0, num y0, num s) {
+  return 'M${340 + d * x0} $y0 '
+      'Q${340 + d * (x0 + 10 * s)} ${y0 - 34 * s} ${340 + d * (x0 + 44 * s)} ${y0 - 52 * s} '
+      'Q${340 + d * (x0 + 74 * s)} ${y0 - 66 * s} ${340 + d * (x0 + 84 * s)} ${y0 - 96 * s} '
+      'Q${340 + d * (x0 + 58 * s)} ${y0 - 84 * s} ${340 + d * (x0 + 34 * s)} ${y0 - 70 * s} '
+      'Q${340 + d * (x0 - 10 * s)} ${y0 - 48 * s} ${340 + d * (x0 - 22 * s)} ${y0 + 6 * s} Z';
+}
+
+void _maviEjderhaA(Art a, bool happy) {
+  // Yan yüzgeçler
+  for (final d in const [-1, 1]) {
+    a.p(
+      'M${340 + d * 90} 112 Q${340 + d * 140} 96 ${340 + d * 134} 150 '
+      'Q${340 + d * 120} 134 ${340 + d * 112} 156 Q${340 + d * 104} 138 ${340 + d * 92} 150 Z',
+      0x38B6E8,
+    );
+    a.s(
+      'M${340 + d * 96} 126 L${340 + d * 128} 122 M${340 + d * 98} 138 L${340 + d * 120} 142',
+      0x1B7AB0,
+      2,
+    );
+  }
+  // Boynuzlar
+  for (final d in const [-1, 1]) {
+    a.p(_maviHorn(d, 50, 104, 0.74), 0xE8DDC0);
+    a.p(_maviHorn(d, 56, 100, 0.64), 0xB8A982, op: 0.45);
+  }
+  a.dome(0x2F66C8, 0x5E92E8, 0x1B3F8F);
+  // Alın pulu ve pul deseni
+  a.p('M328 78 L340 52 L352 78 Z', 0x1B3F8F);
+  a.p('M332 78 L340 60 L348 78 Z', 0x38B6E8, op: 0.8);
+  for (final y in const [90.0, 104.0]) {
+    for (var x = 296.0; x <= 384; x += 22) {
+      a.s('M$x $y q10 8 20 0', 0x1B3F8F, 2);
+    }
+  }
+  // Kaşlar
+  a.p('M276 108 Q300 94 322 114 L322 122 Q300 108 276 120 Z', 0x1B3F8F);
+  a.p('M404 108 Q380 94 358 114 L358 122 Q380 108 404 120 Z', 0x1B3F8F);
+  // Gözler
+  for (final x in const [300, 380]) {
+    a.o(x, 130, 14, 11, 0xFFD23F);
+    a.o(x, 130, 14, 11, 0xE59A00, op: 0.5, strokeWidth: 2);
+    a.o(x, 130, 3.6, 10, 0x1A1230);
+    a.c(x - 5, 125, 2.4, w, op: 0.9);
+  }
+  // Burun kısmı
+  a.o(340, 168, 62, 40, 0x4F88DA);
+  a.o(340, 160, 44, 20, 0x7FB0F0, op: 0.45);
+  a.o(318, 154, 6, 9, 0x13224F, rot: 15);
+  a.o(362, 154, 6, 9, 0x13224F, rot: -15);
+  a.cheeks(150, 0.3);
+  if (happy) {
+    a.p('M292 172 Q340 224 388 172 Q340 186 292 172 Z', 0x13224F);
+    a.p('M302 174 l6 14 l6 -12 Z', w);
+    a.p('M378 174 l-6 14 l-6 -12 Z', w);
+    a.o(340, 200, 16, 8, 0x2E5CB8);
+    // Mavi alev
+    a.p(
+      'M340 204 Q352 244 340 286 Q360 270 364 240 Q386 268 372 306 Q422 270 400 220 Q384 238 376 214 Q366 200 340 204 Z',
+      0x38B6E8,
+    );
+    a.p(
+      'M342 208 Q350 240 344 268 Q362 254 362 236 Q376 254 372 276 Q394 252 386 228 Q376 238 370 222 Q360 210 342 208 Z',
+      0x9BE7FF,
+    );
+    a.p('M346 214 Q354 236 350 252 Q362 242 360 228 Q354 218 346 214 Z', w,
+        op: 0.9);
+  } else {
+    a.s('M300 184 Q340 204 380 184', k, 3.5);
+    a.p('M306 184 l4 9 l5 -8 Z', w);
+    a.p('M374 184 l-4 9 l-5 -8 Z', w);
+  }
+}
+
+void _maviEjderhaB(Art a, bool happy) {
+  for (final d in const [-1, 1]) {
+    a.p(_maviHorn(d, 34, 98, 0.62), 0xE8DDC0);
+    a.p(
+      'M${340 + d * 56} 124 Q${340 + d * 90} 112 ${340 + d * 84} 146 Q${340 + d * 72} 134 ${340 + d * 58} 148 Z',
+      0x38B6E8,
+    );
+  }
+  for (final x in const [322, 340, 358]) {
+    a.p('M${x - 7} 92 L$x 74 L${x + 7} 92 Z', 0x1B3F8F);
+  }
+  a.box(0x2F66C8, 0x5E92E8, 0x1B3F8F);
+  a.p('M300 108 Q314 100 330 112 L330 117 Q314 108 300 114 Z', 0x1B3F8F);
+  a.p('M380 108 Q366 100 350 112 L350 117 Q366 108 380 114 Z', 0x1B3F8F);
+  for (final x in const [316, 364]) {
+    a.o(x, 126, 8, 6.5, 0xFFD23F);
+    a.o(x, 126, 2.2, 6, 0x1A1230);
+  }
+  a.o(340, 146, 28, 17, 0x4F88DA);
+  a.o(331, 142, 3, 4.5, 0x13224F);
+  a.o(349, 142, 3, 4.5, 0x13224F);
+  if (happy) {
+    a.p('M320 152 Q340 172 360 152 Q340 158 320 152 Z', 0x13224F);
+    a.p(
+      'M340 160 Q348 180 340 200 Q356 190 354 176 Q366 184 362 206 Q382 184 368 160 Q356 170 352 162 Q348 156 340 160 Z',
+      0x38B6E8,
+    );
+    a.p(
+      'M342 162 Q348 178 344 190 Q354 184 352 174 Q362 182 358 196 Q372 180 362 168 Q354 172 350 164 Z',
+      0x9BE7FF,
+    );
+  } else {
+    a.s('M324 154 Q340 160 356 154', k, 2.5);
+  }
 }
