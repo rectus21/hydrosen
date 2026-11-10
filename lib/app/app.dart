@@ -4,6 +4,7 @@ import '../data/settings_repository.dart';
 import '../data/water_repository.dart';
 import '../features/home/home_screen.dart';
 import '../features/settings/settings_controller.dart';
+import 'app_look.dart';
 
 class HydroSenApp extends StatefulWidget {
   const HydroSenApp({super.key, this.repository, this.settingsRepository});
@@ -37,17 +38,17 @@ class _HydroSenAppState extends State<HydroSenApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'HydroSen',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1E88E5),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
+    // Tema seçilince yalnız termos değil tüm uygulama (renkler, arka plan,
+    // yazı tipleri) değişir.
+    return ListenableBuilder(
+      listenable: _settings,
+      builder: (context, home) => MaterialApp(
+        title: 'HydroSen',
+        debugShowCheckedModeBanner: false,
+        theme: AppLook.of(_settings.theme).themeData,
+        home: home,
       ),
-      home: HomeScreen(repository: _repository, settings: _settings),
+      child: HomeScreen(repository: _repository, settings: _settings),
     );
   }
 }

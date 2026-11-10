@@ -72,6 +72,7 @@ class ThermosPainter extends CustomPainter {
     this.tilt = 0,
     this.wave = 0,
     this.happy = false,
+    this.labelStyle,
   });
 
   final ThermosShape shape;
@@ -95,6 +96,10 @@ class ThermosPainter extends CustomPainter {
 
   /// Hedefe ulaşıldı mı (kapak ifadesi; kutlama adımında kullanılacak).
   final bool happy;
+
+  /// Ölçek yazılarının taban stili (temanın yazı tipi); renk ve boyut
+  /// termos temasından gelir.
+  final TextStyle? labelStyle;
 
   static final _paths = <String, Path>{};
   static Path _p(String d) => _paths.putIfAbsent(d, () => svgPath(d));
@@ -277,7 +282,7 @@ class ThermosPainter extends CustomPainter {
         final tp = TextPainter(
           text: TextSpan(
             text: '${_liters(ml)} L',
-            style: TextStyle(
+            style: (labelStyle ?? const TextStyle()).copyWith(
               color: theme.label,
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -306,5 +311,6 @@ class ThermosPainter extends CustomPainter {
       old.shape != shape ||
       old.theme != theme ||
       old.happy != happy ||
-      old.goalMl != goalMl;
+      old.goalMl != goalMl ||
+      old.labelStyle != labelStyle;
 }

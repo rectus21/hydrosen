@@ -179,6 +179,7 @@ class _ThermosViewState extends State<ThermosView>
             tilt: _slosh.tilt,
             wave: _slosh.wave,
             happy: widget.happy,
+            labelStyle: Theme.of(context).textTheme.labelSmall,
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/app_look.dart';
 import '../../data/water_repository.dart';
 import '../settings/settings_controller.dart';
 import '../settings/settings_screen.dart';
@@ -63,102 +64,124 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('HydroSen'),
-        actions: [
-          IconButton(
-            tooltip: 'Ayarlar',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: _openSettings,
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: ListenableBuilder(
-          listenable: Listenable.merge([_controller, widget.settings]),
-          builder: (context, _) =>
-              !_controller.loaded || !widget.settings.loaded
-              ? const Center(child: CircularProgressIndicator())
-              : Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
-                    child: ListView(
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        if (_controller.saveFailed)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Text(
-                              'Kayıtlar cihaza saklanamadı; uygulamayı kapatırsan kaybolabilir.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
+    return ThemeBackdrop(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('HydroSen'),
+          actions: [
+            IconButton(
+              tooltip: 'Ayarlar',
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: _openSettings,
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: ListenableBuilder(
+            listenable: Listenable.merge([_controller, widget.settings]),
+            builder: (context, _) =>
+                !_controller.loaded || !widget.settings.loaded
+                ? const Center(child: CircularProgressIndicator())
+                : Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          if (_controller.saveFailed)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Text(
+                                'Kayıtlar cihaza saklanamadı; uygulamayı kapatırsan kaybolabilir.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ),
+                          _ThermosSection(
+                            controller: _controller,
+                            shape: widget.settings.shape,
+                            theme: widget.settings.theme,
+                          ),
+                          const SizedBox(height: 24),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              for (final ml in _quickAmounts)
+                                FilledButton.tonalIcon(
+                                  onPressed: () => _controller.add(ml),
+                                  icon: const Icon(Icons.water_drop_outlined),
+                                  label: Text('$ml ml'),
+                                ),
+                              OutlinedButton.icon(
+                                onPressed: _addCustom,
+                                icon: const Icon(Icons.edit_outlined),
+                                label: const Text('Özel'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 28),
+                          Text(
+                            'Bugün',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              child: Column(
+                                children: [
+                                  if (_controller.todayEntries.isEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 24,
+                                      ),
+                                      child: Text(
+                                        'Henüz su kaydı yok. Yukarıdan ilk bardağını ekle.',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                    )
+                                  else
+                                    for (final e in _controller.todayEntries)
+                                      ListTile(
+                                        key: ValueKey(e.id),
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: const Icon(Icons.water_drop),
+                                        title: Text('${e.amountMl} ml'),
+                                        subtitle: Text(_formatTime(e.time)),
+                                        trailing: IconButton(
+                                          tooltip: 'Sil',
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                          ),
+                                          onPressed: () =>
+                                              _controller.remove(e.id),
+                                        ),
+                                      ),
+                                ],
                               ),
                             ),
                           ),
-                        _ThermosSection(
-                          controller: _controller,
-                          shape: widget.settings.shape,
-                          theme: widget.settings.theme,
-                        ),
-                        const SizedBox(height: 24),
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: [
-                            for (final ml in _quickAmounts)
-                              FilledButton.tonalIcon(
-                                onPressed: () => _controller.add(ml),
-                                icon: const Icon(Icons.water_drop_outlined),
-                                label: Text('$ml ml'),
-                              ),
-                            OutlinedButton.icon(
-                              onPressed: _addCustom,
-                              icon: const Icon(Icons.edit_outlined),
-                              label: const Text('Özel'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 28),
-                        Text(
-                          'Bugün',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        if (_controller.todayEntries.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Text(
-                              'Henüz su kaydı yok. Yukarıdan ilk bardağını ekle.',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
-                            ),
-                          )
-                        else
-                          for (final e in _controller.todayEntries)
-                            ListTile(
-                              key: ValueKey(e.id),
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.water_drop),
-                              title: Text('${e.amountMl} ml'),
-                              subtitle: Text(_formatTime(e.time)),
-                              trailing: IconButton(
-                                tooltip: 'Sil',
-                                icon: const Icon(Icons.delete_outline),
-                                onPressed: () => _controller.remove(e.id),
-                              ),
-                            ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+          ),
         ),
       ),
     );
