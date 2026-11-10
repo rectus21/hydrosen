@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../data/water_repository.dart';
+import '../settings/settings_controller.dart';
+import '../settings/settings_screen.dart';
 import '../thermos/thermos_theme.dart';
 import '../thermos/thermos_view.dart';
 import 'water_controller.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.repository});
+  const HomeScreen({
+    super.key,
+    required this.repository,
+    required this.settings,
+  });
 
   final WaterRepository repository;
+  final SettingsController settings;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -18,18 +25,29 @@ class _HomeScreenState extends State<HomeScreen> {
   late final WaterController _controller;
   static const _quickAmounts = [150, 250, 330, 500];
 
-  /// Şimdilik bellekte; ayarlar ekranıyla kalıcı olacak.
-  ThermosShape _shape = ThermosShape.chubby;
-  ThermosTheme _theme = ThermosTheme.classic;
-
   @override
   void initState() {
     super.initState();
-    _controller = WaterController(repository: widget.repository)..load();
+    _controller = WaterController(
+      repository: widget.repository,
+      goalMl: widget.settings.goalMl,
+    )..load();
+    widget.settings.addListener(_syncGoal);
+  }
+
+  void _syncGoal() => _controller.goalMl = widget.settings.goalMl;
+
+  void _openSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SettingsScreen(controller: widget.settings),
+      ),
+    );
   }
 
   @override
   void dispose() {
+    widget.settings.removeListener(_syncGoal);
     _controller.dispose();
     super.dispose();
   }
@@ -45,11 +63,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('HydroSen')),
+      appBar: AppBar(
+        title: const Text('HydroSen'),
+        actions: [
+          IconButton(
+            tooltip: 'Ayarlar',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: _openSettings,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: ListenableBuilder(
-          listenable: _controller,
-          builder: (context, _) => !_controller.loaded
+          listenable: Listenable.merge([_controller, widget.settings]),
+          builder: (context, _) =>
+              !_controller.loaded || !widget.settings.loaded
               ? const Center(child: CircularProgressIndicator())
               : Center(
                   child: ConstrainedBox(
@@ -70,10 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         _ThermosSection(
                           controller: _controller,
-                          shape: _shape,
-                          theme: _theme,
-                          onShapeChanged: (s) => setState(() => _shape = s),
-                          onThemeChanged: (t) => setState(() => _theme = t),
+                          shape: widget.settings.shape,
+                          theme: widget.settings.theme,
                         ),
                         const SizedBox(height: 24),
                         Wrap(
@@ -200,15 +226,11 @@ class _ThermosSection extends StatelessWidget {
     required this.controller,
     required this.shape,
     required this.theme,
-    required this.onShapeChanged,
-    required this.onThemeChanged,
   });
 
   final WaterController controller;
   final ThermosShape shape;
   final ThermosTheme theme;
-  final ValueChanged<ThermosShape> onShapeChanged;
-  final ValueChanged<ThermosTheme> onThemeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -239,30 +261,6 @@ class _ThermosSection extends StatelessWidget {
         Text(
           controller.progress >= 1 ? 'Hedefe ulaştın!' : '%$percent tamamlandı',
           style: text.titleMedium,
-        ),
-        const SizedBox(height: 12),
-        SegmentedButton<ThermosShape>(
-          segments: [
-            for (final s in ThermosShape.values)
-              ButtonSegment(value: s, label: Text(s.label)),
-          ],
-          selected: {shape},
-          showSelectedIcon: false,
-          onSelectionChanged: (s) => onShapeChanged(s.first),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final t in ThermosTheme.all)
-              ChoiceChip(
-                label: Text(t.name),
-                selected: t == theme,
-                onSelected: (_) => onThemeChanged(t),
-              ),
-          ],
         ),
       ],
     );

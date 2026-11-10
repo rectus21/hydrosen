@@ -10,13 +10,22 @@ import '../../domain/water_entry.dart';
 class WaterController extends ChangeNotifier {
   WaterController({
     required this._repository,
-    this.goalMl = 2000,
+    this._goalMl = 2000,
     DateTime Function()? now,
   }) : _now = now ?? DateTime.now;
 
   final WaterRepository _repository;
   final DateTime Function() _now;
-  final int goalMl;
+  int _goalMl;
+
+  int get goalMl => _goalMl;
+
+  /// Ayarlardan gelen yeni günlük hedef; kayıtlar etkilenmez.
+  set goalMl(int value) {
+    if (value == _goalMl) return;
+    _goalMl = value;
+    notifyListeners();
+  }
 
   List<WaterEntry> _entries = [];
   bool _loaded = false;

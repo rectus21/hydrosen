@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrosen/app/app.dart';
+import 'package:hydrosen/data/settings_repository.dart';
 import 'package:hydrosen/data/water_repository.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
 import 'package:hydrosen/features/thermos/thermos_view.dart';
@@ -22,7 +23,12 @@ void prepare(WidgetTester tester) {
 void main() {
   testWidgets('ana ekran: ekleme ve silme toplamı günceller', (tester) async {
     prepare(tester);
-    await tester.pumpWidget(HydroSenApp(repository: InMemoryWaterRepository()));
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('0 ml'), findsOneWidget);
 
@@ -42,7 +48,12 @@ void main() {
     tester,
   ) async {
     prepare(tester);
-    await tester.pumpWidget(HydroSenApp(repository: InMemoryWaterRepository()));
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     // Geçersiz giriş: pencere açık kalır, uyarı görünür.
@@ -83,40 +94,46 @@ void main() {
     prepare(tester);
     final repo = InMemoryWaterRepository();
 
-    await tester.pumpWidget(HydroSenApp(repository: repo));
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: repo,
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('500 ml'));
     await tester.pumpAndSettle();
 
     // Uygulamayı kapat, aynı depoyla yeniden aç.
     await tester.pumpWidget(const SizedBox());
-    await tester.pumpWidget(HydroSenApp(repository: repo));
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: repo,
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('%25 tamamlandı'), findsOneWidget);
     expect(find.byTooltip('Sil'), findsOneWidget);
   });
 
-  testWidgets('termos görünür, tombul/ince seçimi değişir', (tester) async {
+  testWidgets('termos görünür, varsayılan biçim ve tema tombul/Klasik', (
+    tester,
+  ) async {
     prepare(tester);
-    await tester.pumpWidget(HydroSenApp(repository: InMemoryWaterRepository()));
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(ThermosView), findsOneWidget);
-    ThermosShape shape() =>
-        tester.widget<ThermosView>(find.byType(ThermosView)).shape;
-    expect(shape(), ThermosShape.chubby);
-
-    await tester.tap(find.text('İnce'));
-    await tester.pumpAndSettle();
-    expect(shape(), ThermosShape.slim);
-
-    ThermosTheme theme() =>
-        tester.widget<ThermosView>(find.byType(ThermosView)).theme;
-    expect(theme(), ThermosTheme.classic);
-    await tester.tap(find.text('Panda'));
-    await tester.pumpAndSettle();
-    expect(theme(), ThermosTheme.panda);
+    final view = tester.widget<ThermosView>(find.byType(ThermosView));
+    expect(view.shape, ThermosShape.chubby);
+    expect(view.theme, ThermosTheme.classic);
     expect(tester.takeException(), isNull);
   });
 
@@ -124,7 +141,12 @@ void main() {
     tester.view.physicalSize = const Size(800, 1800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(HydroSenApp(repository: InMemoryWaterRepository()));
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
