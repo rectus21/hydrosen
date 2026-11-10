@@ -6,6 +6,7 @@ import 'package:hydrosen/domain/water_entry.dart';
 import 'package:hydrosen/features/home/goal_celebration.dart';
 import 'package:hydrosen/features/home/water_controller.dart';
 import 'package:hydrosen/features/thermos/celebration_painter.dart';
+import 'package:hydrosen/features/thermos/celebration_style.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
 
 void main() {
@@ -133,6 +134,40 @@ void main() {
           }
         });
       }
+    }
+
+    for (final kind in CelebrationKind.values) {
+      test('genel kutlama türü ${kind.name} (celebration ile) çizilir', () {
+        final c = ThermosTheme.classic;
+        final theme = ThermosTheme(
+          id: 'deneme',
+          name: 'Deneme',
+          glass: c.glass,
+          edge: c.edge,
+          water: c.water,
+          deepWater: c.deepWater,
+          waterSurface: c.waterSurface,
+          mark: c.mark,
+          label: c.label,
+          band: c.band,
+          bandLight: c.bandLight,
+          background: c.background,
+          capChubby: c.capChubby,
+          capSlim: c.capSlim,
+          celebration: CelebrationStyle(kind, const [0xE24B4A, 0x378ADD]),
+        );
+        for (final shape in ThermosShape.values) {
+          for (final t in [0.0, 0.2, 0.6, 1.0]) {
+            final recorder = PictureRecorder();
+            CelebrationPainter(
+              theme: theme,
+              shape: shape,
+              t: t,
+            ).paint(Canvas(recorder), const Size(330, 380));
+            recorder.endRecording().dispose();
+          }
+        }
+      });
     }
   });
 }

@@ -13,7 +13,10 @@ import 'thermos_theme.dart';
 /// - termosa dokununca sallanır; yatay sürükleyince su o yöne eğilir,
 ///   bırakınca sönümlenerek durulur,
 /// - hedef kutlaması başlayınca ([celebrations] artınca).
-/// Cihazda "animasyonları azalt" açıksa durağan çizilir, çalkalanma olmaz.
+/// Cihazda "animasyonları azalt" açıksa su yine hareket eder (yoksa web'de
+/// tarayıcı/işletim sistemi bu tercihi bildirdiğinde hiçbir tepki görünmezdi)
+/// ama çok daha hafif ([_reducedGain]); sürekli yüzey titreşimi kapanır ve
+/// seviye anında güncellenir.
 class ThermosView extends StatefulWidget {
   const ThermosView({
     super.key,
@@ -47,6 +50,9 @@ class ThermosView extends StatefulWidget {
 
 class _ThermosViewState extends State<ThermosView>
     with SingleTickerProviderStateMixin {
+  /// "Animasyonları azalt" açıkken çalkalanma gücünün çarpanı.
+  static const _reducedGain = 0.35;
+
   late final Ticker _ticker = createTicker(_tick);
   final _slosh = SloshModel();
   Duration _last = Duration.zero;
@@ -63,22 +69,24 @@ class _ThermosViewState extends State<ThermosView>
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.of(context).disableAnimations;
     if (_reduceMotion) {
-      _ticker.stop();
       _shown = widget.progress;
-      _slosh.reset();
-    } else if (!_ticker.isActive) {
-      _last = Duration.zero;
-      _ticker.start();
+      // Sürekli titreşim yok: ticker yalnız su hareket ederken çalışır.
+      if (_slosh.isAtRest) _ticker.stop();
+    } else {
+      _wake();
     }
+  }
+
+  void _wake() {
+    if (_ticker.isActive) return;
+    _last = Duration.zero;
+    _ticker.start();
   }
 
   @override
   void didUpdateWidget(ThermosView old) {
     super.didUpdateWidget(old);
-    if (_reduceMotion) {
-      _shown = widget.progress;
-      return;
-    }
+    if (_reduceMotion) _shown = widget.progress;
     final now = widget.totalMl, before = old.totalMl;
     final deltaMl = now != null && before != null
         ? now - before
@@ -97,33 +105,32 @@ class _ThermosViewState extends State<ThermosView>
 
   /// Çalkalanma itkisi; yön sırayla değişir.
   void _push({required double tilt, required double wave}) {
-    if (_reduceMotion) return;
+    final g = _reduceMotion ? _reducedGain : 1.0;
     _side = -_side;
-    _slosh.impulse(tiltVelocity: _side * tilt, waveVelocity: wave);
+    _slosh.impulse(tiltVelocity: _side * tilt * g, waveVelocity: wave * g);
+    _wake();
   }
 
   void _onTap() => _push(tilt: 0.8, wave: 30);
 
   void _onDragStart(DragStartDetails _) {
-    if (_reduceMotion) return;
     _dragDx = 0;
+    _wake();
   }
 
   void _onDragUpdate(DragUpdateDetails d) {
-    if (_reduceMotion) return;
     _dragDx += d.delta.dx;
     final width = math.max(1.0, context.size?.width ?? 300);
-    _slosh.hold(_dragDx / width * 1.2);
+    final g = _reduceMotion ? _reducedGain : 1.0;
+    _slosh.hold(_dragDx / width * 1.2 * g);
   }
 
   void _onDragEnd(DragEndDetails d) {
-    if (_reduceMotion) return;
     final width = math.max(1.0, context.size?.width ?? 300);
+    final g = _reduceMotion ? _reducedGain : 1.0;
     _slosh.release(
-      flingVelocity: (d.velocity.pixelsPerSecond.dx / width * 0.8).clamp(
-        -3.0,
-        3.0,
-      ),
+      flingVelocity:
+          (d.velocity.pixelsPerSecond.dx / width * 0.8).clamp(-3.0, 3.0) * g,
     );
   }
 
@@ -133,10 +140,15 @@ class _ThermosViewState extends State<ThermosView>
     final dt = math.min(0.05, (elapsed - _last).inMicroseconds / 1e6);
     _last = elapsed;
     setState(() {
-      _time += dt;
-      _shown += (widget.progress - _shown) * math.min(1, dt * 3);
+      if (_reduceMotion) {
+        _shown = widget.progress; // sürekli yüzey titreşimi yok
+      } else {
+        _time += dt;
+        _shown += (widget.progress - _shown) * math.min(1, dt * 3);
+      }
       _slosh.step(dt); // durgunken hiçbir şey yapmaz
     });
+    if (_reduceMotion && _slosh.isAtRest) _ticker.stop();
   }
 
   @override
@@ -147,16 +159,15 @@ class _ThermosViewState extends State<ThermosView>
 
   @override
   Widget build(BuildContext context) {
-    final still = _reduceMotion;
     return AspectRatio(
       aspectRatio: designRect.width / designRect.height,
       child: GestureDetector(
         excludeFromSemantics: true,
-        onTap: still ? null : _onTap,
-        onHorizontalDragStart: still ? null : _onDragStart,
-        onHorizontalDragUpdate: still ? null : _onDragUpdate,
-        onHorizontalDragEnd: still ? null : _onDragEnd,
-        onHorizontalDragCancel: still ? null : _onDragCancel,
+        onTap: _onTap,
+        onHorizontalDragStart: _onDragStart,
+        onHorizontalDragUpdate: _onDragUpdate,
+        onHorizontalDragEnd: _onDragEnd,
+        onHorizontalDragCancel: _onDragCancel,
         child: CustomPaint(
           painter: ThermosPainter(
             shape: widget.shape,
@@ -164,9 +175,9 @@ class _ThermosViewState extends State<ThermosView>
             level: _shown,
             goalMl: widget.goalMl,
             time: _time,
-            slosh: still ? 0 : _slosh.agitation * 4,
-            tilt: still ? 0 : _slosh.tilt,
-            wave: still ? 0 : _slosh.wave,
+            slosh: _slosh.agitation * 4,
+            tilt: _slosh.tilt,
+            wave: _slosh.wave,
             happy: widget.happy,
           ),
         ),

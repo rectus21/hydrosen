@@ -1,6 +1,11 @@
 import 'dart:ui';
 
 import 'art.dart';
+import 'celebration_style.dart';
+import 'themes/pack_doga.dart';
+import 'themes/pack_fantastik.dart';
+import 'themes/pack_hayvanlar.dart';
+import 'themes/pack_yiyecek.dart';
 
 /// Termos biçimi: tasarım taslaklarındaki "Tombul" ve "İnce".
 enum ThermosShape {
@@ -18,7 +23,8 @@ typedef BackgroundArt = void Function(Art a);
 typedef CapArt = void Function(Art a, bool happy);
 
 /// Bir tema = renkler + arka plan çizimi + iki biçim için kapak çizimi.
-/// Yeni tema eklemek için [ThermosTheme.all] listesine bir satır yeter.
+/// Yeni tema eklemek için themes/pack_*.dart dosyalarındaki listeye eklenir
+/// ([ThermosTheme.all] hepsini birleştirir).
 class ThermosTheme {
   const ThermosTheme({
     required this.id,
@@ -35,6 +41,7 @@ class ThermosTheme {
     required this.background,
     required this.capChubby,
     required this.capSlim,
+    this.celebration,
   });
 
   final String id;
@@ -43,6 +50,10 @@ class ThermosTheme {
   final Color band, bandLight;
   final BackgroundArt background;
   final CapArt capChubby, capSlim;
+
+  /// Kutlama efekti; yalnız 8 özgün tema dışındakiler için kullanılır
+  /// (verilmezse damla halkası).
+  final CelebrationStyle? celebration;
 
   static ThermosTheme byId(String id) =>
       all.firstWhere((t) => t.id == id, orElse: () => classic);
@@ -192,6 +203,10 @@ class ThermosTheme {
     astronaut,
     botanic,
     camp,
+    ...hayvanlarThemes,
+    ...dogaThemes,
+    ...yiyecekThemes,
+    ...fantastikThemes,
   ];
 }
 

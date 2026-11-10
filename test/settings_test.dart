@@ -140,6 +140,30 @@ void main() {
     ThermosView thermos(WidgetTester tester) =>
         tester.widget<ThermosView>(find.byType(ThermosView));
 
+    testWidgets('tema seçici 360 px genişlikte taşmaz, tüm temalar erişilir', (
+      tester,
+    ) async {
+      prepare(tester);
+      tester.view.physicalSize = const Size(360, 700);
+      await tester.pumpWidget(
+        HydroSenApp(
+          repository: InMemoryWaterRepository(),
+          settingsRepository: InMemorySettingsRepository(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Ayarlar'));
+      await tester.pumpAndSettle();
+      for (final t in ThermosTheme.all) {
+        await tester.scrollUntilVisible(
+          find.byKey(ValueKey('theme-${t.id}')),
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+      }
+      expect(tester.takeException(), isNull); // RenderFlex taşması yok
+    });
+
     testWidgets(
       'ayarlar değişir, ana ekrana yansır ve yeniden açılışta kalır',
       (tester) async {

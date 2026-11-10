@@ -67,9 +67,15 @@ void main() {
   });
 
   group('Temalar', () {
-    test('8 tema, benzersiz kimlikler', () {
-      expect(ThermosTheme.all.length, 8);
-      expect(ThermosTheme.all.map((t) => t.id).toSet().length, 8);
+    test('kimlikler benzersiz, ASCII küçük harf; byId çalışır', () {
+      final ids = ThermosTheme.all.map((t) => t.id).toList();
+      expect(ids.toSet().length, ids.length);
+      expect(ThermosTheme.all.length, greaterThanOrEqualTo(8));
+      for (final t in ThermosTheme.all) {
+        expect(t.id, matches(RegExp(r'^[a-z0-9]+$')), reason: t.id);
+        expect(t.name.trim(), isNotEmpty);
+        expect(ThermosTheme.byId(t.id), same(t));
+      }
       expect(ThermosTheme.byId('panda'), ThermosTheme.panda);
       expect(ThermosTheme.byId('yok-boyle-tema'), ThermosTheme.classic);
     });

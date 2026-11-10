@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../domain/app_settings.dart';
@@ -62,17 +64,26 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   Text('Tema', style: text.titleMedium),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final t in ThermosTheme.all)
-                        _ThemeChoice(
-                          theme: t,
-                          selected: t == controller.theme,
-                          onTap: () => controller.setTheme(t),
-                        ),
-                    ],
+                  LayoutBuilder(
+                    builder: (context, box) {
+                      // Dar ekranda 3, geniş ekranda 4+ sütun; kartlar eşit.
+                      const gap = 8.0;
+                      final cols = math.max(3, (box.maxWidth / 104).floor());
+                      final w = (box.maxWidth - gap * (cols - 1)) / cols;
+                      return Wrap(
+                        spacing: gap,
+                        runSpacing: gap,
+                        children: [
+                          for (final t in ThermosTheme.all)
+                            _ThemeChoice(
+                              theme: t,
+                              width: w.floorToDouble(),
+                              selected: t == controller.theme,
+                              onTap: () => controller.setTheme(t),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -88,11 +99,13 @@ class SettingsScreen extends StatelessWidget {
 class _ThemeChoice extends StatelessWidget {
   const _ThemeChoice({
     required this.theme,
+    required this.width,
     required this.selected,
     required this.onTap,
   });
 
   final ThermosTheme theme;
+  final double width;
   final bool selected;
   final VoidCallback onTap;
 
@@ -104,8 +117,8 @@ class _ThemeChoice extends StatelessWidget {
       onTap: onTap,
       child: Container(
         key: ValueKey('theme-${theme.id}'),
-        width: 100,
-        padding: const EdgeInsets.all(8),
+        width: width,
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -130,7 +143,12 @@ class _ThemeChoice extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(theme.name, style: Theme.of(context).textTheme.labelLarge),
+            Text(
+              theme.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
           ],
         ),
       ),

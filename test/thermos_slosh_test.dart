@@ -143,23 +143,40 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('animasyonları azalt: dokunma/sürükleme/ekleme çalkalamaz', (
-    tester,
-  ) async {
-    tester.platformDispatcher.accessibilityFeaturesTestValue =
-        const FakeAccessibilityFeatures(disableAnimations: true);
-    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-    await tester.pumpWidget(view());
-    await tester.tap(find.byType(ThermosView));
-    await tester.drag(find.byType(ThermosView), const Offset(120, 0));
-    await tester.pumpWidget(view(progress: 0.75, totalMl: 1500));
-    await tester.pumpAndSettle(); // ticker yok: durulur
-    final p = painterOf(tester);
-    expect(p.tilt, 0);
-    expect(p.wave, 0);
-    expect(p.slosh, 0);
-    expect(p.level, 0.75);
-  });
+  testWidgets(
+    "animasyonları azalt (web'de tarayıcı bildirir): su yine hareket eder "
+    'ama hafif; seviye anında, yüzey titreşimi yok',
+    (tester) async {
+      Future<({double tilt, double wave})> tapMax(bool reduce) async {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+            FakeAccessibilityFeatures(disableAnimations: reduce);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(view());
+        await frames(tester, 2);
+        await tester.tap(find.byType(ThermosView));
+        return frames(tester, 25);
+      }
+
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      final normal = await tapMax(false);
+      final reduced = await tapMax(true);
+      expect(reduced.tilt, greaterThan(0.01)); // eskiden 0: hiç hareket yoktu
+      expect(reduced.wave, greaterThan(0.5));
+      expect(reduced.tilt, lessThan(normal.tilt));
+      expect(reduced.wave, lessThan(normal.wave));
+
+      await tester.drag(find.byType(ThermosView), const Offset(120, 0));
+      await tester.pumpWidget(view(progress: 0.75, totalMl: 1500));
+      await frames(tester, 300);
+      final p = painterOf(tester);
+      expect(p.tilt, 0); // durulur
+      expect(p.time, 0); // sürekli yüzey titreşimi yok
+      expect(p.level, 0.75); // seviye anında
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets(
     'ana ekranda termosa dokunma/sürükleme düğmeleri ve kaydırmayı bozmaz',

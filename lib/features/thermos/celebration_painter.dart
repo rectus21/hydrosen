@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/animation.dart';
 import 'package:flutter/rendering.dart';
 
+import 'celebration_style.dart';
 import 'svg_path.dart';
 import 'thermos_painter.dart';
 import 'thermos_theme.dart';
@@ -90,14 +91,85 @@ class CelebrationPainter extends CustomPainter {
         _embers(canvas);
         _compassSpin(canvas);
       default:
-        _dropletRing(canvas);
+        _generic(canvas, theme.celebration);
     }
     canvas.restore();
   }
 
+  /// Özel kutlaması olmayan (8 özgün tema dışındaki) temalar için.
+  void _generic(Canvas canvas, CelebrationStyle? style) {
+    final colors = (style == null || style.colors.isEmpty)
+        ? null
+        : style.colors;
+    switch (style?.kind ?? CelebrationKind.droplets) {
+      case CelebrationKind.droplets:
+        _dropletRing(canvas, colors);
+      case CelebrationKind.hearts:
+        _hearts(canvas, colors ?? _heartColors);
+      case CelebrationKind.confetti:
+        _confetti(canvas, colors ?? _rainbow);
+      case CelebrationKind.fallingLeaves:
+        _falling(canvas, colors ?? _rainbow, flowers: false);
+      case CelebrationKind.fallingFlowers:
+        _falling(canvas, colors ?? _rainbow, flowers: true);
+      case CelebrationKind.stardust:
+        _stardust(canvas, colors ?? _rainbow);
+      case CelebrationKind.twinkles:
+        _twinkles(canvas, colors ?? const [0xFFFFFF]);
+      case CelebrationKind.embers:
+        _embers(canvas, colors ?? _emberColors);
+      case CelebrationKind.snow:
+        _snow(canvas, colors ?? const [0xFFFFFF, 0xE6F1FB]);
+      case CelebrationKind.bubbles:
+        _bubbles(canvas, colors ?? const [0xB5D4F4, 0x85B7EB]);
+    }
+  }
+
+  // --- Genel: kar, baloncuk ---------------------------------------------------
+
+  void _snow(Canvas canvas, List<int> colors) {
+    for (var i = 0; i < 28; i++) {
+      final delay = _r(i, 21) * 0.4;
+      final p = ((t - delay) / (1 - delay)).clamp(0.0, 1.0);
+      if (p <= 0) continue;
+      final x = 130 + _r(i, 22) * 420 + math.sin(p * 6 + i) * 16;
+      final y = -10 + p * (400 + _r(i, 23) * 120);
+      canvas.drawCircle(
+        Offset(x, y),
+        2.5 + _r(i, 24) * 3.5,
+        _paint(colors[i % colors.length], 0.95),
+      );
+    }
+  }
+
+  void _bubbles(Canvas canvas, List<int> colors) {
+    for (var i = 0; i < 18; i++) {
+      final delay = _r(i, 25) * 0.4;
+      final p = ((t - delay) / (1 - delay)).clamp(0.0, 1.0);
+      if (p <= 0) continue;
+      final x = 150 + _r(i, 26) * 380 + math.sin(p * 8 + i) * 12;
+      final y = 510 - p * (330 + _r(i, 27) * 160);
+      final r = 5 + _r(i, 28) * 9;
+      final c = colors[i % colors.length];
+      canvas.drawCircle(Offset(x, y), r, _paint(c, 0.25));
+      canvas.drawCircle(
+        Offset(x, y),
+        r,
+        _paint(c, 0.9)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+      canvas.drawCircle(
+        Offset(x - r * 0.35, y - r * 0.35),
+        r * 0.2,
+        _paint(0xFFFFFF, 0.9),
+      );
+    }
+  }
+
   // --- Klasik ---------------------------------------------------------------
 
-  void _dropletRing(Canvas canvas) {
+  void _dropletRing(Canvas canvas, [List<int>? colors]) {
     const n = 14;
     final e = Curves.easeOutCubic.transform(t);
     for (var ring = 0; ring < 2; ring++) {
@@ -119,7 +191,12 @@ class CelebrationPainter extends CustomPainter {
             ..quadraticBezierTo(8 * s, 0, 0, 6 * s)
             ..quadraticBezierTo(-8 * s, 0, 0, -12 * s)
             ..close(),
-          _paint(ring == 0 ? 0x378ADD : 0x85B7EB, 0.9),
+          _paint(
+            colors == null
+                ? (ring == 0 ? 0x378ADD : 0x85B7EB)
+                : colors[(i + ring) % colors.length],
+            0.9,
+          ),
         );
         canvas.restore();
       }
@@ -128,8 +205,9 @@ class CelebrationPainter extends CustomPainter {
 
   // --- Çilek ----------------------------------------------------------------
 
-  void _hearts(Canvas canvas) {
-    const colors = [0xE24B4A, 0xED93B1, 0xD4537E, 0xF09595];
+  static const _heartColors = [0xE24B4A, 0xED93B1, 0xD4537E, 0xF09595];
+
+  void _hearts(Canvas canvas, [List<int> colors = _heartColors]) {
     for (var i = 0; i < 16; i++) {
       final delay = _r(i, 1) * 0.35;
       final p = ((t - delay) / (1 - delay)).clamp(0.0, 1.0);
@@ -252,7 +330,7 @@ class CelebrationPainter extends CustomPainter {
     0xAFA9EC,
   ];
 
-  void _stardust(Canvas canvas) {
+  void _stardust(Canvas canvas, [List<int> colors = _rainbow]) {
     final origin = Offset(340, _chubby ? 30 : 60);
     for (var i = 0; i < 26; i++) {
       final delay = _r(i, 11) * 0.3;
@@ -267,7 +345,7 @@ class CelebrationPainter extends CustomPainter {
         canvas,
         Offset(x, y),
         (5 + _r(i, 14) * 5) * twinkle,
-        _rainbow[i % _rainbow.length],
+        colors[i % colors.length],
       );
     }
   }
@@ -285,12 +363,12 @@ class CelebrationPainter extends CustomPainter {
 
   // --- Astronot --------------------------------------------------------------
 
-  void _twinkles(Canvas canvas) {
+  void _twinkles(Canvas canvas, [List<int> colors = const [0xFFFFFF]]) {
     for (var i = 0; i < 14; i++) {
       final x = 140 + _r(i, 15) * 400;
       final y = 20 + _r(i, 16) * 460;
       final tw = math.max(0.0, math.sin(t * math.pi * 4 + i * 1.3));
-      _star(canvas, Offset(x, y), 4 + tw * 6, 0xFFFFFF, tw);
+      _star(canvas, Offset(x, y), 4 + tw * 6, colors[i % colors.length], tw);
     }
   }
 
@@ -340,8 +418,9 @@ class CelebrationPainter extends CustomPainter {
     canvas.drawCircle(c, 50, _paint(0xFAC775, 0.35));
   }
 
-  void _embers(Canvas canvas) {
-    const colors = [0xEF9F27, 0xE24B4A, 0xFAC775];
+  static const _emberColors = [0xEF9F27, 0xE24B4A, 0xFAC775];
+
+  void _embers(Canvas canvas, [List<int> colors = _emberColors]) {
     for (var i = 0; i < 18; i++) {
       final delay = _r(i, 17) * 0.4;
       final p = ((t - delay) / (1 - delay)).clamp(0.0, 1.0);
