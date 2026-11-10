@@ -21,10 +21,14 @@ class _Geometry {
     required this.shadowRx,
     required this.shineLeft,
     required this.shadeRight,
+    required this.halfWidth,
   });
 
   final String body;
   final double top, bottom, markRight, labelX, shadowRx, shineLeft, shadeRight;
+
+  /// Gövdenin yarı genişliği (merkez x = 340); dalga biçimi buna göre ölçeklenir.
+  final double halfWidth;
   final Rect neck, base;
 
   static const chubby = _Geometry(
@@ -38,6 +42,7 @@ class _Geometry {
     shadowRx: 118,
     shineLeft: 250,
     shadeRight: 430,
+    halfWidth: 104,
   );
 
   static const slim = _Geometry(
@@ -51,6 +56,7 @@ class _Geometry {
     shadowRx: 66,
     shineLeft: 298,
     shadeRight: 382,
+    halfWidth: 50,
   );
 }
 
@@ -63,6 +69,8 @@ class ThermosPainter extends CustomPainter {
     required this.goalMl,
     required this.time,
     required this.slosh,
+    this.tilt = 0,
+    this.wave = 0,
     this.happy = false,
   });
 
@@ -76,8 +84,14 @@ class ThermosPainter extends CustomPainter {
   /// Saniye cinsinden dalga zamanı.
   final double time;
 
-  /// Çalkalanma şiddeti; su eklenince artar, zamanla söner.
+  /// Yüzeydeki küçük dalgacıkların ek şiddeti (0 = sakin); çalkalanırken artar.
   final double slosh;
+
+  /// Yüzey eğimi (radyan, pozitif: sağ taraf yüksek); bkz. SloshModel.
+  final double tilt;
+
+  /// Ortası inip kalkan duran dalganın genliği (tasarım birimi).
+  final double wave;
 
   /// Hedefe ulaşıldı mı (kapak ifadesi; kutlama adımında kullanılacak).
   final bool happy;
@@ -131,7 +145,18 @@ class ThermosPainter extends CustomPainter {
     if (level > 0) {
       final lvl = geo.bottom - level.clamp(0.0, 1.0) * (geo.bottom - geo.top);
       final amp = 2 + slosh * 0.8;
-      double waveY(double x) => lvl + math.sin(x / 18 + time * 2.5) * amp;
+      // Eğim ve duran dalga merkez etrafında simetrik olduğundan su hacmi
+      // korunur; gövdeye kırpıldığı için su hiçbir zaman camdan taşmaz.
+      final slope = math.tan(tilt.clamp(-0.5, 0.5));
+      final k = math.pi / geo.halfWidth;
+      double waveY(double x) {
+        final u = (x - 340).clamp(-geo.halfWidth, geo.halfWidth);
+        return lvl -
+            slope * u +
+            wave * math.cos(k * u) +
+            math.sin(x / 18 + time * 2.5) * amp;
+      }
+
       final water = Path()..moveTo(220, waveY(220));
       final surfTop = <Offset>[];
       final deep = Path()..moveTo(220, 500);
@@ -276,6 +301,8 @@ class ThermosPainter extends CustomPainter {
       old.level != level ||
       old.time != time ||
       old.slosh != slosh ||
+      old.tilt != tilt ||
+      old.wave != wave ||
       old.shape != shape ||
       old.theme != theme ||
       old.happy != happy ||

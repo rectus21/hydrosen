@@ -246,6 +246,8 @@ class _ThermosSection extends StatelessWidget {
               ThermosView(
                 progress: controller.progress,
                 goalMl: controller.goalMl,
+                totalMl: controller.totalMl,
+                celebrations: controller.celebrations,
                 shape: shape,
                 theme: theme,
                 happy: controller.progress >= 1,
