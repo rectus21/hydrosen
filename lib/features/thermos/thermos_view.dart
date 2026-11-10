@@ -15,12 +15,16 @@ class ThermosView extends StatefulWidget {
     required this.goalMl,
     this.shape = ThermosShape.chubby,
     this.theme = ThermosTheme.classic,
+    this.happy = false,
   });
 
   final double progress;
   final int goalMl;
   final ThermosShape shape;
   final ThermosTheme theme;
+
+  /// Hedefe ulaşıldı: kapaktaki karakter mutlu ifadeye geçer.
+  final bool happy;
 
   @override
   State<ThermosView> createState() => _ThermosViewState();
@@ -88,6 +92,7 @@ class _ThermosViewState extends State<ThermosView>
           goalMl: widget.goalMl,
           time: _time,
           slosh: _slosh,
+          happy: widget.happy,
         ),
       ),
     );

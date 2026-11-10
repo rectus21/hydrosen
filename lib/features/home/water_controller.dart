@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../data/water_repository.dart';
 import '../../domain/water_entry.dart';
+import 'goal_celebration.dart';
 
 /// Günlük su takibinin durumu. Kayıtlar [WaterRepository] ile kalıcıdır.
 /// "Bugün", yerel saate göre takvim günüdür (gece 00:00'da yeni gün başlar).
@@ -24,7 +25,25 @@ class WaterController extends ChangeNotifier {
   set goalMl(int value) {
     if (value == _goalMl) return;
     _goalMl = value;
+    _observeGoal();
     notifyListeners();
+  }
+
+  final _goalTracker = GoalCelebrationTracker();
+  int _celebrations = 0;
+
+  /// Bugün hedefin kaç kez aşağıdan yukarı geçildiği (bu oturumda). Değeri
+  /// her arttığında ana ekran bir kez kutlama oynatır.
+  int get celebrations => _celebrations;
+
+  void _observeGoal() {
+    if (!_loaded) return;
+    final crossed = _goalTracker.observe(
+      now: _now(),
+      totalMl: totalMl,
+      goalMl: _goalMl,
+    );
+    if (crossed) _celebrations++;
   }
 
   List<WaterEntry> _entries = [];
@@ -39,6 +58,7 @@ class WaterController extends ChangeNotifier {
   Future<void> load() async {
     _entries = await _repository.load();
     _loaded = true;
+    _observeGoal(); // Başlangıç durumu: açılışta kutlama oynamaz.
     notifyListeners();
   }
 
@@ -62,12 +82,14 @@ class WaterController extends ChangeNotifier {
       ..._entries,
       WaterEntry(id: nextId, amountMl: amountMl, time: _now()),
     ];
+    _observeGoal();
     notifyListeners();
     await _persist();
   }
 
   Future<void> remove(int id) async {
     _entries = _entries.where((e) => e.id != id).toList();
+    _observeGoal();
     notifyListeners();
     await _persist();
   }

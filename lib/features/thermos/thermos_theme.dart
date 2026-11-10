@@ -13,7 +13,8 @@ enum ThermosShape {
 
 typedef BackgroundArt = void Function(Art a);
 
-/// [happy]: hedefe ulaşıldı (kutlama ifadesi; T4'te kullanılacak).
+/// [happy]: hedefe ulaşıldı (kutlama ifadesi: panda güler, kaplan kükrer,
+/// çilek kızarır).
 typedef CapArt = void Function(Art a, bool happy);
 
 /// Bir tema = renkler + arka plan çizimi + iki biçim için kapak çizimi.
@@ -296,8 +297,13 @@ void _cilekA(Art a, bool happy) {
   );
   a.eye(310, 132, 12);
   a.eye(370, 132, 12);
-  a.cheeks(156, 0.7);
-  a.s('M328 156 Q340 168 352 156', k, 3);
+  a.cheeks(156, happy ? 1 : 0.7);
+  if (happy) {
+    a.p('M324 154 Q340 176 356 154 Z', k);
+    a.o(340, 165, 6, 3, 0xED93B1);
+  } else {
+    a.s('M328 156 Q340 168 352 156', k, 3);
+  }
   a.seeds(const [
     [284, 100],
     [396, 100],
@@ -408,7 +414,15 @@ void _kaplanA(Art a, bool happy) {
     k,
     3,
   );
-  a.p('M334 176 Q340 186 346 176 Z', 0xE24B4A);
+  if (happy) {
+    // Kükreme: ağız açılır, dişler görünür.
+    a.p('M318 172 Q340 206 362 172 Q340 180 318 172 Z', k);
+    a.o(340, 190, 9, 5, 0xE24B4A);
+    a.p('M322 174 l4 8 l4 -7 Z', w);
+    a.p('M358 174 l-4 8 l-4 -7 Z', w);
+  } else {
+    a.p('M334 176 Q340 186 346 176 Z', 0xE24B4A);
+  }
 }
 
 void _kaplanB(Art a, bool happy) {
@@ -480,11 +494,18 @@ void _pandaA(Art a, bool happy) {
   a.eye(371, 127, 6);
   a.cheeks(160, 0.6);
   a.o(340, 156, 12, 8, k);
-  a.s(
-    'M340 164 L340 170 M340 170 Q332 178 324 174 M340 170 Q348 178 356 174',
-    k,
-    3,
-  );
+  if (happy) {
+    // Gülümseme: geniş açık ağız ve dil.
+    a.s('M340 164 L340 168', k, 3);
+    a.p('M322 168 Q340 192 358 168 Q340 174 322 168 Z', k);
+    a.o(340, 180, 6, 3.5, 0xED93B1);
+  } else {
+    a.s(
+      'M340 164 L340 170 M340 170 Q332 178 324 174 M340 170 Q348 178 356 174',
+      k,
+      3,
+    );
+  }
 }
 
 void _pandaB(Art a, bool happy) {
@@ -496,7 +517,11 @@ void _pandaB(Art a, bool happy) {
   a.c(321, 123, 3.5, w);
   a.c(359, 123, 3.5, w);
   a.o(340, 142, 6, 4, k);
-  a.s('M340 146 Q334 152 330 150 M340 146 Q346 152 350 150', k, 2);
+  if (happy) {
+    a.p('M330 148 Q340 162 350 148 Q340 152 330 148 Z', k);
+  } else {
+    a.s('M340 146 Q334 152 330 150 M340 146 Q346 152 350 150', k, 2);
+  }
 }
 
 // --- Tekboynuz -------------------------------------------------------------

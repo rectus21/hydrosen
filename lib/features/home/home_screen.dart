@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/water_repository.dart';
 import '../settings/settings_controller.dart';
 import '../settings/settings_screen.dart';
+import '../thermos/celebration_overlay.dart';
 import '../thermos/thermos_theme.dart';
 import '../thermos/thermos_view.dart';
 import 'water_controller.dart';
@@ -240,11 +241,23 @@ class _ThermosSection extends StatelessWidget {
       children: [
         SizedBox(
           height: 380,
-          child: ThermosView(
-            progress: controller.progress,
-            goalMl: controller.goalMl,
-            shape: shape,
-            theme: theme,
+          child: Stack(
+            children: [
+              ThermosView(
+                progress: controller.progress,
+                goalMl: controller.goalMl,
+                shape: shape,
+                theme: theme,
+                happy: controller.progress >= 1,
+              ),
+              Positioned.fill(
+                child: CelebrationOverlay(
+                  trigger: controller.celebrations,
+                  theme: theme,
+                  shape: shape,
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 12),

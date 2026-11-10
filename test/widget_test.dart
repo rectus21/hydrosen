@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrosen/app/app.dart';
 import 'package:hydrosen/data/settings_repository.dart';
 import 'package:hydrosen/data/water_repository.dart';
+import 'package:hydrosen/features/thermos/celebration_overlay.dart';
+import 'package:hydrosen/features/thermos/celebration_painter.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
 import 'package:hydrosen/features/thermos/thermos_view.dart';
 
@@ -19,6 +21,12 @@ void prepare(WidgetTester tester) {
     tester.view.reset();
   });
 }
+
+/// Hızlı ekleme düğmesi (aynı yazı toplamda ve listede de görünebilir).
+Finder quickAdd(String label) => find.ancestor(
+  of: find.text(label),
+  matching: find.byWidgetPredicate((w) => w is FilledButton),
+);
 
 void main() {
   testWidgets('ana ekran: ekleme ve silme toplamı günceller', (tester) async {
@@ -158,5 +166,97 @@ void main() {
     expect(tester.takeException(), isNull);
     // Sonsuz ticker'ı durdurmak için ağacı kaldır.
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('hedef geçilince kutlama görünür, sonra kaybolur', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final message = find.text(CelebrationOverlay.message);
+    final particles = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is CelebrationPainter,
+    );
+    Future<void> frames(int n) async {
+      for (var i = 0; i < n; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
+    await frames(4);
+    expect(message, findsNothing);
+
+    // 1500 ml: hedefin (2000) altında, kutlama yok.
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(quickAdd('500 ml'));
+      await frames(2);
+    }
+    expect(message, findsNothing);
+
+    // Hedefe ulaşıldı: kutlama oynar.
+    await tester.tap(quickAdd('500 ml'));
+    await frames(4);
+    expect(message, findsOneWidget);
+    expect(particles, findsOneWidget);
+
+    // Kutlama sürerken uygulama kullanılmaya devam eder (katman dokunmaları geçirir).
+    await tester.tap(quickAdd('250 ml'));
+    await frames(2);
+    expect(find.text('2250 ml'), findsOneWidget);
+
+    // ~2,6 sn sonra kaybolur; hedefin üstünde kaldıkça tekrar oynamaz.
+    await frames(60);
+    expect(message, findsNothing);
+    expect(particles, findsNothing);
+    await tester.tap(quickAdd('150 ml'));
+    await frames(4);
+    expect(message, findsNothing);
+
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('animasyonları azalt: parçacık yok, kısa tebrik yazısı var', (
+    tester,
+  ) async {
+    prepare(tester);
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final message = find.text(CelebrationOverlay.message);
+
+    await tester.tap(quickAdd('500 ml'));
+    await tester.pumpAndSettle();
+    expect(message, findsNothing);
+
+    // Özel miktarla tam hedefe.
+    await tester.tap(find.text('Özel'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '1500');
+    await tester.tap(find.text('Ekle'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(message, findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is CelebrationPainter,
+      ),
+      findsNothing,
+    );
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(message, findsNothing);
   });
 }
