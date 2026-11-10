@@ -7,6 +7,7 @@ import '../settings/settings_screen.dart';
 import '../thermos/celebration_overlay.dart';
 import '../thermos/thermos_theme.dart';
 import '../thermos/thermos_view.dart';
+import 'quick_theme_strip.dart';
 import 'water_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -105,6 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: widget.settings.shape,
                             theme: widget.settings.theme,
                           ),
+                          if (kQuickThemeStrip) ...[
+                            const SizedBox(height: 12),
+                            QuickThemeStrip(settings: widget.settings),
+                          ],
                           const SizedBox(height: 24),
                           Wrap(
                             alignment: WrapAlignment.center,

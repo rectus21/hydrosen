@@ -164,6 +164,37 @@ void main() {
       expect(tester.takeException(), isNull); // RenderFlex taşması yok
     });
 
+    testWidgets('hızlı tema rafı (geçici): dokununca tema ve biçim değişir', (
+      tester,
+    ) async {
+      prepare(tester);
+      tester.view.physicalSize = const Size(360, 800);
+      await tester.pumpWidget(
+        HydroSenApp(
+          repository: InMemoryWaterRepository(),
+          settingsRepository: InMemorySettingsRepository(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('quick-theme-panda')),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byKey(const ValueKey('quick-theme-panda')));
+      await tester.pumpAndSettle();
+      expect(thermos(tester).theme, ThermosTheme.panda);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('quick-shape')),
+          matching: find.text('İnce'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(thermos(tester).shape, ThermosShape.slim);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets(
       'ayarlar değişir, ana ekrana yansır ve yeniden açılışta kalır',
       (tester) async {
