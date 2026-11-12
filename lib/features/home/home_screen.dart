@@ -9,6 +9,7 @@ import '../thermos/celebration_overlay.dart';
 import '../thermos/thermos_theme.dart';
 import '../thermos/thermos_view.dart';
 import 'glass_row.dart';
+import 'quick_glass_buttons.dart';
 import 'quick_theme_strip.dart';
 import 'water_controller.dart';
 
@@ -87,6 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _notify('1 bardak eklendi');
   }
 
+  void _addGlasses(int n) {
+    _controller.add(widget.settings.glassMl * n);
+    _notify('$n bardak eklendi');
+  }
+
   void _removeGlass() {
     _controller.removeAmount(widget.settings.glassMl);
     _notify('1 bardak çıkarıldı');
@@ -150,6 +156,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             theme: widget.settings.theme,
                             onAdd: _addGlass,
                             onRemove: _removeGlass,
+                          ),
+                          const SizedBox(height: 12),
+                          QuickGlassButtons(
+                            glassMl: widget.settings.glassMl,
+                            onAdd: _addGlasses,
+                            onRemove: _controller.totalMl > 0
+                                ? _removeGlass
+                                : null,
                           ),
                           const SizedBox(height: 8),
                           Center(

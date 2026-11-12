@@ -27,6 +27,7 @@ Finder glass(int i) => find.byKey(ValueKey('glass-$i'));
 final glassPlus = find.byKey(const ValueKey('glass-plus'));
 
 void main() {
+  quickGlassTests();
   testWidgets('ana ekran: ekleme ve silme toplamı günceller', (tester) async {
     prepare(tester);
     await tester.pumpWidget(
@@ -257,5 +258,101 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
     expect(message, findsNothing);
+  });
+}
+
+void quickGlassTests() {
+  Future<void> boot(WidgetTester tester) async {
+    prepare(tester);
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  final add1 = find.byKey(const ValueKey('quick-add-1'));
+  final add2 = find.byKey(const ValueKey('quick-add-2'));
+  final rem1 = find.byKey(const ValueKey('quick-remove-1'));
+
+  testWidgets('hızlı düğmeler: +1, +2 ve −1 bardak, etiketlerde ml var', (
+    tester,
+  ) async {
+    await boot(tester);
+    expect(find.text('+2 bardak'), findsOneWidget);
+    expect(find.text('400 ml'), findsOneWidget);
+    await tester.tap(add1);
+    await tester.pumpAndSettle();
+    expect(find.text('200 / 2000 ml'), findsOneWidget);
+    expect(find.text('1 bardak eklendi'), findsOneWidget);
+    await tester.tap(add2);
+    await tester.pumpAndSettle();
+    expect(find.text('600 / 2000 ml'), findsOneWidget);
+    expect(find.text('2 bardak eklendi'), findsOneWidget);
+    await tester.tap(rem1);
+    await tester.pumpAndSettle();
+    expect(find.text('400 / 2000 ml'), findsOneWidget);
+    expect(find.text('1 bardak çıkarıldı'), findsOneWidget);
+  });
+
+  testWidgets('−1 bardak bugün su yokken pasif', (tester) async {
+    await boot(tester);
+    expect(
+      tester
+          .widget<OutlinedButton>(
+            find.descendant(of: rem1, matching: find.byType(OutlinedButton)),
+          )
+          .onPressed,
+      isNull,
+    );
+    await tester.tap(add1);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<OutlinedButton>(
+            find.descendant(of: rem1, matching: find.byType(OutlinedButton)),
+          )
+          .onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('hızlı düğmeler: Geri al işlemi geri alır', (tester) async {
+    await boot(tester);
+    await tester.tap(add2);
+    await tester.pumpAndSettle();
+    expect(find.text('400 / 2000 ml'), findsOneWidget);
+    await tester.tap(find.text('Geri al'));
+    await tester.pumpAndSettle();
+    expect(find.text('0 / 2000 ml'), findsOneWidget);
+    await tester.tap(add2);
+    await tester.pumpAndSettle();
+    await tester.tap(rem1);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Geri al'));
+    await tester.pumpAndSettle();
+    expect(find.text('400 / 2000 ml'), findsOneWidget);
+  });
+
+  testWidgets('360 px genişlikte taşma yok', (tester) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    tester.view.physicalSize = const Size(360, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+      tester.view.reset();
+    });
+    await tester.pumpWidget(
+      HydroSenApp(
+        repository: InMemoryWaterRepository(),
+        settingsRepository: InMemorySettingsRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(add1, findsOneWidget);
   });
 }
