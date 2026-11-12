@@ -22,11 +22,9 @@ void prepare(WidgetTester tester) {
   });
 }
 
-/// Hızlı ekleme düğmesi (aynı yazı toplamda ve listede de görünebilir).
-Finder quickAdd(String label) => find.ancestor(
-  of: find.text(label),
-  matching: find.byWidgetPredicate((w) => w is FilledButton),
-);
+/// Bardak sırasındaki [i]. bardak (0'dan); sondaki "+" için [glassPlus].
+Finder glass(int i) => find.byKey(ValueKey('glass-$i'));
+final glassPlus = find.byKey(const ValueKey('glass-plus'));
 
 void main() {
   testWidgets('ana ekran: ekleme ve silme toplamı günceller', (tester) async {
@@ -38,18 +36,17 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('0 ml'), findsOneWidget);
+    expect(find.text('0 / 2000 ml'), findsOneWidget);
+    expect(find.text('0 / 10'), findsOneWidget);
 
-    await tester.tap(find.text('250 ml'));
+    await tester.tap(glass(0));
     await tester.pumpAndSettle();
-    expect(
-      find.text('250 ml'),
-      findsNWidgets(3),
-    ); // düğme + halka toplamı + liste
+    expect(find.text('200 / 2000 ml'), findsOneWidget);
+    expect(find.text('1 / 10'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Sil'));
     await tester.pumpAndSettle();
-    expect(find.text('0 ml'), findsOneWidget);
+    expect(find.text('0 / 2000 ml'), findsOneWidget);
   });
 
   testWidgets('özel miktar: geçerli sayı eklenir, geçersizde uyarı çıkar', (
@@ -65,7 +62,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Geçersiz giriş: pencere açık kalır, uyarı görünür.
-    await tester.tap(find.text('Özel'));
+    await tester.tap(find.text('Özel miktar'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'abc');
     await tester.tap(find.text('Ekle'));
@@ -80,7 +77,7 @@ void main() {
     expect(find.text('%10 tamamlandı'), findsOneWidget);
 
     // Vazgeç: hiçbir şey eklenmez.
-    await tester.tap(find.text('Özel'));
+    await tester.tap(find.text('Özel miktar'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '300');
     await tester.tap(find.text('Vazgeç'));
@@ -88,7 +85,7 @@ void main() {
     expect(find.text('%10 tamamlandı'), findsOneWidget);
 
     // Klavyeden Enter ile gönderme.
-    await tester.tap(find.text('Özel'));
+    await tester.tap(find.text('Özel miktar'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '100');
     await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -109,7 +106,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('500 ml'));
+    await tester.tap(glass(0));
+    await tester.pumpAndSettle();
+    await tester.tap(glass(1));
     await tester.pumpAndSettle();
 
     // Uygulamayı kapat, aynı depoyla yeniden aç.
@@ -122,8 +121,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('%25 tamamlandı'), findsOneWidget);
-    expect(find.byTooltip('Sil'), findsOneWidget);
+    expect(find.text('%20 tamamlandı'), findsOneWidget);
+    expect(find.byTooltip('Sil'), findsNWidgets(2));
   });
 
   testWidgets('termos görünür, varsayılan biçim ve tema tombul/Klasik', (
@@ -158,11 +157,11 @@ void main() {
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    await tester.tap(find.text('500 ml'));
+    await tester.tap(glass(0));
     for (var i = 0; i < 40; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    expect(find.text('%25 tamamlandı'), findsOneWidget);
+    expect(find.text('%10 tamamlandı'), findsOneWidget);
     expect(tester.takeException(), isNull);
     // Sonsuz ticker'ı durdurmak için ağacı kaldır.
     await tester.pumpWidget(const SizedBox());
@@ -193,29 +192,29 @@ void main() {
     await frames(4);
     expect(message, findsNothing);
 
-    // 1500 ml: hedefin (2000) altında, kutlama yok.
-    for (var i = 0; i < 3; i++) {
-      await tester.tap(quickAdd('500 ml'));
+    // 1800 ml (9 bardak): hedefin (2000) altında, kutlama yok.
+    for (var i = 0; i < 9; i++) {
+      await tester.tap(glass(9)); // sıradaki boş bardak
       await frames(2);
     }
     expect(message, findsNothing);
 
-    // Hedefe ulaşıldı: kutlama oynar.
-    await tester.tap(quickAdd('500 ml'));
+    // 10. bardakla hedefe ulaşıldı: kutlama oynar.
+    await tester.tap(glass(9));
     await frames(4);
     expect(message, findsOneWidget);
     expect(particles, findsOneWidget);
 
     // Kutlama sürerken uygulama kullanılmaya devam eder (katman dokunmaları geçirir).
-    await tester.tap(quickAdd('250 ml'));
+    await tester.tap(glassPlus);
     await frames(2);
-    expect(find.text('2250 ml'), findsOneWidget);
+    expect(find.text('2200 / 2000 ml'), findsOneWidget);
 
     // ~2,6 sn sonra kaybolur; hedefin üstünde kaldıkça tekrar oynamaz.
     await frames(60);
     expect(message, findsNothing);
     expect(particles, findsNothing);
-    await tester.tap(quickAdd('150 ml'));
+    await tester.tap(glassPlus);
     await frames(4);
     expect(message, findsNothing);
 
@@ -236,14 +235,14 @@ void main() {
     await tester.pumpAndSettle();
     final message = find.text(CelebrationOverlay.message);
 
-    await tester.tap(quickAdd('500 ml'));
+    await tester.tap(glass(0));
     await tester.pumpAndSettle();
     expect(message, findsNothing);
 
     // Özel miktarla tam hedefe.
-    await tester.tap(find.text('Özel'));
+    await tester.tap(find.text('Özel miktar'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), '1500');
+    await tester.enterText(find.byType(TextField), '1800');
     await tester.tap(find.text('Ekle'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));

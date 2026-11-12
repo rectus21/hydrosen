@@ -206,7 +206,7 @@ void main() {
           HydroSenApp(repository: waterRepo, settingsRepository: settingsRepo),
         );
         await tester.pumpAndSettle();
-        expect(find.text('hedef 2000 ml'), findsOneWidget);
+        expect(find.text('0 / 2000 ml'), findsOneWidget);
 
         await tester.tap(find.byTooltip('Ayarlar'));
         await tester.pumpAndSettle();
@@ -216,7 +216,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('theme-panda')));
         await tester.pumpAndSettle();
-        await tester.drag(find.byType(Slider), const Offset(-2000, 0));
+        await tester.drag(find.byType(Slider).first, const Offset(-2000, 0));
         await tester.pumpAndSettle();
         expect(find.text('500 ml'), findsOneWidget);
 
@@ -224,7 +224,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(thermos(tester).shape, ThermosShape.slim);
         expect(thermos(tester).theme, ThermosTheme.panda);
-        expect(find.text('hedef 500 ml'), findsOneWidget);
+        expect(find.text('0 / 500 ml'), findsOneWidget);
 
         // Uygulamayı kapat, aynı depolarla yeniden aç.
         await tester.pumpWidget(const SizedBox());
@@ -234,7 +234,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(thermos(tester).shape, ThermosShape.slim);
         expect(thermos(tester).theme, ThermosTheme.panda);
-        expect(find.text('hedef 500 ml'), findsOneWidget);
+        expect(find.text('0 / 500 ml'), findsOneWidget);
       },
     );
   });

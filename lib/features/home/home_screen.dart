@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_look.dart';
 import '../../data/water_repository.dart';
+import '../../domain/glass_math.dart';
 import '../settings/settings_controller.dart';
 import '../settings/settings_screen.dart';
 import '../thermos/celebration_overlay.dart';
 import '../thermos/thermos_theme.dart';
 import '../thermos/thermos_view.dart';
+import 'glass_row.dart';
 import 'quick_theme_strip.dart';
 import 'water_controller.dart';
 
@@ -26,7 +28,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final WaterController _controller;
-  static const _quickAmounts = [150, 250, 330, 500];
 
   @override
   void initState() {
@@ -60,7 +61,35 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => const CustomAmountDialog(),
     );
-    if (value != null) _controller.add(value);
+    if (value == null) return;
+    _controller.add(value);
+    _notify('$value ml eklendi');
+  }
+
+  /// Her ekleme/çıkarma/silmeden sonra "Geri al" düğmeli bilgi çubuğu.
+  void _notify(String message) {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(label: 'Geri al', onPressed: _controller.undo),
+        ),
+      );
+  }
+
+  void _addGlass() {
+    _controller.add(widget.settings.glassMl);
+    _notify('1 bardak eklendi');
+  }
+
+  void _removeGlass() {
+    _controller.removeAmount(widget.settings.glassMl);
+    _notify('1 bardak çıkarıldı');
   }
 
   @override
@@ -103,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           _ThermosSection(
                             controller: _controller,
+                            glassMl: widget.settings.glassMl,
                             shape: widget.settings.shape,
                             theme: widget.settings.theme,
                           ),
@@ -110,32 +140,40 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 12),
                             QuickThemeStrip(settings: widget.settings),
                           ],
-                          const SizedBox(height: 24),
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              for (final ml in _quickAmounts)
-                                FilledButton.tonalIcon(
-                                  onPressed: () => _controller.add(ml),
-                                  icon: const Icon(Icons.water_drop_outlined),
-                                  label: Text('$ml ml'),
-                                ),
-                              OutlinedButton.icon(
-                                onPressed: _addCustom,
-                                icon: const Icon(Icons.edit_outlined),
-                                label: const Text('Özel'),
-                              ),
-                            ],
+                          const SizedBox(height: 16),
+                          GlassRow(
+                            glass: GlassMath(
+                              goalMl: _controller.goalMl,
+                              glassMl: widget.settings.glassMl,
+                            ),
+                            totalMl: _controller.totalMl,
+                            theme: widget.settings.theme,
+                            onAdd: _addGlass,
+                            onRemove: _removeGlass,
+                          ),
+                          const SizedBox(height: 8),
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: _addCustom,
+                              icon: const Icon(Icons.edit_outlined),
+                              label: const Text('Özel miktar'),
+                            ),
                           ),
                           const SizedBox(height: 28),
                           Text(
-                            'Bugün',
-                            style: Theme.of(context).textTheme.titleMedium,
+                            'Bugünün kayıtları',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Card(
+                            elevation: 0,
+                            color: Theme.of(context).colorScheme.surface
+                                .withValues(alpha: 0.5),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -149,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         vertical: 24,
                                       ),
                                       child: Text(
-                                        'Henüz su kaydı yok. Yukarıdan ilk bardağını ekle.',
+                                        'Henüz su kaydı yok. Yukarıdaki bardaklara dokunarak ilk bardağını ekle.',
                                         textAlign: TextAlign.center,
                                         style: Theme.of(context)
                                             .textTheme
@@ -174,8 +212,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                           icon: const Icon(
                                             Icons.delete_outline,
                                           ),
-                                          onPressed: () =>
-                                              _controller.remove(e.id),
+                                          onPressed: () {
+                                            _controller.remove(e.id);
+                                            _notify('Kayıt silindi');
+                                          },
                                         ),
                                       ),
                                 ],
@@ -253,17 +293,20 @@ class _CustomAmountDialogState extends State<CustomAmountDialog> {
 class _ThermosSection extends StatelessWidget {
   const _ThermosSection({
     required this.controller,
+    required this.glassMl,
     required this.shape,
     required this.theme,
   });
 
   final WaterController controller;
+  final int glassMl;
   final ThermosShape shape;
   final ThermosTheme theme;
 
   @override
   Widget build(BuildContext context) {
     final percent = (controller.progress * 100).round();
+    final glass = GlassMath(goalMl: controller.goalMl, glassMl: glassMl);
     final text = Theme.of(context).textTheme;
     return Column(
       children: [
@@ -296,10 +339,18 @@ class _ThermosSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            Text('${controller.totalMl} ml', style: text.headlineMedium),
+            Text(
+              '${GlassMath.format(glass.glassesOf(controller.totalMl))} / '
+              '${glass.goalGlasses}',
+              style: text.headlineMedium,
+            ),
             const SizedBox(width: 8),
-            Text('hedef ${controller.goalMl} ml', style: text.bodyMedium),
+            Text('bardak', style: text.titleMedium),
           ],
+        ),
+        Text(
+          '${controller.totalMl} / ${controller.goalMl} ml',
+          style: text.bodySmall,
         ),
         Text(
           controller.progress >= 1 ? 'Hedefe ulaştın!' : '%$percent tamamlandı',

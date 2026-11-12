@@ -53,6 +53,22 @@ class SettingsScreen extends StatelessWidget {
                       onChanged: (v) => controller.setGoalMl(v.round()),
                     ),
                     const SizedBox(height: 16),
+                    Text('Bardak boyu', style: text.titleMedium),
+                    const SizedBox(height: 4),
+                    Text('${controller.glassMl} ml', style: text.headlineSmall),
+                    Slider(
+                      key: const ValueKey('glass-slider'),
+                      value: controller.glassMl.toDouble(),
+                      min: AppSettings.minGlassMl.toDouble(),
+                      max: AppSettings.maxGlassMl.toDouble(),
+                      divisions:
+                          (AppSettings.maxGlassMl - AppSettings.minGlassMl) ~/
+                          AppSettings.glassStepMl,
+                      label: '${controller.glassMl} ml',
+                      semanticFormatterCallback: (v) => '${v.round()} ml',
+                      onChanged: (v) => controller.setGlassMl(v.round()),
+                    ),
+                    const SizedBox(height: 16),
                     Text('Termos biçimi', style: text.titleMedium),
                     const SizedBox(height: 8),
                     SegmentedButton<ThermosShape>(

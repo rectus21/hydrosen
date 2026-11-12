@@ -75,8 +75,15 @@ class WaterController extends ChangeNotifier {
 
   double get progress => goalMl == 0 ? 0 : (totalMl / goalMl).clamp(0.0, 1.0);
 
+  // Geri al için bir önceki durumun görüntüsü (yalnız son değişiklik).
+  List<WaterEntry>? _undoSnapshot;
+
+  /// Son ekleme/çıkarma/silme geri alınabilir mi?
+  bool get canUndo => _undoSnapshot != null;
+
   Future<void> add(int amountMl) async {
     if (amountMl <= 0) return;
+    _undoSnapshot = _entries;
     final nextId = _entries.fold(0, (m, e) => math.max(m, e.id)) + 1;
     _entries = [
       ..._entries,
@@ -88,10 +95,58 @@ class WaterController extends ChangeNotifier {
   }
 
   Future<void> remove(int id) async {
+    _undoSnapshot = _entries;
     _entries = _entries.where((e) => e.id != id).toList();
     _observeGoal();
     notifyListeners();
     await _persist();
+  }
+
+  /// Bugünden [amountMl] kadar su çıkarır (bardak sırasında "son dolu
+  /// bardağa dokun"). Kayıtlar hep pozitif kalır, eksi kayıt yazılmaz:
+  /// en yeni kayıttan başlanır; kayıt tam [amountMl] ise silinir, büyükse
+  /// aynı kayıt azalır (yerinde küçülür), küçükse silinir ve kalan miktar
+  /// bir önceki bugünkü kayıttan düşülür. Bugünün toplamı yetmezse hepsi
+  /// silinir. Düşülen miktarı döner (0: çıkarılacak bir şey yoktu).
+  Future<int> removeAmount(int amountMl) async {
+    if (amountMl <= 0) return 0;
+    var left = amountMl;
+    final next = [..._entries];
+    for (var i = next.length - 1; i >= 0 && left > 0; i--) {
+      final e = next[i];
+      if (!_isToday(e.time)) continue;
+      if (e.amountMl <= left) {
+        left -= e.amountMl;
+        next.removeAt(i);
+      } else {
+        next[i] = WaterEntry(
+          id: e.id,
+          amountMl: e.amountMl - left,
+          time: e.time,
+        );
+        left = 0;
+      }
+    }
+    final removed = amountMl - left;
+    if (removed == 0) return 0;
+    _undoSnapshot = _entries;
+    _entries = next;
+    _observeGoal();
+    notifyListeners();
+    await _persist();
+    return removed;
+  }
+
+  /// Son değişikliği geri alır; geri alınacak bir şey yoksa false.
+  Future<bool> undo() async {
+    final snapshot = _undoSnapshot;
+    if (snapshot == null) return false;
+    _undoSnapshot = null;
+    _entries = snapshot;
+    _observeGoal();
+    notifyListeners();
+    await _persist();
+    return true;
   }
 
   Future<void> _persist() async {

@@ -22,6 +22,7 @@ class SettingsController extends ChangeNotifier {
   ThermosShape get shape => _settings.shape;
   ThermosTheme get theme => _settings.theme;
   int get goalMl => _settings.goalMl;
+  int get glassMl => _settings.glassMl;
 
   Future<void> load() async {
     try {
@@ -41,6 +42,9 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> setGoalMl(int ml) =>
       _update(_settings.copyWith(goalMl: AppSettings.normalizeGoal(ml)));
+
+  Future<void> setGlassMl(int ml) =>
+      _update(_settings.copyWith(glassMl: AppSettings.normalizeGlass(ml)));
 
   Future<void> _update(AppSettings next) async {
     _settings = next;

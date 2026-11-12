@@ -197,15 +197,14 @@ void main() {
       await frames(tester, 5);
       await tester.drag(thermos, const Offset(150, 0));
       await frames(tester, 5);
-      expect(find.text('0 ml'), findsOneWidget); // dokunma su eklemez
+      expect(find.text('0 / 2000 ml'), findsOneWidget); // dokunma su eklemez
 
-      final button = find.ancestor(
-        of: find.text('500 ml'),
-        matching: find.byWidgetPredicate((w) => w is FilledButton),
-      );
+      final button = find.byKey(
+        const ValueKey('glass-9'),
+      ); // sıradaki boş bardak
       await tester.tap(button);
       await frames(tester, 10);
-      expect(find.text('%25 tamamlandı'), findsOneWidget);
+      expect(find.text('%10 tamamlandı'), findsOneWidget);
       // Liste ekrandan taşsın diye birkaç kayıt daha.
       for (var i = 0; i < 4; i++) {
         await tester.tap(button);
