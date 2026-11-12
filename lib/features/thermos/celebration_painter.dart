@@ -25,6 +25,7 @@ class CelebrationPainter extends CustomPainter {
     required this.theme,
     required this.shape,
     required this.t,
+    this.reduceMotion = false,
   });
 
   final ThermosTheme theme;
@@ -32,6 +33,9 @@ class CelebrationPainter extends CustomPainter {
 
   /// Kutlamanın ilerlemesi, 0..1.
   final double t;
+
+  /// "Animasyonları azalt": vizör yazısı kaymaz, sığacak şekilde ortada durur.
+  final bool reduceMotion;
 
   bool get _chubby => shape == ThermosShape.chubby;
 
@@ -406,6 +410,9 @@ class CelebrationPainter extends CustomPainter {
     }
   }
 
+  static const visorMessage = 'TEBRİKLER! HEDEFE ULAŞTIN!';
+  static const visorStaticText = 'TEBRİKLER!';
+
   void _visorText(Canvas canvas) {
     final visor = _chubby ? _visorChubby : _visorSlim;
     final b = visor.getBounds();
@@ -414,7 +421,7 @@ class CelebrationPainter extends CustomPainter {
     canvas.drawPath(visor, _paint(0x5DCAA5, glow));
     final tp = TextPainter(
       text: TextSpan(
-        text: 'TEBRİKLER! HEDEFE ULAŞTIN!',
+        text: reduceMotion ? visorStaticText : visorMessage,
         style: TextStyle(
           color: const Color(0xFFB8F5E0).withValues(alpha: _alpha),
           fontSize: _chubby ? 24 : 17,
@@ -426,9 +433,17 @@ class CelebrationPainter extends CustomPainter {
     )..layout();
     canvas.save();
     canvas.clipPath(visor);
-    // Kayan yazı: sağdan girer, sola doğru akar.
-    final x = b.right - t * (b.width + tp.width) * 1.05;
-    tp.paint(canvas, Offset(x, b.center.dy - tp.height / 2));
+    if (reduceMotion) {
+      // Hareket yok: yazı vizöre sığacak kadar küçültülüp ortalanır.
+      final k = math.min(1.0, (b.width - 8) / tp.width);
+      canvas.translate(b.center.dx, b.center.dy);
+      canvas.scale(k);
+      tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+    } else {
+      // Kayan yazı: sağdan girer, sola doğru akar.
+      final x = b.right - t * (b.width + tp.width) * 1.05;
+      tp.paint(canvas, Offset(x, b.center.dy - tp.height / 2));
+    }
     canvas.restore();
   }
 

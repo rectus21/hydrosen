@@ -68,6 +68,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                   theme: widget.theme,
                   shape: widget.shape,
                   t: reduceMotion ? 0.5 : t,
+                  reduceMotion: reduceMotion,
                 ),
               ),
               Align(
@@ -104,12 +105,18 @@ class _Banner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Astronot gibi koyu temalarda label açık renk; beyaz zeminde görünmez
+    // olurdu. Okunaklı değilse (kontrast < 4.5) koyu mürekkep kullanılır.
+    const bg = Color(0xEBFFFFFF);
+    final ink = _contrast(theme.label, Colors.white) >= 4.5
+        ? theme.label
+        : const Color(0xFF0B1F3A);
     return Semantics(
       liveRegion: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.92),
+          color: bg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: theme.edge, width: 2),
           boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 8)],
@@ -118,9 +125,15 @@ class _Banner extends StatelessWidget {
           CelebrationOverlay.message,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleSmall
-              ?.copyWith(color: theme.label, fontWeight: FontWeight.w700),
+              ?.copyWith(color: ink, fontWeight: FontWeight.w700),
         ),
       ),
     );
   }
+}
+
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance(), lb = b.computeLuminance();
+  final hi = la > lb ? la : lb, lo = la > lb ? lb : la;
+  return (hi + 0.05) / (lo + 0.05);
 }

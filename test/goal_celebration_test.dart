@@ -5,7 +5,7 @@ import 'package:flutter/material.dart' show MaterialApp, Scaffold, SizedBox;
 import 'package:hydrosen/features/thermos/celebration_overlay.dart';
 
 import 'package:flutter/widgets.dart'
-    show CustomPaint, StateSetter, StatefulBuilder, MediaQuery, MediaQueryData;
+    show CustomPaint, Text, TextPainter, TextSpan, TextStyle, FontWeight, TextDirection, StateSetter, StatefulBuilder, MediaQuery, MediaQueryData;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrosen/data/water_repository.dart';
 import 'package:hydrosen/domain/water_entry.dart';
@@ -249,6 +249,69 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 3));
       }
     });
+  });
+
+  group('Kutlama yazısı görünürlüğü', () {
+    for (final reduce in [false, true]) {
+      testWidgets('Astronot banner yazısı görünür (disableAnimations=$reduce)',
+          (tester) async {
+        var trigger = 0;
+        late StateSetter set;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(disableAnimations: reduce),
+              child: Scaffold(
+                body: StatefulBuilder(
+                  builder: (context, setState) {
+                    set = setState;
+                    return SizedBox(
+                      width: 330,
+                      height: 380,
+                      child: CelebrationOverlay(
+                        trigger: trigger,
+                        theme: ThermosTheme.astronaut,
+                        shape: ThermosShape.chubby,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        set(() => trigger++);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        final text = find.text(CelebrationOverlay.message);
+        expect(text, findsOneWidget);
+        final style = tester.widget<Text>(text).style!;
+        expect(style.color!.computeLuminance(), lessThan(0.3),
+            reason: 'beyaz zeminde açık renk yazı okunmaz');
+        await tester.pumpAndSettle(const Duration(seconds: 3));
+      });
+    }
+
+    for (final shape in ThermosShape.values) {
+      test('${shape.label}: vizör yazısı ölçülebilir ve çizilir', () {
+        final tp = TextPainter(
+          text: const TextSpan(
+            text: CelebrationPainter.visorStaticText,
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        expect(tp.width, greaterThan(0));
+        final recorder = PictureRecorder();
+        CelebrationPainter(
+          theme: ThermosTheme.astronaut,
+          shape: shape,
+          t: 0.5,
+          reduceMotion: true,
+        ).paint(Canvas(recorder), const Size(330, 380));
+        recorder.endRecording().dispose();
+      });
+    }
   });
 
   test('kaldırılan Botanik teması kayıtlı olsa da Klasik e düşer', () {
