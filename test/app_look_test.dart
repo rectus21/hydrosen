@@ -30,7 +30,7 @@ void main() {
       ]) {
         expect(AppLook.of(ThermosTheme.byId(id)).isDark, isTrue, reason: id);
       }
-      for (final id in ['klasik', 'panda', 'kaplan', 'karpuz', 'botanik']) {
+      for (final id in ['klasik', 'panda', 'kaplan', 'karpuz']) {
         expect(AppLook.of(ThermosTheme.byId(id)).isDark, isFalse, reason: id);
       }
     });

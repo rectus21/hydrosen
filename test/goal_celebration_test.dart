@@ -1,5 +1,11 @@
+import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/material.dart' show MaterialApp, Scaffold, SizedBox;
+import 'package:hydrosen/features/thermos/celebration_overlay.dart';
+
+import 'package:flutter/widgets.dart'
+    show CustomPaint, StateSetter, StatefulBuilder, MediaQuery, MediaQueryData;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrosen/data/water_repository.dart';
 import 'package:hydrosen/domain/water_entry.dart';
@@ -169,5 +175,85 @@ void main() {
         }
       });
     }
+  });
+
+  group('Astronot kutlaması', () {
+    Future<Uint8List> frame(
+      ThermosTheme theme,
+      ThermosShape shape,
+      double t,
+    ) async {
+      final recorder = PictureRecorder();
+      CelebrationPainter(
+        theme: theme,
+        shape: shape,
+        t: t,
+      ).paint(Canvas(recorder), const Size(330, 380));
+      final img = await recorder.endRecording().toImage(330, 380);
+      final bytes = (await img.toByteData(format: ImageByteFormat.rawRgba))!;
+      return bytes.buffer.asUint8List();
+    }
+
+    for (final shape in ThermosShape.values) {
+      test(
+        '${shape.label}: boş değil ve varsayılan damla halkasından farklı',
+        () async {
+          final astro = await frame(ThermosTheme.astronaut, shape, 0.5);
+          expect(
+            astro.any((b) => b != 0),
+            isTrue,
+            reason: 'hiçbir şey çizilmedi',
+          );
+          final droplet = await frame(ThermosTheme.classic, shape, 0.5);
+          expect(astro, isNot(droplet));
+        },
+      );
+    }
+
+    testWidgets('animasyonlar azaltılmış olsa da kutlama çizilir', (
+      tester,
+    ) async {
+      for (final reduce in [false, true]) {
+        var trigger = 0;
+        late StateSetter set;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(disableAnimations: reduce),
+              child: Scaffold(
+                body: StatefulBuilder(
+                  builder: (context, setState) {
+                    set = setState;
+                    return SizedBox(
+                      width: 330,
+                      height: 380,
+                      child: CelebrationOverlay(
+                        trigger: trigger,
+                        theme: ThermosTheme.astronaut,
+                        shape: ThermosShape.chubby,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        set(() => trigger++);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        final painted = find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is CelebrationPainter,
+        );
+        expect(painted, findsOneWidget, reason: 'reduce=$reduce');
+        await tester.pumpAndSettle(const Duration(seconds: 3));
+      }
+    });
+  });
+
+  test('kaldırılan Botanik teması kayıtlı olsa da Klasik e düşer', () {
+    expect(ThermosTheme.all.any((t) => t.id == 'botanik'), isFalse);
+    expect(ThermosTheme.byId('botanik').id, 'klasik');
+    expect(ThermosTheme.byId('botanik'), same(ThermosTheme.classic));
   });
 }
