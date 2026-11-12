@@ -348,71 +348,109 @@ void _kopekBg(Art a) {
   }
 }
 
+/// Sarkık kulak: [inner]/[outer] merkezden yatay uzaklık, [top]..[bot] dikey.
+void _kopekEar(
+  Art a,
+  int d,
+  double top,
+  double bot,
+  double inner,
+  double outer,
+) {
+  String pt(double dx, double y) => '${340 + d * dx} $y';
+  final h = bot - top;
+  final edge =
+      'M${pt(inner, top)} Q${pt(outer + 10, top - 6)} ${pt(outer, top + h * 0.38)} '
+      'Q${pt(outer - 2, bot - 8)} ${pt(outer - 22, bot)}';
+  a.p(
+    '$edge Q${pt(inner + 2, bot + 2)} ${pt(inner - 2, top + h * 0.5)} '
+    'Q${pt(inner - 6, top + h * 0.2)} ${pt(inner, top)} Z',
+    0x6B3F1B,
+  );
+  // İç gölge ve ışık.
+  a.p(
+    'M${pt(inner + 6, top + 8)} Q${pt(outer - 2, top + 4)} ${pt(outer - 6, top + h * 0.4)} '
+    'Q${pt(outer - 8, bot - 18)} ${pt(outer - 24, bot - 10)} '
+    'Q${pt(inner + 8, bot - 8)} ${pt(inner + 6, top + h * 0.5)} Z',
+    0x8A5428,
+  );
+  a.p(
+    'M${pt(inner + 12, top + 14)} Q${pt(inner + 24, top + h * 0.3)} ${pt(inner + 22, top + h * 0.6)} '
+    'Q${pt(inner + 14, top + h * 0.5)} ${pt(inner + 12, top + 14)} Z',
+    0xB07A42,
+    op: 0.7,
+  );
+  a.s(edge, 0x4A2810, 2.5);
+}
+
 void _kopekA(Art a, bool happy) {
   a.dome(0xD9A066, 0xEBC08A, 0xB07A42);
-  // Sarkık kulaklar.
-  a.o(250, 120, 26, 48, 0x7A4A22, rot: 12);
-  a.o(430, 120, 26, 48, 0x7A4A22, rot: -12);
-  a.o(246, 116, 14, 32, 0x93602F, op: 0.7, rot: 12);
-  a.o(434, 116, 14, 32, 0x93602F, op: 0.7, rot: -12);
-  // Göz çevresi lekesi.
-  a.o(374, 124, 24, 22, 0x8A5628, rot: 15);
-  a.o(340, 164, 42, 30, 0xF8E8CE);
-  a.cheeks(166, 0.4);
+  // Alında açık çizgi ve göz lekesi.
+  a.p('M340 58 Q352 90 346 124 Q340 128 334 124 Q328 90 340 58 Z', 0xF8E8CE);
+  a.o(380, 126, 27, 25, 0x7A4A22, rot: 12);
+  // Kulaklar kafanın üstüne biner.
+  _kopekEar(a, -1, 62, 200, 70, 120);
+  _kopekEar(a, 1, 62, 200, 70, 120);
+  // Ağız çevresi (krem).
+  a.o(340, 170, 50, 36, 0xF8E8CE);
+  a.o(340, 160, 36, 22, 0xFFF4E2, op: 0.7);
+  a.cheeks(168, 0.45);
   if (happy) {
-    a.s('M290 130 Q306 112 322 130', k, 4.5);
-    a.s('M358 130 Q374 112 390 130', k, 4.5);
+    a.s('M286 132 Q304 110 322 132', k, 5);
+    a.s('M358 132 Q376 110 394 132', k, 5);
   } else {
-    a.eye(306, 126, 13);
-    a.eye(374, 126, 13);
-    a.s('M290 102 Q306 94 320 102', 0x7A4A22, 4);
-    a.s('M360 102 Q374 94 390 102', 0x7A4A22, 4);
+    a.eye(304, 128, 15);
+    a.eye(378, 128, 15);
+    a.s('M286 100 Q304 90 322 100', 0x7A4A22, 4.5);
+    a.s('M358 100 Q378 90 394 100', 0x7A4A22, 4.5);
   }
-  a.o(340, 148, 17, 11, k);
-  a.o(334, 144, 5, 2.6, w, op: 0.7);
+  // Burun.
+  a.p('M320 148 Q340 138 360 148 Q358 164 340 168 Q322 164 320 148 Z', k);
+  a.o(332, 148, 8, 3.4, w, op: 0.65);
   if (happy) {
-    a.s('M340 158 L340 166', k, 3);
-    a.p('M316 166 Q340 204 364 166 Q340 176 316 166 Z', k);
-    a.o(340, 188, 11, 8, 0xE8758F);
-    a.s('M340 182 L340 194', 0xC0455F, 2);
+    a.s('M340 168 L340 174', k, 3);
+    a.p('M312 176 Q340 218 368 176 Q340 188 312 176 Z', 0x5A1E2A);
+    a.o(340, 200, 14, 9, 0xE8758F);
+    a.s('M340 192 L340 206', 0xC0455F, 2);
+    a.s('M340 174 Q324 190 312 176 M340 174 Q356 190 368 176', k, 3);
   } else {
     a.s(
-      'M340 158 L340 168 M340 168 Q330 178 320 170 M340 168 Q350 178 360 170',
+      'M340 168 L340 178 M340 178 Q326 190 314 180 M340 178 Q354 190 366 180',
       k,
-      3,
+      3.2,
     );
     a.p(
-      'M342 174 Q354 174 354 184 Q354 192 346 190 Q342 186 342 174 Z',
+      'M342 184 Q358 184 358 198 Q358 208 348 205 Q343 200 342 184 Z',
       0xE8758F,
     );
+    a.s('M349 188 L349 200', 0xC0455F, 1.6);
   }
 }
 
 void _kopekB(Art a, bool happy) {
   a.box(0xD9A066, 0xEBC08A, 0xB07A42);
-  a.o(282, 122, 14, 30, 0x7A4A22, rot: 8);
-  a.o(398, 122, 14, 30, 0x7A4A22, rot: -8);
-  a.o(360, 118, 14, 13, 0x8A5628, rot: 15);
-  a.o(340, 146, 26, 18, 0xF8E8CE);
+  a.p('M340 92 Q348 112 344 128 Q340 130 336 128 Q332 112 340 92 Z', 0xF8E8CE);
+  a.o(362, 122, 15, 14, 0x7A4A22, rot: 12);
+  _kopekEar(a, -1, 80, 174, 54, 78);
+  _kopekEar(a, 1, 80, 174, 54, 78);
+  a.o(340, 148, 32, 22, 0xF8E8CE);
   if (happy) {
-    a.s('M308 124 Q320 110 332 124', k, 3.5);
-    a.s('M348 124 Q360 110 372 124', k, 3.5);
+    a.s('M308 126 Q320 110 332 126', k, 3.5);
+    a.s('M348 126 Q360 110 372 126', k, 3.5);
   } else {
-    a.c(320, 120, 5.5, k);
-    a.c(360, 120, 5.5, k);
-    a.c(318, 118, 1.8, w);
-    a.c(358, 118, 1.8, w);
+    a.eye(320, 122, 8);
+    a.eye(362, 122, 8);
   }
-  a.o(340, 138, 10, 7, k);
-  a.o(337, 136, 3, 1.6, w, op: 0.7);
+  a.p('M327 134 Q340 127 353 134 Q351 146 340 148 Q329 146 327 134 Z', k);
+  a.o(335, 134, 5, 2.2, w, op: 0.65);
   if (happy) {
-    a.p('M326 146 Q340 164 354 146 Q340 152 326 146 Z', k);
-    a.o(340, 156, 5, 3.5, 0xE8758F);
+    a.p('M326 152 Q340 172 354 152 Q340 158 326 152 Z', 0x5A1E2A);
+    a.o(340, 163, 6, 4, 0xE8758F);
   } else {
     a.s(
-      'M340 145 L340 150 M340 150 Q334 156 328 152 M340 150 Q346 156 352 152',
+      'M340 148 L340 154 M340 154 Q332 161 326 156 M340 154 Q348 161 354 156',
       k,
-      2,
+      2.4,
     );
   }
 }
@@ -805,19 +843,35 @@ void _baykusBg(Art a) {
   }
 }
 
-void _baykusTufts(Art a, double y, double sp, int base, int dark) {
+void _baykusTufts(
+  Art a,
+  double y,
+  double sx,
+  double base,
+  int dark, {
+  double sc = 1,
+}) {
+  // Kulak tüyleri: kafanın üst köşelerinden yukarı sivri tutam.
   for (final d in const [-1, 1]) {
-    final x = 340 + d * sp;
-    a.p('M${x - d * 52} ${y + 44} L$x $y L${x - d * 6} ${y + 70} Z', base);
+    String pt(double dx, double yy) => '${340 + d * dx} $yy';
     a.p(
-      'M${x - d * 36} ${y + 44} L${x - d * 8} ${y + 14} L${x - d * 8} ${y + 60} Z',
-      dark,
+      'M${pt(sx + 40 * sc, y + base + 30)} Q${pt(sx + 44 * sc, y + 6)} ${pt(sx + 20 * sc, y)} '
+      'Q${pt(sx - 8 * sc, y + 12)} ${pt(sx - 42 * sc, y + base)} Z',
+      0x5A3A22,
     );
+    a.p(
+      'M${pt(sx + 32 * sc, y + base + 24)} Q${pt(sx + 34 * sc, y + 20)} ${pt(sx + 20 * sc, y + 10)} '
+      'Q${pt(sx + 2 * sc, y + 24)} ${pt(sx - 20 * sc, y + base + 4)} Z',
+      0x8B6240,
+    );
+    a.s('M${pt(sx + 22 * sc, y + 24)} L${pt(sx + 10 * sc, y + 56)}', dark, 2.4);
+    a.s('M${pt(sx + 8 * sc, y + 30)} L${pt(sx - 2 * sc, y + 58)}', dark, 2.4);
   }
 }
 
 void _baykusEye(Art a, double x, double y, double r, bool wink) {
-  a.c(x, y, r * 1.1, 0xE8D5B0);
+  a.c(x, y, r * 1.18, 0x6B4A2C);
+  a.c(x, y, r * 1.06, 0xFFF3D6);
   if (wink) {
     a.s(
       'M${x - r * 0.8} ${y + 2} Q$x ${y - r * 0.9} ${x + r * 0.8} ${y + 2}',
@@ -827,56 +881,95 @@ void _baykusEye(Art a, double x, double y, double r, bool wink) {
     return;
   }
   a.c(x, y, r * 0.78, 0xF2A03D);
-  a.c(x, y, r * 0.5, 0xFFC25A, op: 0.5);
-  a.c(x, y, r * 0.42, k);
-  a.c(x - r * 0.2, y - r * 0.22, r * 0.17, w);
+  a.c(x, y + r * 0.1, r * 0.6, 0xFFC25A, op: 0.6);
+  a.c(x, y, r * 0.44, k);
+  a.c(x - r * 0.22, y - r * 0.26, r * 0.2, w);
+  a.c(x + r * 0.2, y + r * 0.22, r * 0.09, w);
+}
+
+/// Tüy pulları: her noktada küçük "U" kıvrımı.
+void _baykusScales(Art a, List<List<num>> pts, int col, double sz) {
+  for (final p in pts) {
+    a.s(
+      'M${p[0] - sz} ${p[1]} Q${p[0]} ${p[1] + sz * 0.9} ${p[0] + sz} ${p[1]}',
+      col,
+      2,
+    );
+  }
+}
+
+/// Yüz diski: krem dolgu, kenara doğru ince tüy çizgileri.
+void _baykusDisc(Art a, String disc, num cx, num cy, num rx, num ry) {
+  a.canvas.save();
+  a.canvas.clipPath(a.path(disc));
+  a.o(cx, cy, rx, ry, 0xF3E3C4);
+  a.o(cx, cy + 10, rx * 0.84, ry * 0.7, 0xFFF6E2, op: 0.6);
+  a.canvas.restore();
 }
 
 void _baykusA(Art a, bool happy) {
-  _baykusTufts(a, 40, 84, 0x6E4A2E, 0x2F1E12);
+  _baykusTufts(a, 14, 80, 62, 0x2F1E12);
   a.dome(0x8B6240, 0xB38A5E, 0x5E3F26);
-  // Alın tüyleri.
-  for (final d in const [
-    'M340 62 L340 92',
-    'M316 66 Q320 78 318 90',
-    'M364 66 Q360 78 362 90',
-    'M290 82 Q296 92 296 102',
-    'M390 82 Q384 92 384 102',
-  ]) {
-    a.s(d, 0x5E3F26, 4);
-  }
-  // Yüz diski.
-  a.o(340, 140, 84, 58, 0xC9A27A, op: 0.5);
-  _baykusEye(a, 302, 126, 28, false);
-  _baykusEye(a, 378, 126, 28, happy);
-  a.p('M330 138 L350 138 L340 166 Z', 0xE8902A);
-  a.p('M334 140 L346 140 L340 152 Z', 0xF7B755);
+  // Kafada tüy dokusu.
+  _baykusScales(a, const [
+    [280, 78],
+    [300, 66],
+    [380, 66],
+    [400, 78],
+    [262, 100],
+    [418, 100],
+    [340, 66],
+    [320, 76],
+    [360, 76],
+  ], 0x5E3F26, 7);
+  // Kalp biçimli yüz diski.
+  const disc =
+      'M340 112 Q318 84 282 90 Q246 100 250 148 Q256 196 340 208 '
+      'Q424 196 430 148 Q434 100 398 90 Q362 84 340 112 Z';
+  a.p(disc, 0xA67A50);
+  _baykusDisc(a, disc, 340, 150, 84, 62);
+  // Kaşlar (diskin üst kenarında koyu V).
+  a.s('M340 112 Q324 98 300 98 M340 112 Q356 98 380 98', 0x6B4A2C, 4);
+  _baykusEye(a, 302, 134, 29, false);
+  _baykusEye(a, 378, 134, 29, happy);
+  // Gaga: küçük, kancalı.
+  a.p(
+    'M328 144 Q340 134 352 144 Q350 162 340 174 Q330 162 328 144 Z',
+    0xE8902A,
+  );
+  a.p('M332 146 Q340 140 348 146 Q346 156 340 160 Q334 156 332 146 Z', 0xF9C066);
+  a.p('M336 164 Q340 176 344 164 Q340 168 336 164 Z', 0xB5651D);
   if (happy) {
-    a.s('M318 178 Q340 196 362 178', 0x3A2412, 3);
+    a.s('M316 190 Q340 204 364 190', 0x3A2412, 3);
   }
-  a.cheeks(172, 0.35);
-  // Göğüs tüyü kıvrımları.
-  for (final x in const [300, 340, 380]) {
-    a.s('M${x - 12} 192 Q$x 202 ${x + 12} 192', 0xD8BE94, 3);
-  }
+  a.cheeks(176, 0.4);
+  // Göğüs: V kıvrım tüyleri.
+  _baykusScales(a, const [
+    [300, 196],
+    [320, 202],
+    [340, 206],
+    [360, 202],
+    [380, 196],
+  ], 0xD9BD92, 8);
 }
 
 void _baykusB(Art a, bool happy) {
-  _baykusTufts(a, 56, 56, 0x6E4A2E, 0x2F1E12);
+  _baykusTufts(a, 46, 54, 44, 0x2F1E12, sc: 0.5);
   a.box(0x8B6240, 0xB38A5E, 0x5E3F26);
-  for (final d in const [
-    'M340 94 L340 104',
-    'M326 96 L328 104',
-    'M354 96 L352 104',
-  ]) {
-    a.s(d, 0x5E3F26, 3);
-  }
-  a.o(340, 126, 54, 34, 0xC9A27A, op: 0.5);
-  _baykusEye(a, 314, 120, 17, false);
-  _baykusEye(a, 366, 120, 17, happy);
-  a.p('M334 132 L346 132 L340 150 Z', 0xE8902A);
+  const disc =
+      'M340 108 Q326 94 304 98 Q282 106 286 134 Q292 164 340 168 '
+      'Q388 164 394 134 Q398 106 376 98 Q354 94 340 108 Z';
+  a.p(disc, 0xA67A50);
+  _baykusDisc(a, disc, 340, 134, 56, 40);
+  _baykusEye(a, 316, 124, 17, false);
+  _baykusEye(a, 364, 124, 17, happy);
+  a.p(
+    'M333 132 Q340 125 347 132 Q345 146 340 154 Q335 146 333 132 Z',
+    0xE8902A,
+  );
+  a.p('M336 146 Q340 156 344 146 Q340 150 336 146 Z', 0xB5651D);
   if (happy) {
-    a.s('M326 156 Q340 164 354 156', 0x3A2412, 2.5);
+    a.s('M328 158 Q340 164 352 158', 0x3A2412, 2.5);
   }
 }
 
@@ -936,53 +1029,88 @@ void _tilkiBg(Art a) {
 
 void _tilkiEars(Art a, double y, double spread, double wd) {
   for (final d in const [-1, 1]) {
-    final x = 340 + d * spread;
+    String pt(double dx, double yy) => '${340 + d * dx} $yy';
+    final ox = spread + wd; // dış taban
+    final ix = spread - wd; // iç taban
+    final tx = spread + wd * 0.55; // uç
+    final base = y + 96;
+    // Dış kulak.
     a.p(
-      'M${x - wd} ${y + 80} L${x + d * 8} $y L${x + wd} ${y + 80} Z',
+      'M${pt(ox + 6, base)} Q${pt(ox + 4, y + 40)} ${pt(tx, y)} '
+      'Q${pt(ix + 4, y + 30)} ${pt(ix, base - 8)} Z',
       0xE8782A,
-    );
-    a.p(
-      'M${x - wd * 0.55 + d * 3} ${y + 72} L${x + d * 8} ${y + 22} L${x + wd * 0.55 + d * 3} ${y + 72} Z',
-      0xFFF1DC,
     );
     // Koyu uç.
     a.p(
-      'M${x + d * 8} $y L${x + d * 8 - wd * 0.38} ${y + 30} L${x + d * 8 + wd * 0.38} ${y + 30} Z',
+      'M${pt(tx, y)} Q${pt(tx + wd * 0.2, y + 14)} ${pt(tx + wd * 0.5, y + 38)} '
+      'Q${pt(tx, y + 30)} ${pt(tx - wd * 0.6, y + 36)} '
+      'Q${pt(tx - wd * 0.3, y + 16)} ${pt(tx, y)} Z',
       0x3A2418,
+    );
+    // Açık iç kulak.
+    a.p(
+      'M${pt(ox - 12, base - 6)} Q${pt(ox - 10, y + 56)} ${pt(tx - 3, y + 42)} '
+      'Q${pt(ix + 14, y + 52)} ${pt(ix + 14, base - 12)} Z',
+      0xFFE8CF,
+    );
+    a.p(
+      'M${pt(ox - 22, base - 8)} Q${pt(ox - 20, y + 66)} ${pt(tx - 4, y + 54)} '
+      'Q${pt(ix + 22, y + 66)} ${pt(ix + 24, base - 12)} Z',
+      0xF2B6A0,
+      op: 0.55,
     );
   }
 }
 
 void _tilkiA(Art a, bool happy) {
-  _tilkiEars(a, 22, 70, 36);
+  _tilkiEars(a, 14, 74, 34);
   a.dome(0xE8782A, 0xF4A25E, 0xB5551A);
-  // Beyaz yanaklar ve ağız.
+  // Alında koyu turuncu "V".
   a.p(
-    'M244 134 Q290 138 340 154 Q390 138 436 134 Q426 188 340 210 Q254 188 244 134 Z',
+    'M340 56 Q316 70 304 96 Q328 84 340 98 Q352 84 376 96 Q364 70 340 56 Z',
+    0xC9601E,
+    op: 0.55,
+  );
+  // Beyaz yanak tüyleri (püsküllü) ve ağız bölgesi.
+  a.p(
+    'M246 112 L232 132 L252 134 L238 156 L260 156 L252 180 L278 172 '
+    'Q300 206 340 212 Q380 206 402 172 L428 180 L420 156 L442 156 L428 134 '
+    'L448 132 L434 112 Q404 148 340 150 Q276 148 246 112 Z',
     0xFFF6EA,
   );
-  a.s('M300 62 Q340 74 380 62', 0xB5551A, 3);
-  if (happy) {
-    a.s('M286 118 Q302 100 318 118', k, 4.5);
-    a.s('M362 118 Q378 100 394 118', k, 4.5);
-  } else {
-    a.o(302, 118, 12, 12.5, k);
-    a.o(378, 118, 12, 12.5, k);
-    a.c(298, 113, 4.5, w);
-    a.c(374, 113, 4.5, w);
-    a.s('M284 104 Q300 96 318 104', 0xB5551A, 3.5);
-    a.s('M362 104 Q380 96 396 104', 0xB5551A, 3.5);
+  // Turuncu burun sırtı (alından buruna incelir).
+  a.p(
+    'M316 106 Q340 100 364 106 Q352 140 344 166 L336 166 Q328 140 316 106 Z',
+    0xE8782A,
+  );
+  // Gözler: badem biçimli, kehribar.
+  for (final d in const [-1, 1]) {
+    final x = 340 + d * 40.0;
+    if (happy) {
+      a.s('M${x - 17} 122 Q$x 100 ${x + 17} 122', k, 5);
+    } else {
+      final l = d == -1 ? 122 : 114;
+      final r = d == -1 ? 114 : 122;
+      a.p('M${x - 20} $l Q$x 94 ${x + 20} $r Q$x 142 ${x - 20} $l Z', k);
+      a.o(x, 118, 13, 12, 0xF2A21E);
+      a.o(x, 122, 9, 6, 0xFFD36A, op: 0.6);
+      a.o(x, 118, 4, 11, k);
+      a.c(x - 5, 112, 3.6, w);
+      a.c(x + 4, 125, 1.6, w);
+    }
   }
-  a.o(340, 158, 15, 10, k);
-  a.o(335, 154, 4.5, 2.5, w, op: 0.7);
-  a.cheeks(160, 0.35);
+  // Burun ve ağız.
+  a.p('M324 164 Q340 156 356 164 Q352 178 340 182 Q328 178 324 164 Z', k);
+  a.o(333, 164, 6, 2.6, w, op: 0.7);
+  a.cheeks(170, 0.3);
   if (happy) {
-    a.s('M340 168 L340 174', k, 3);
-    a.p('M318 174 Q340 206 362 174 Q340 182 318 174 Z', k);
-    a.o(340, 192, 9, 5, 0xE8758F);
+    a.s('M340 182 L340 188', k, 3);
+    a.p('M320 188 Q340 218 360 188 Q340 196 320 188 Z', 0x5A1E2A);
+    a.o(340, 205, 10, 6, 0xE8758F);
+    a.s('M340 188 Q330 198 320 188 M340 188 Q350 198 360 188', k, 2.6);
   } else {
     a.s(
-      'M340 168 L340 176 M340 176 Q330 186 320 179 M340 176 Q350 186 360 179',
+      'M340 182 L340 190 M340 190 Q330 200 320 192 M340 190 Q350 200 360 192',
       k,
       3,
     );
@@ -990,30 +1118,39 @@ void _tilkiA(Art a, bool happy) {
 }
 
 void _tilkiB(Art a, bool happy) {
-  _tilkiEars(a, 30, 42, 24);
+  _tilkiEars(a, 14, 42, 24);
   a.box(0xE8782A, 0xF4A25E, 0xB5551A);
+  // Beyaz yanak tüyleri.
   a.p(
-    'M284 138 Q312 138 340 150 Q368 138 396 138 L396 164 L284 164 Z',
+    'M284 124 L278 138 L290 140 L284 154 L296 156 L290 166 L310 164 '
+    'Q326 170 340 172 Q354 170 370 164 L390 166 L384 156 L396 154 L390 140 '
+    'L402 138 L396 124 Q370 146 340 146 Q310 146 284 124 Z',
     0xFFF6EA,
   );
-  if (happy) {
-    a.s('M304 122 Q316 108 328 122', k, 3.5);
-    a.s('M352 122 Q364 108 376 122', k, 3.5);
-  } else {
-    a.o(316, 120, 6, 6.5, k);
-    a.o(364, 120, 6, 6.5, k);
-    a.c(314, 117.5, 2, w);
-    a.c(362, 117.5, 2, w);
+  a.p(
+    'M326 114 Q340 110 354 114 Q348 136 343 150 L337 150 Q332 136 326 114 Z',
+    0xE8782A,
+  );
+  for (final d in const [-1, 1]) {
+    final x = 340 + d * 26.0;
+    if (happy) {
+      a.s('M${x - 10} 124 Q$x 110 ${x + 10} 124', k, 3.5);
+    } else {
+      a.p('M${x - 11} 122 Q$x 108 ${x + 11} 122 Q$x 132 ${x - 11} 122 Z', k);
+      a.o(x, 120, 6.5, 6, 0xF2A21E);
+      a.o(x, 120, 2.2, 5.6, k);
+      a.c(x - 2.4, 117, 1.8, w);
+    }
   }
-  a.o(340, 146, 9, 6, k);
-  a.o(337, 144, 2.8, 1.6, w, op: 0.7);
+  a.p('M331 146 Q340 141 349 146 Q347 155 340 158 Q333 155 331 146 Z', k);
+  a.o(336, 146, 3.6, 1.6, w, op: 0.7);
   if (happy) {
-    a.p('M328 154 Q340 168 352 154 Q340 158 328 154 Z', k);
+    a.p('M326 160 Q340 176 354 160 Q340 164 326 160 Z', 0x5A1E2A);
   } else {
     a.s(
-      'M340 151 L340 155 M340 155 Q334 160 329 157 M340 155 Q346 160 351 157',
+      'M340 158 L340 162 M340 162 Q334 168 328 164 M340 162 Q346 168 352 164',
       k,
-      2,
+      2.2,
     );
   }
 }
