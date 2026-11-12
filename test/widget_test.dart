@@ -223,42 +223,52 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('animasyonları azalt: parçacık yok, kısa tebrik yazısı var', (
-    tester,
-  ) async {
-    prepare(tester);
-    await tester.pumpWidget(
-      HydroSenApp(
-        repository: InMemoryWaterRepository(),
-        settingsRepository: InMemorySettingsRepository(),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final message = find.text(CelebrationOverlay.message);
+  testWidgets(
+    'animasyonları azalt: hareket yok (sabit kare), kısa tebrik yazısı var',
+    (tester) async {
+      prepare(tester);
+      await tester.pumpWidget(
+        HydroSenApp(
+          repository: InMemoryWaterRepository(),
+          settingsRepository: InMemorySettingsRepository(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final message = find.text(CelebrationOverlay.message);
 
-    await tester.tap(glass(0));
-    await tester.pumpAndSettle();
-    expect(message, findsNothing);
+      await tester.tap(glass(0));
+      await tester.pumpAndSettle();
+      expect(message, findsNothing);
 
-    // Özel miktarla tam hedefe.
-    await tester.tap(find.text('Özel miktar'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), '1800');
-    await tester.tap(find.text('Ekle'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(message, findsOneWidget);
-    expect(
-      find.byWidgetPredicate(
-        (w) => w is CustomPaint && w.painter is CelebrationPainter,
-      ),
-      findsNothing,
-    );
+      // Özel miktarla tam hedefe.
+      await tester.tap(find.text('Özel miktar'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '1800');
+      await tester.tap(find.text('Ekle'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(message, findsOneWidget);
+      double frameT() =>
+          (tester
+                      .widget<CustomPaint>(
+                        find.byWidgetPredicate(
+                          (w) =>
+                              w is CustomPaint &&
+                              w.painter is CelebrationPainter,
+                        ),
+                      )
+                      .painter!
+                  as CelebrationPainter)
+              .t;
+      final first = frameT();
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(frameT(), first); // kare sabit: parçacıklar hareket etmez
 
-    await tester.pump(const Duration(seconds: 3));
-    await tester.pumpAndSettle();
-    expect(message, findsNothing);
-  });
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      expect(message, findsNothing);
+    },
+  );
 }
 
 void quickGlassTests() {

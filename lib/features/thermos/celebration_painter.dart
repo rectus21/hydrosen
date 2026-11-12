@@ -19,7 +19,6 @@ import 'thermos_theme.dart';
 /// - Panda: süzülen bambu yaprakları (panda kapakta güler).
 /// - Tekboynuz: boynuz parlar, gökkuşağı yıldız tozu.
 /// - Astronot: kaskın vizöründe kayan "TEBRİKLER!" yazısı ve yıldızlar.
-/// - Botanik: süzülen yapraklar ve küçük beyaz çiçekler.
 /// - Kamp: pusula iğnesi döner, güneş ışınları parlar, kıvılcımlar yükselir.
 class CelebrationPainter extends CustomPainter {
   CelebrationPainter({
@@ -82,10 +81,14 @@ class CelebrationPainter extends CustomPainter {
         _hornGlow(canvas);
         _stardust(canvas);
       case 'astronot':
-        _twinkles(canvas);
+        _twinkles(
+          canvas,
+          const [0xFFFFFF, 0xFFE58F, 0x9CCBF5, 0x5DCAA5],
+          count: 24,
+          boost: 1.6,
+        );
+        _shootingStars(canvas);
         _visorText(canvas);
-      case 'botanik':
-        _falling(canvas, const [0x3B6D11, 0x639922, 0x97C459], flowers: true);
       case 'kamp':
         _sunRays(canvas);
         _embers(canvas);
@@ -275,7 +278,7 @@ class CelebrationPainter extends CustomPainter {
     }
   }
 
-  // --- Panda, Botanik --------------------------------------------------------
+  // --- Panda --------------------------------------------------------
 
   void _falling(Canvas canvas, List<int> colors, {required bool flowers}) {
     for (var i = 0; i < 18; i++) {
@@ -363,24 +366,58 @@ class CelebrationPainter extends CustomPainter {
 
   // --- Astronot --------------------------------------------------------------
 
-  void _twinkles(Canvas canvas, [List<int> colors = const [0xFFFFFF]]) {
-    for (var i = 0; i < 14; i++) {
+  void _twinkles(
+    Canvas canvas,
+    List<int> colors, {
+    int count = 14,
+    double boost = 1,
+  }) {
+    for (var i = 0; i < count; i++) {
       final x = 140 + _r(i, 15) * 400;
       final y = 20 + _r(i, 16) * 460;
       final tw = math.max(0.0, math.sin(t * math.pi * 4 + i * 1.3));
-      _star(canvas, Offset(x, y), 4 + tw * 6, colors[i % colors.length], tw);
+      _star(
+        canvas,
+        Offset(x, y),
+        (4 + tw * 6) * boost,
+        colors[i % colors.length],
+        tw,
+      );
+    }
+  }
+
+  /// Gökyüzünde çapraz kayan üç kuyruklu yıldız.
+  void _shootingStars(Canvas canvas) {
+    for (var i = 0; i < 3; i++) {
+      final p = t * 1.4 - i * 0.22;
+      if (p < 0 || p > 1) continue;
+      final head = Offset(520 - p * 330 - i * 20, 40 + i * 90 + p * 150);
+      final tail = head + const Offset(54, -26);
+      final fade = math.sin(p * math.pi);
+      canvas.drawLine(
+        head,
+        tail,
+        Paint()
+          ..strokeWidth = 3
+          ..strokeCap = StrokeCap.round
+          ..color = _paint(0xFFFFFF, 0.8 * fade).color,
+      );
+      canvas.drawCircle(head, 3.5, _paint(0xFFFFFF, fade));
     }
   }
 
   void _visorText(Canvas canvas) {
     final visor = _chubby ? _visorChubby : _visorSlim;
     final b = visor.getBounds();
+    // Vizör kutlama boyunca yeşil parlar.
+    final glow = 0.25 + 0.15 * math.sin(t * math.pi * 8);
+    canvas.drawPath(visor, _paint(0x5DCAA5, glow));
     final tp = TextPainter(
       text: TextSpan(
         text: 'TEBRİKLER! HEDEFE ULAŞTIN!',
         style: TextStyle(
-          color: const Color(0xFF5DCAA5).withValues(alpha: _alpha),
-          fontSize: _chubby ? 22 : 16,
+          color: const Color(0xFFB8F5E0).withValues(alpha: _alpha),
+          fontSize: _chubby ? 24 : 17,
           fontWeight: FontWeight.w700,
           letterSpacing: 1,
         ),

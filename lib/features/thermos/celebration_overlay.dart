@@ -6,7 +6,7 @@ import 'thermos_theme.dart';
 /// Termosun üstüne yerleşen kutlama katmanı. [trigger] her değiştiğinde bir kez
 /// oynar ([duration] sonra kendiliğinden kaybolur); ilk değerinde oynamaz.
 /// Dokunmaları engellemez. "Animasyonları azalt" açıksa parçacık çizilmez,
-/// yalnızca kısa bir tebrik yazısı görünür.
+/// parçacıklar hareket etmez; sabit tek kare ve kısa bir tebrik yazısı görünür.
 class CelebrationOverlay extends StatefulWidget {
   const CelebrationOverlay({
     super.key,
@@ -61,14 +61,15 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
           return Stack(
             fit: StackFit.expand,
             children: [
-              if (!reduceMotion)
-                CustomPaint(
-                  painter: CelebrationPainter(
-                    theme: widget.theme,
-                    shape: widget.shape,
-                    t: t,
-                  ),
+              // Animasyonları azalt açıkken hareket yok: kutlamanın ortasından
+              // tek, sabit bir kare gösterilir (parıltılar, yazı).
+              CustomPaint(
+                painter: CelebrationPainter(
+                  theme: widget.theme,
+                  shape: widget.shape,
+                  t: reduceMotion ? 0.5 : t,
                 ),
+              ),
               Align(
                 alignment: const Alignment(0, 0.82),
                 child: Opacity(

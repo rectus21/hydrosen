@@ -72,7 +72,6 @@ const Map<String, AppTypeface> themeTypefaces = {
   'limon': _sweet,
   'dondurma': _sweet,
   'seftali': _sweet,
-  'botanik': _hand,
   'sonbahar': _hand,
   'avokado': _hand,
   'kaktus': _hand,

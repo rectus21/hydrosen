@@ -129,15 +129,15 @@ class ThermosTheme {
   static const unicorn = ThermosTheme(
     id: 'tekboynuz',
     name: 'Tekboynuz',
-    glass: Color(0xFFCECBF6),
-    edge: Color(0xFF534AB7),
-    water: Color(0xFFAFA9EC),
-    deepWater: Color(0xFF534AB7),
-    waterSurface: Color(0xFFEEEDFE),
-    mark: Color(0xFF3C3489),
-    label: Color(0xFF3C3489),
-    band: Color(0xFFED93B1),
-    bandLight: Color(0xFFF4C0D1),
+    glass: Color(0xFFE6DCFA),
+    edge: Color(0xFF8A68CC),
+    water: Color(0xFFB79CF0),
+    deepWater: Color(0xFF7352C4),
+    waterSurface: Color(0xFFF3E9FF),
+    mark: Color(0xFF4A3380),
+    label: Color(0xFF4A3380),
+    band: Color(0xFFF59BC6),
+    bandLight: Color(0xFFFAC8E0),
     background: _unicornBg,
     capChubby: _unicornA,
     capSlim: _unicornB,
@@ -158,23 +158,6 @@ class ThermosTheme {
     background: _uzayBg,
     capChubby: _uzayA,
     capSlim: _uzayB,
-  );
-
-  static const botanic = ThermosTheme(
-    id: 'botanik',
-    name: 'Botanik',
-    glass: Color(0xFFEAF3DE),
-    edge: Color(0xFF3B6D11),
-    water: Color(0xFF5DCAA5),
-    deepWater: Color(0xFF0F6E56),
-    waterSurface: Color(0xFFE1F5EE),
-    mark: Color(0xFF27500A),
-    label: Color(0xFF27500A),
-    band: Color(0xFFBA7517),
-    bandLight: Color(0xFFEF9F27),
-    background: _botanikBg,
-    capChubby: _botanikA,
-    capSlim: _botanikB,
   );
 
   static const camp = ThermosTheme(
@@ -201,7 +184,6 @@ class ThermosTheme {
     panda,
     unicorn,
     astronaut,
-    botanic,
     camp,
     ...hayvanlarThemes,
     ...dogaThemes,
@@ -541,95 +523,212 @@ void _pandaB(Art a, bool happy) {
 
 // --- Tekboynuz -------------------------------------------------------------
 
-void _unicornBg(Art a) {
-  a.p(_full, 0xEEEDFE);
-  for (final (col, r) in const [
-    (0xED93B1, 150),
-    (0xFAC775, 134),
-    (0x9FE1CB, 118),
-    (0xAFA9EC, 102),
+const _uniMane = [0xF6A5C8, 0xFFC9A0, 0xFFE58F, 0xA5E6CC, 0x9CCBF5, 0xB79CF0];
+const _uniLash = 0x4B2E8F;
+
+/// Dört köşeli, içbükey parıltı yıldızı.
+void _sparkle(Art a, num x, num y, num s, int hex, {double op = 1}) {
+  final q = s * 0.22;
+  a.p(
+    'M$x ${y - s} Q${x + q} ${y - q} ${x + s} $y Q${x + q} ${y + q} $x ${y + s} '
+    'Q${x - q} ${y + q} ${x - s} $y Q${x - q} ${y - q} $x ${y - s} Z',
+    hex,
+    op: op,
+  );
+}
+
+void _cloud(Art a, num x, num y, num sc, {double op = 0.95}) {
+  a.o(x + 30 * sc, y + 16 * sc, 56 * sc, 14 * sc, 0xD9CCF5, op: op * 0.5);
+  for (final b in const [
+    [0, 0, 22],
+    [26, -12, 28],
+    [58, -2, 22],
+    [30, 8, 26],
   ]) {
-    a.arcTop(280, 512, r, col, 14);
+    a.c(x + b[0] * sc, y + b[1] * sc, b[2] * sc, w, op: op);
   }
-  for (final cl in const [
-    [180, 90],
-    [480, 70],
-    [500, 300],
-  ]) {
-    for (final b in const [
-      [0, 0, 22],
-      [22, -8, 26],
-      [46, 0, 20],
-      [22, 8, 22],
-    ]) {
-      a.c(cl[0] + b[0], cl[1] + b[1], b[2], w);
+}
+
+void _unicornBg(Art a) {
+  a.p(_full, 0xE9E2FB);
+  a.canvas.drawRect(
+    const Rect.fromLTWH(120, 8, 440, 504),
+    Paint()
+      ..shader = Gradient.linear(
+        const Offset(0, 8),
+        const Offset(0, 512),
+        [
+          const Color(0xFFC9D3FA),
+          const Color(0xFFEBD9F8),
+          const Color(0xFFFCE4EE),
+          const Color(0xFFFFF1E4),
+        ],
+        const [0, 0.45, 0.8, 1],
+      ),
+  );
+  // Gökkuşağı: sağ alttan yükselip kadrajdan çıkan pastel yay.
+  for (final (i, col) in const [
+    0xF7A8B8,
+    0xFFD0A8,
+    0xFFF0A8,
+    0xB5EAD0,
+    0xA8D8F7,
+    0xCDB8F5,
+  ].indexed) {
+    a.arcTop(470, 400, 190 - i * 13, col, 14);
+  }
+  _cloud(a, 168, 96, 0.95);
+  _cloud(a, 468, 64, 0.6, op: 0.85);
+  _cloud(a, 440, 392, 1.05);
+  _cloud(a, 150, 360, 0.8);
+  for (var i = 0; i < 12; i++) {
+    final x = 140 + a.rnd() * 400;
+    final y = 24 + a.rnd() * 330;
+    final s = 4 + a.rnd() * 6;
+    _sparkle(a, x, y, s, i.isEven ? 0xFFFFFF : 0xFFD66B, op: 0.9);
+  }
+  a.p('M120 468 Q250 440 380 462 Q470 478 560 458 V512 H120 Z', 0xCFF0E3);
+  a.p('M120 488 Q260 462 400 484 Q480 498 560 478 V512 H120 Z', 0xF9D2E4);
+}
+
+void _horn(Art a, num cx, num tipY, num baseY, num half) {
+  final h = baseY - tipY;
+  a.p('M$cx $tipY L${cx + half} $baseY L${cx - half} $baseY Z', 0xFFD66B);
+  a.p(
+    'M$cx $tipY L${cx + half} $baseY L${cx + half * 0.15} $baseY Z',
+    0xE9A93A,
+    op: 0.55,
+  );
+  for (var i = 1; i <= 4; i++) {
+    final y = tipY + h * i / 5;
+    final hw = half * i / 5;
+    a.s('M${cx - hw} ${y + 5} L${cx + hw} ${y - 5}', 0xD98E1F, 2.4);
+  }
+  a.s(
+    'M${cx - half * 0.38} ${baseY - 5} L${cx - half * 0.06} ${tipY + 10}',
+    w,
+    2.6,
+  );
+  _sparkle(a, cx + half * 2, tipY + 6, half * 0.75, w);
+}
+
+/// Yele: tepeden iki yana akan altı pastel şerit (d 5 = en dış).
+void _maneChubby(Art a) {
+  for (var d = 5; d >= 0; d--) {
+    final col = _uniMane[d];
+    for (final m in const [false, true]) {
+      String x(num v) => '${m ? 680 - v : v}';
+      a.s(
+        'M${x(314 - d * 2)} ${96 - d} '
+        'Q${x(210 - d * 9)} 90 ${x(190 - d * 9)} 160 '
+        'Q${x(178 - d * 9)} 218 ${x(204 - d * 8)} ${246 + d * 2}',
+        col,
+        17,
+      );
     }
   }
-  for (var i = 0; i < 14; i++) {
-    final x = 140 + a.rnd() * 400;
-    final y = 30 + a.rnd() * 380;
-    final s = 4 + a.rnd() * 5;
-    a.p(
-      'M$x ${y - s} L${x + s * 0.3} ${y - s * 0.3} L${x + s} $y '
-      'L${x + s * 0.3} ${y + s * 0.3} L$x ${y + s} L${x - s * 0.3} ${y + s * 0.3} '
-      'L${x - s} $y L${x - s * 0.3} ${y - s * 0.3} Z',
-      0xFAC775,
-    );
+}
+
+void _maneSlim(Art a) {
+  for (var d = 5; d >= 0; d--) {
+    final col = _uniMane[d];
+    for (final m in const [false, true]) {
+      String x(num v) => '${m ? 680 - v : v}';
+      a.s(
+        'M${x(308 - d)} ${106 - d} '
+        'Q${x(262 - d * 6)} 100 ${x(262 - d * 6)} 142 '
+        'Q${x(262 - d * 6)} 186 ${x(292 - d)} ${196 + d}',
+        col,
+        10,
+      );
+    }
   }
+}
+
+void _uniEye(Art a, num x, num y, num r, int dir, bool happy) {
+  if (happy) {
+    a.s(
+      'M${x - r} ${y + r * 0.3} Q$x ${y - r * 1.5} ${x + r} ${y + r * 0.3}',
+      _uniLash,
+      r * 0.4,
+    );
+  } else {
+    a.o(x, y, r, r * 1.25, _uniLash);
+    a.o(x, y + r * 0.5, r * 0.72, r * 0.55, 0x9A7BE8);
+    a.c(x - r * 0.3, y - r * 0.4, r * 0.42, w);
+    a.c(x + r * 0.35, y + r * 0.55, r * 0.2, w);
+    a.c(x + r * 0.45, y - r * 0.1, r * 0.12, w);
+  }
+  // Uzun kirpikler (dış üst köşeden).
+  final ex = x + dir * r;
+  final ey = y - r * (happy ? 0.1 : 0.6);
+  a.s(
+    'M$ex $ey l${dir * r * 0.7} ${-r * 0.5} '
+    'M${ex + dir * r * 0.05} ${ey + r * 0.45} l${dir * r * 0.8} ${-r * 0.1} '
+    'M${ex - dir * r * 0.3} ${ey - r * 0.4} l${dir * r * 0.4} ${-r * 0.7}',
+    _uniLash,
+    r * 0.2,
+  );
 }
 
 void _unicornA(Art a, bool happy) {
-  for (final (e, d) in const [(280, 1), (400, -1)]) {
-    a.p('M${e - 16 * d} 96 L${e + 2 * d} 44 L${e + 20 * d} 92 Z', w);
-    a.p('M${e - 6 * d} 88 L${e + 2 * d} 58 L${e + 10 * d} 86 Z', 0xF4C0D1);
+  _maneChubby(a);
+  for (final (e, d) in const [(270, 1), (410, -1)]) {
+    a.p('M${e - 14 * d} 108 L${e - 14 * d} 52 L${e + 26 * d} 86 Z', w);
+    a.p('M${e - 10 * d} 98 L${e - 10 * d} 66 L${e + 14 * d} 86 Z', 0xF9C4DA);
   }
-  a.dome(w, w, 0xCECBF6);
-  for (final m in const [
-    [262, 112, 20, 0xED93B1],
-    [270, 84, 22, 0xAFA9EC],
-    [296, 62, 22, 0x9FE1CB],
-    [248, 142, 16, 0xFAC775],
-    [322, 52, 16, 0xED93B1],
-    [256, 170, 14, 0xAFA9EC],
-  ]) {
-    a.c(m[0], m[1], m[2], m[3]);
+  _horn(a, 340, 10, 76, 19);
+  a.dome(w, w, 0xE3DAF6);
+  // Perçem: boynuzun dibinde pastel kıvrımlar.
+  a.c(322, 68, 13, 0xF6A5C8);
+  a.c(358, 68, 13, 0xB79CF0);
+  a.c(340, 74, 13, 0xA5E6CC);
+  a.c(306, 82, 9, 0xFFE58F);
+  a.c(374, 82, 9, 0x9CCBF5);
+  _uniEye(a, 300, 134, 15, -1, happy);
+  _uniEye(a, 380, 134, 15, 1, happy);
+  a.o(280, 160, 15, 9, 0xF59BC0, op: 0.6);
+  a.o(400, 160, 15, 9, 0xF59BC0, op: 0.6);
+  a.o(340, 168, 30, 19, 0xFFE3EF);
+  a.o(329, 164, 3, 4.5, 0xE58BB0);
+  a.o(351, 164, 3, 4.5, 0xE58BB0);
+  if (happy) {
+    a.p('M324 176 Q340 200 356 176 Z', 0xB5527F);
+    a.o(340, 186, 7, 4, 0xF59BC0);
+    _sparkle(a, 236, 70, 12, 0xFFD66B);
+    _sparkle(a, 452, 96, 9, w);
+    _sparkle(a, 222, 150, 8, w);
+    _sparkle(a, 462, 168, 12, 0xFFD66B);
+  } else {
+    a.s('M326 176 Q340 187 354 176', 0xB5527F, 3);
   }
-  a.p('M326 64 L340 4 L354 64 Z', 0xFAC775);
-  for (final s in const [
-    [16, 30],
-    [26, 46],
-    [38, 58],
-  ]) {
-    a.s(
-      'M${340 - s[0] / 2.4} ${s[1]} L${340 + s[0] / 2.4} ${s[1] - 6}',
-      0xBA7517,
-      2,
-    );
-  }
-  a.s('M294 128 Q306 138 318 128 M362 128 Q374 138 386 128', k, 3.5);
-  a.s('M294 128 l-6 -4 M300 134 l-4 5 M386 128 l6 -4 M380 134 l4 5', k, 2);
-  a.cheeks(152, 0.7);
-  a.s('M330 160 Q340 170 350 160', k, 3);
-  a.o(330, 148, 2, 3, 0xAFA9EC);
-  a.o(350, 148, 2, 3, 0xAFA9EC);
 }
 
 void _unicornB(Art a, bool happy) {
-  a.box(w, w, 0xCECBF6);
-  for (final m in const [
-    [296, 96, 0xED93B1],
-    [312, 92, 0xAFA9EC],
-    [328, 90, 0x9FE1CB],
-    [352, 90, 0xFAC775],
-    [368, 92, 0xED93B1],
-    [384, 96, 0xAFA9EC],
-  ]) {
-    a.c(m[0], m[1], 10, m[2]);
+  _maneSlim(a);
+  for (final (e, d) in const [(296, 1), (384, -1)]) {
+    a.p('M${e - 6 * d} 100 L${e - 8 * d} 66 L${e + 16 * d} 90 Z', w);
+    a.p('M${e - 4 * d} 94 L${e - 5 * d} 76 L${e + 8 * d} 90 Z', 0xF9C4DA);
   }
-  a.p('M330 90 L340 40 L350 90 Z', 0xFAC775);
-  a.s('M322 128 Q330 134 338 128 M342 128 Q350 134 358 128', k, 2.5);
-  a.o(310, 142, 8, 5, 0xED93B1, op: 0.7);
-  a.o(370, 142, 8, 5, 0xED93B1, op: 0.7);
+  _horn(a, 340, 34, 94, 11);
+  a.box(w, w, 0xE3DAF6);
+  a.c(326, 92, 9, 0xF6A5C8);
+  a.c(354, 92, 9, 0xB79CF0);
+  a.c(340, 96, 9, 0xA5E6CC);
+  _uniEye(a, 313, 122, 9, -1, happy);
+  _uniEye(a, 367, 122, 9, 1, happy);
+  a.o(298, 142, 9, 5.5, 0xF59BC0, op: 0.6);
+  a.o(382, 142, 9, 5.5, 0xF59BC0, op: 0.6);
+  a.o(340, 144, 15, 10, 0xFFE3EF);
+  a.o(334, 142, 2, 2.8, 0xE58BB0);
+  a.o(346, 142, 2, 2.8, 0xE58BB0);
+  if (happy) {
+    a.p('M331 150 Q340 164 349 150 Z', 0xB5527F);
+    _sparkle(a, 262, 96, 8, 0xFFD66B);
+    _sparkle(a, 422, 120, 7, w);
+  } else {
+    a.s('M332 151 Q340 157 348 151', 0xB5527F, 2.2);
+  }
 }
 
 // --- Astronot --------------------------------------------------------------
@@ -683,71 +782,6 @@ void _uzayB(Art a, bool happy) {
   a.p('M302 110 L316 110 L306 140 L298 140 Z', w, op: 0.35);
   a.s('M368 90 L368 72', 0x888780, 2.5);
   a.c(368, 68, 5, 0xE24B4A);
-}
-
-// --- Botanik ---------------------------------------------------------------
-
-void _botanikBg(Art a) {
-  a.p(_full, 0xF1EFE8);
-  final arch = Path()
-    ..moveTo(190, 512)
-    ..lineTo(190, 230)
-    ..arcToPoint(const Offset(490, 230), radius: const Radius.circular(150))
-    ..lineTo(490, 512)
-    ..close();
-  a.raw(arch, 0xF0997B, op: 0.55);
-  a.p('M120 470 H560 V512 H120 Z', 0xD3D1C7);
-  for (final b in const [
-    [150, 60, 1],
-    [530, 120, -1],
-    [160, 300, 1],
-    [520, 330, -1],
-  ]) {
-    final s = b[2];
-    a.s(
-      'M${b[0]} ${b[1]} Q${b[0] + 40 * s} ${b[1] + 60} ${b[0] + 20 * s} ${b[1] + 140}',
-      0x639922,
-      2.5,
-    );
-    for (var i = 0; i < 6; i++) {
-      a.o(
-        b[0] + (14 + i * 3) * s,
-        b[1] + 18 + i * 20,
-        12,
-        8,
-        i.isOdd ? 0x97C459 : 0xC0DD97,
-      );
-    }
-  }
-}
-
-void _botanikA(Art a, bool happy) {
-  a.dome(0xC68A4E, 0xE0B07A, 0x8F5E2E);
-  a.grain(
-    262,
-    418,
-    90,
-    200,
-    0x8F5E2E,
-    clip: Path()
-      ..addOval(
-        Rect.fromCenter(
-          center: const Offset(340, 130),
-          width: 192,
-          height: 160,
-        ),
-      ),
-  );
-  a.c(340, 58, 12, 0x8F5E2E);
-  a.c(338, 55, 4, 0xE0B07A);
-  a.sprig(300, 150, 1);
-  a.sprig(380, 150, -1);
-}
-
-void _botanikB(Art a, bool happy) {
-  a.box(0xC68A4E, 0xE0B07A, 0x8F5E2E);
-  a.grain(288, 392, 104, 164, 0x8F5E2E, clip: a.path(Art.boxBase));
-  a.sprig(352, 150, 1);
 }
 
 // --- Kamp ------------------------------------------------------------------
