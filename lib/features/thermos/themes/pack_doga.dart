@@ -194,94 +194,310 @@ const List<ThermosTheme> dogaThemes = [
 // --- Okyanus ---------------------------------------------------------------
 
 void _okFish(Art a, num x, num y, num s, int col, int dir) {
-  a.o(x, y, 16 * s, 9 * s, col);
+  // Kuyruk.
   a.p(
-    'M${x - 14 * s * dir} $y L${x - 28 * s * dir} ${y - 10 * s} '
-    'L${x - 28 * s * dir} ${y + 10 * s} Z',
+    'M${x - 12 * s * dir} $y L${x - 28 * s * dir} ${y - 11 * s} '
+    'Q${x - 23 * s * dir} $y ${x - 28 * s * dir} ${y + 11 * s} Z',
     col,
   );
-  a.c(x + 8 * s * dir, y - 2 * s, 2 * s, k);
+  a.o(x, y, 17 * s, 10 * s, col);
+  a.o(x, y + 4 * s, 13 * s, 5 * s, w, op: 0.3);
+  a.s(
+    'M${x - 2 * s * dir} ${y - 8 * s} Q${x - 6 * s * dir} $y ${x - 2 * s * dir} ${y + 8 * s}',
+    w,
+    1.6 * s,
+  );
+  a.p(
+    'M${x - 2 * s * dir} ${y - 9 * s} L${x - 8 * s * dir} ${y - 16 * s} L${x + 6 * s * dir} ${y - 9 * s} Z',
+    col,
+  );
+  a.c(x + 9 * s * dir, y - 2 * s, 2.4 * s, w);
+  a.c(x + 9.6 * s * dir, y - 2 * s, 1.3 * s, k);
+}
+
+void _okTurtle(Art a, num x, num y, num dir) {
+  // Arka ve ön yüzgeçler.
+  a.o(x - 26 * dir, y + 16, 14, 5, 0x7DB863, rot: -25 * dir);
+  a.o(x + 14 * dir, y + 22, 22, 7, 0x7DB863, rot: 28 * dir);
+  a.p(
+    'M${x - 34 * dir} ${y + 2} L${x - 46 * dir} ${y + 8} L${x - 34 * dir} ${y + 10} Z',
+    0x7DB863,
+  );
+  // Baş.
+  a.o(x + 40 * dir, y - 2, 13, 10.5, 0x9ACB74);
+  a.c(x + 44 * dir, y - 5, 3, w);
+  a.c(x + 45 * dir, y - 5, 1.6, k);
+  a.s(
+    'M${x + 44 * dir} ${y + 3} Q${x + 48 * dir} ${y + 5} ${x + 51 * dir} ${y + 2}',
+    0x3C7D49,
+    1.6,
+  );
+  // Kabuk.
+  a.o(x, y + 6, 36, 20, 0xE8D9A0);
+  a.o(x, y, 36, 24, 0x4E9A5C);
+  a.o(x - 4 * dir, y - 8, 24, 8, 0x7BC27E, op: 0.5);
+  a.o(x, y - 1, 12, 9, 0x8CCB7A);
+  a.o(x - 22 * dir, y + 2, 9, 8, 0x6DB56E);
+  a.o(x + 22 * dir, y + 2, 9, 8, 0x6DB56E);
+  a.s(
+    'M${x - 12} ${y - 8} L${x - 20 * dir} ${y - 14} M${x + 12} ${y - 8} L${x + 20 * dir} ${y - 14} '
+    'M${x - 12} ${y + 7} L${x - 20 * dir} ${y + 14} M${x + 12} ${y + 7} L${x + 20 * dir} ${y + 14}',
+    0x356F40,
+    2,
+  );
+  a.o(x, y, 36, 24, 0x2F6B3C, strokeWidth: 2.5);
+}
+
+void _okWeed(Art a, num x, num y, num h, int col) {
+  a.s(
+    'M$x $y Q${x + 16} ${y - h * 0.3} ${x - 2} ${y - h * 0.55} Q${x - 14} ${y - h * 0.78} ${x + 4} ${y - h}',
+    col,
+    7,
+  );
+  a.s(
+    'M${x + 10} $y Q${x + 26} ${y - h * 0.25} ${x + 10} ${y - h * 0.5} Q${x + 2} ${y - h * 0.65} ${x + 12} ${y - h * 0.78}',
+    col,
+    5,
+  );
+}
+
+void _okCoral(Art a, num x, num y, num s, int col, int tip) {
+  const branches = [
+    'M0 0 Q-6 -30 -2 -58',
+    'M-4 -30 Q-22 -38 -26 -60',
+    'M-2 -44 Q18 -50 22 -74',
+    'M2 -20 Q20 -26 30 -42',
+  ];
+  const tips = [
+    [-2, -58],
+    [-26, -60],
+    [22, -74],
+    [30, -42],
+  ];
+  for (final b in branches) {
+    final nums = RegExp(r'-?\d+')
+        .allMatches(b)
+        .map((m) => int.parse(m[0]!))
+        .toList();
+    final p = <String>[];
+    for (var i = 0; i < nums.length; i += 2) {
+      p.add('${x + nums[i] * s} ${y + nums[i + 1] * s}');
+    }
+    a.s('M${p[0]} Q${p[1]} ${p[2]}', col, (7 * s).toDouble());
+  }
+  for (final t in tips) {
+    a.c(x + t[0] * s, y + t[1] * s, 5 * s, tip);
+  }
+}
+
+void _okBrain(Art a, num x, num y, num s, int col) {
+  a.p(
+    'M${x - 30 * s} $y Q${x - 30 * s} ${y - 40 * s} $x ${y - 40 * s} '
+    'Q${x + 30 * s} ${y - 40 * s} ${x + 30 * s} $y Z',
+    col,
+  );
+  a.o(x - 8 * s, y - 24 * s, 12 * s, 8 * s, w, op: 0.2, rot: -20);
+  a.s(
+    'M${x - 20 * s} ${y - 6 * s} q${6 * s} ${-12 * s} ${12 * s} ${-2 * s} q${6 * s} ${12 * s} ${12 * s} 0 q${6 * s} ${-12 * s} ${12 * s} 0 '
+    'M${x - 14 * s} ${y - 20 * s} q${6 * s} ${-8 * s} ${12 * s} 0 q${6 * s} ${8 * s} ${12 * s} 0',
+    0xB84A6A,
+    (2.2 * s).toDouble(),
+  );
+}
+
+void _okFan(Art a, num x, num y, num s, int col) {
+  a.p(
+    'M$x $y L${x - 34 * s} ${y - 46 * s} Q$x ${y - 70 * s} ${x + 34 * s} ${y - 46 * s} Z',
+    col,
+    op: 0.85,
+  );
+  for (final dx in const [-22, -11, 0, 11, 22]) {
+    a.s('M$x $y L${x + dx * s} ${y - (56 - dx.abs() * 0.4) * s}', w, 1.2);
+  }
+  a.s('M$x $y v${6 * s}', 0x9B3B5A, (4 * s).toDouble());
+}
+
+String _okStar(num cx, num cy, num big, num small) {
+  final b = StringBuffer();
+  for (var i = 0; i < 10; i++) {
+    final r = i.isEven ? big : small;
+    final ang = (i * 36 - 90) * math.pi / 180;
+    b.write(
+      '${i == 0 ? 'M' : 'L'}${cx + r * math.cos(ang)} ${cy + r * math.sin(ang)} ',
+    );
+  }
+  b.write('Z');
+  return b.toString();
+}
+
+void _okShell(Art a, num x, num y) {
+  a.o(x, y, 13, 10, 0xF7D9BE);
+  a.s('M$x $y q3 -4 6 0 q0 6 -7 6 q-9 0 -9 -9 q0 -10 11 -10', 0xD99A78, 1.8);
+  a.o(x - 4, y - 4, 4, 2.4, w, op: 0.6);
+}
+
+void _okScallop(Art a, num x, num y) {
+  a.p(
+    'M$x $y L${x - 15} ${y - 10} Q$x ${y - 26} ${x + 15} ${y - 10} Z',
+    0xF8B8A0,
+  );
+  for (final dx in const [-9, -3, 3, 9]) {
+    a.s('M$x $y L${x + dx * 1.3} ${y - 17}', 0xE08A70, 1.4);
+  }
+  a.o(x, y + 1, 5, 2.6, 0xE08A70);
 }
 
 void _okyanusBg(Art a) {
-  a.p(_dogaFull, 0xD3F1F8);
-  a.p('M120 8 H560 V150 H120 Z', 0xE6F8FC);
-  a.c(500, 60, 26, 0xFFF3C4);
-  for (var i = 0; i < 3; i++) {
-    final y = 150.0 + i * 70;
-    a.p(
-      _dogaWave(y, 22),
-      [0xBFE7F2, 0xA3DAEA, 0x86CCE0][i],
-    );
-  }
-  _okFish(a, 170, 290, 1, 0xF59E42, 1);
-  _okFish(a, 520, 250, 0.8, 0xF2677A, -1);
-  _okFish(a, 190, 400, 0.7, 0xFFC93C, 1);
-  for (final b in const [
-    [150, 200, 5],
-    [162, 180, 3],
-    [510, 330, 4],
-    [528, 310, 3],
-    [140, 350, 3],
+  a.p(_dogaFull, 0xE7FAFD);
+  a.p(_dogaWave(40, 7, step: 55), 0xC7EEF8);
+  a.p('M120 200 H560 V512 H120 Z', 0xB0E2F0, op: 0.6);
+  a.p('M120 330 H560 V512 H120 Z', 0x8FD0E6, op: 0.55);
+  // Yüzeyden süzülen ışık demetleri.
+  for (final r in const [
+    [140, 200, 90, 250],
+    [250, 290, 190, 280],
+    [390, 430, 430, 520],
+    [500, 540, 470, 520],
   ]) {
-    a.o(b[0], b[1], b[2], b[2], w, op: 0.7, strokeWidth: 1.5);
+    a.p('M${r[0]} 30 L${r[1]} 30 L${r[3]} 500 L${r[2]} 500 Z', w, op: 0.14);
   }
-  a.p('M120 470 Q300 452 560 474 V512 H120 Z', 0xF0DDA8);
-  // mercan ve deniz yıldızı
-  a.s('M160 482 Q150 450 164 430 M160 470 Q176 452 180 438', 0xE8765A, 5);
-  a.s('M520 484 Q530 456 516 440 M522 470 Q506 458 504 446', 0xF2A0B5, 5);
-  for (final (cx, cy) in const [(300, 490), (240, 496)]) {
-    for (var i = 0; i < 5; i++) {
-      final ang = (i * 72 - 90) * math.pi / 180;
-      a.o(
-        cx + 9 * math.cos(ang),
-        cy + 9 * math.sin(ang),
-        9,
-        3.5,
-        0xF2677A,
-        rot: i * 72 - 90,
-      );
-    }
+  // Uzak mercan siluetleri.
+  a.o(210, 470, 46, 30, 0x6FBFD8, op: 0.5);
+  a.o(480, 470, 52, 34, 0x6FBFD8, op: 0.5);
+  // Balık sürüsü (sol), kaplumbağa (sağ).
+  for (final f in const [
+    [160, 150, 0.7, 0xFFC93C],
+    [190, 172, 0.55, 0xFFB52E],
+    [150, 188, 0.6, 0xFFC93C],
+    [200, 134, 0.5, 0xFFB52E],
+    [176, 210, 0.45, 0xFFC93C],
+  ]) {
+    _okFish(a, f[0], f[1], f[2], f[3].toInt(), 1);
   }
+  _okFish(a, 512, 200, 0.9, 0xF2677A, -1);
+  _okTurtle(a, 500, 112, -1);
+  // Su altı yosunları.
+  _okWeed(a, 138, 486, 150, 0x3F9E6B);
+  _okWeed(a, 156, 490, 110, 0x55B57C);
+  _okWeed(a, 542, 488, 140, 0x3F9E6B);
+  _okWeed(a, 524, 492, 100, 0x55B57C);
+  // Kabarcıklar.
+  for (final b in const [
+    [160, 330, 6],
+    [172, 306, 4],
+    [150, 280, 3],
+    [520, 210, 5],
+    [532, 188, 3],
+    [506, 410, 4],
+    [494, 386, 3],
+    [140, 420, 4],
+    [215, 90, 3],
+  ]) {
+    a.c(b[0], b[1], b[2], w, op: 0.25);
+    a.o(b[0], b[1], b[2], b[2], w, op: 0.8, strokeWidth: 1.5);
+    a.c(b[0] - b[2] * 0.3, b[1] - b[2] * 0.3, b[2] * 0.25, w, op: 0.9);
+  }
+  // Kum zemin.
+  a.p('M120 466 Q250 446 360 462 Q460 476 560 454 V512 H120 Z', 0xF3DFAA);
+  a.p('M120 490 Q300 474 560 492 V512 H120 Z', 0xE6CB8A);
+  a.s('M150 480 Q180 474 210 480 M420 486 Q450 480 480 486', 0xD9BE7E, 2);
+  // Mercan resifi.
+  _okBrain(a, 188, 474, 1.0, 0xE9788C);
+  _okCoral(a, 232, 480, 0.9, 0xF08A5D, 0xFFB38A);
+  _okCoral(a, 126, 486, 0.8, 0xE8567A, 0xFF8FAE);
+  _okFan(a, 470, 482, 1.0, 0xB57BDB);
+  _okCoral(a, 516, 486, 0.95, 0xF2A03D, 0xFFCC77);
+  _okBrain(a, 552, 488, 0.8, 0xF0A3B8);
+  // Deniz yıldızı ve kabuklar.
+  a.p(_okStar(300, 494, 14, 6), 0xF2677A);
+  a.c(300, 494, 2, 0xFFD2D8);
+  a.p(_okStar(410, 498, 11, 4.8), 0xFFA040);
+  _okShell(a, 268, 498);
+  _okScallop(a, 360, 502);
 }
 
 void _okyanusA(Art a, bool happy) {
-  // yunus başı
-  a.p('M292 62 Q330 14 372 56 Q352 44 330 66 Z', 0x2F7FB0);
-  a.dome(0x5BA8D6, 0x9ED3EE, 0x2F7FB0);
-  a.o(340, 172, 62, 30, 0xDDF1FA);
-  a.o(340, 166, 36, 14, 0xDDF1FA);
-  a.eye(298, 118, 10);
-  a.eye(382, 118, 10);
-  a.cheeks(150, happy ? 0.8 : 0.5);
-  if (happy) {
-    a.p('M312 166 Q340 204 368 166 Z', 0x7A2A3A);
-    a.o(340, 188, 12, 6, 0xF2677A);
-    a.s('M312 166 Q340 204 368 166', k, 3);
-    a.c(250, 70, 5, w, op: 0.8);
-    a.c(432, 62, 4, w, op: 0.8);
-    a.c(244, 94, 3, w, op: 0.8);
-  } else {
-    a.s('M312 170 Q340 190 368 170', k, 3.5);
+  const top = 0x7C9DB8;
+  const fin = 0x5C7C94;
+  // Sırt yüzgeci (kafanın tepesinde) ve yan yüzgeçler.
+  a.p('M296 78 Q326 44 350 12 Q354 54 388 80 Z', fin);
+  a.p('M312 70 Q334 40 348 20 Q346 46 352 70 Z', 0x7E9DB4, op: 0.8);
+  a.p('M262 172 Q226 186 212 222 Q246 216 272 204 Z', fin);
+  a.p('M418 172 Q454 186 468 222 Q434 216 408 204 Z', fin);
+  a.dome(top, 0xA9C4D6, 0x4F6F88);
+  // Beyaz karın (kafa içine kırpılmış).
+  a.canvas.save();
+  a.canvas.clipPath(
+    Path()..addOval(
+      Rect.fromCenter(center: const Offset(340, 130), width: 192, height: 160),
+    ),
+  );
+  a.p('M244 156 Q290 138 340 152 Q390 138 436 156 V220 H244 Z', 0xF2F8FB);
+  a.p(
+    'M244 168 Q290 154 340 166 Q390 154 436 168 V220 H244 Z',
+    0xDCEAF1,
+    op: 0.6,
+  );
+  a.canvas.restore();
+  // Solungaç yarıkları.
+  for (final x in const [254, 264, 274]) {
+    a.s('M$x 118 Q${x + 6} 130 $x 144', 0x4F6F88, 3);
+    a.s('M${680 - x} 118 Q${674 - x} 130 ${680 - x} 144', 0x4F6F88, 3);
   }
-  a.c(332, 160, 2.5, 0x2F7FB0);
-  a.c(348, 160, 2.5, 0x2F7FB0);
+  if (happy) {
+    a.s('M286 122 Q298 106 310 122', k, 4.5);
+    a.s('M370 122 Q382 106 394 122', k, 4.5);
+  } else {
+    a.eye(298, 118, 11);
+    a.eye(382, 118, 11);
+  }
+  a.c(326, 142, 2, 0x4F6F88);
+  a.c(354, 142, 2, 0x4F6F88);
+  a.cheeks(158, happy ? 0.75 : 0.5);
+  if (happy) {
+    // Açık, dişli gülümseme.
+    a.p('M292 160 Q340 218 388 160 Q340 174 292 160 Z', 0x6B1F2E);
+    a.o(340, 200, 20, 9, 0xF2677A);
+    for (var i = 0; i < 6; i++) {
+      final x = 300.0 + i * 15.6;
+      final u = (x + 7.8 - 340) / 48;
+      final y = 160 + 7 * (1 - u * u);
+      a.p('M$x ${y - 1} L${x + 7.8} ${y + 11} L${x + 15.6} ${y - 1} Z', w);
+    }
+    a.s('M292 160 Q340 218 388 160', k, 3);
+  } else {
+    a.s('M298 166 Q340 190 382 166', k, 3.5);
+    a.p('M322 177 L329 187 L336 180 Z', w);
+    a.p('M344 180 L351 187 L358 177 Z', w);
+  }
 }
 
 void _okyanusB(Art a, bool happy) {
-  a.p('M310 92 Q334 36 372 64 Q350 62 346 92 Z', 0x2F7FB0);
-  a.box(0x5BA8D6, 0x9ED3EE, 0x2F7FB0);
-  a.o(340, 150, 40, 14, 0xDDF1FA);
-  if (happy) {
-    a.s('M304 122 Q312 112 320 122 M360 122 Q368 112 376 122', k, 3);
-    a.p('M322 146 Q340 170 358 146 Z', 0x7A2A3A);
-  } else {
-    a.eye(312, 120, 6);
-    a.eye(368, 120, 6);
-    a.s('M322 148 Q340 160 358 148', k, 3);
+  const fin = 0x5C7C94;
+  a.p('M316 98 Q336 62 352 38 Q356 74 378 98 Z', fin);
+  a.p('M284 142 L260 170 L290 164 Z', fin);
+  a.p('M396 142 L420 170 L390 164 Z', fin);
+  a.box(0x7C9DB8, 0xA9C4D6, 0x4F6F88);
+  a.p('M284 138 Q340 126 396 138 L396 164 L284 164 Z', 0xF2F8FB);
+  for (final x in const [294, 302]) {
+    a.s('M$x 112 Q${x + 4} 120 $x 130', 0x4F6F88, 2.2);
+    a.s('M${680 - x} 112 Q${676 - x} 120 ${680 - x} 130', 0x4F6F88, 2.2);
   }
-  a.o(296, 140, 7, 4, 0xED93B1, op: 0.6);
-  a.o(384, 140, 7, 4, 0xED93B1, op: 0.6);
+  if (happy) {
+    a.s('M306 118 Q316 106 326 118', k, 3.5);
+    a.s('M354 118 Q364 106 374 118', k, 3.5);
+    a.p('M314 140 Q340 170 366 140 Q340 148 314 140 Z', 0x6B1F2E);
+    for (var i = 0; i < 4; i++) {
+      final x = 321.0 + i * 9.5;
+      a.p('M$x 142 L${x + 4.75} 150 L${x + 9.5} 142 Z', w);
+    }
+    a.o(340, 158, 8, 3.5, 0xF2677A);
+  } else {
+    a.eye(316, 116, 7);
+    a.eye(364, 116, 7);
+    a.s('M318 146 Q340 158 362 146', k, 2.8);
+    a.p('M333 152 L338 158 L343 152 Z', w);
+  }
 }
 
 // --- Ahtapot ---------------------------------------------------------------
@@ -514,7 +730,10 @@ void _kardanBg(Art a) {
   a.c(484, 80, 30, 0xFFF3C4);
   a.c(496, 72, 26, 0x1B2D5E);
   // koyu arka tepeler (etiketler okunabilsin)
-  a.p('M120 360 Q200 300 280 350 Q360 390 440 340 Q500 310 560 350 V512 H120 Z', 0x2A3F75);
+  a.p(
+    'M120 360 Q200 300 280 350 Q360 390 440 340 Q500 310 560 350 V512 H120 Z',
+    0x2A3F75,
+  );
   // çam ağaçları
   for (final (x, y) in const [(150, 430), (190, 450), (520, 440), (550, 455)]) {
     a.p('M$x ${y - 80} L${x + 22} ${y - 20} L${x - 22} ${y - 20} Z', 0x1F5A45);
