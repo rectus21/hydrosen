@@ -23,9 +23,9 @@ void main() {
 
     test('termos gövde yolları ayrıştırılır', () {
       final chubby = svgPath(
-        'M300 208 Q238 220 236 300 L236 420 Q236 476 300 478 L380 478 Q444 476 444 420 L444 300 Q442 220 380 208 Z',
+        'M312 200 Q278 206 274 252 L274 428 Q274 476 316 478 L364 478 Q406 476 406 428 L406 252 Q402 206 368 200 Z',
       );
-      expect(chubby.getBounds().width, closeTo(208, 1));
+      expect(chubby.getBounds().width, closeTo(132, 1));
       expect(chubby.contains(const Offset(340, 400)), isTrue);
     });
 

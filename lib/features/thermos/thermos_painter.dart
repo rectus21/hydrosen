@@ -32,17 +32,17 @@ class _Geometry {
   final Rect neck, base;
 
   static const chubby = _Geometry(
-    body: 'M300 208 Q238 220 236 300 L236 420 Q236 476 300 478 L380 478 Q444 476 444 420 L444 300 Q442 220 380 208 Z',
-    top: 230,
+    body: 'M312 200 Q278 206 274 252 L274 428 Q274 476 316 478 L364 478 Q406 476 406 428 L406 252 Q402 206 368 200 Z',
+    top: 222,
     bottom: 450,
-    markRight: 418,
-    labelX: 452,
-    neck: Rect.fromLTRB(300, 190, 380, 212),
-    base: Rect.fromLTRB(236, 452, 444, 478),
-    shadowRx: 118,
-    shineLeft: 250,
-    shadeRight: 430,
-    halfWidth: 104,
+    markRight: 386,
+    labelX: 416,
+    neck: Rect.fromLTRB(306, 182, 374, 204),
+    base: Rect.fromLTRB(274, 452, 406, 478),
+    shadowRx: 72,
+    shineLeft: 284,
+    shadeRight: 394,
+    halfWidth: 66,
   );
 
   static const slim = _Geometry(
@@ -59,6 +59,9 @@ class _Geometry {
     halfWidth: 50,
   );
 }
+
+/// Tombul kapakların boyun genişliğine göre ölçeği.
+const chubbyCapScale = 0.72;
 
 /// Termosu, suyu, litre çizgilerini ve kapağı çizer.
 class ThermosPainter extends CustomPainter {
@@ -227,7 +230,18 @@ class ThermosPainter extends CustomPainter {
     _bands(canvas, geo);
     _marks(canvas, geo);
     final cap = shape == ThermosShape.chubby ? theme.capChubby : theme.capSlim;
-    cap(Art(canvas), happy);
+    if (shape == ThermosShape.chubby) {
+      // Kapaklar geniş boyun için çizildi; ince termos boynuna uyması için
+      // alt-orta noktası (340, 208) etrafında küçültülür.
+      canvas.save();
+      canvas.translate(340, 208);
+      canvas.scale(chubbyCapScale);
+      canvas.translate(-340, -208);
+      cap(Art(canvas), happy);
+      canvas.restore();
+    } else {
+      cap(Art(canvas), happy);
+    }
     canvas.restore();
   }
 

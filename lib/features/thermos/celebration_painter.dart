@@ -39,6 +39,15 @@ class CelebrationPainter extends CustomPainter {
 
   bool get _chubby => shape == ThermosShape.chubby;
 
+  /// Tombul kapak çizimindeki bir noktayı, ThermosPainter'ın küçülttüğü
+  /// kapağa göre dönüştürür (ince termos için değişmez).
+  Offset _capPt(double x, double y) => _chubby
+      ? Offset(
+          340 + (x - 340) * chubbyCapScale,
+          208 + (y - 208) * chubbyCapScale,
+        )
+      : Offset(x, y);
+
   /// Başta hızlı belirir, sonda yumuşakça söner.
   double get _alpha {
     if (t < 0.08) return t / 0.08;
@@ -240,7 +249,7 @@ class CelebrationPainter extends CustomPainter {
   // --- Kaplan ---------------------------------------------------------------
 
   void _roar(Canvas canvas) {
-    final cy = _chubby ? 170.0 : 140.0;
+    final cy = _chubby ? _capPt(340, 170).dy : 140.0;
     final stroke = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -250,7 +259,7 @@ class CelebrationPainter extends CustomPainter {
       final r = 30 + p * 70;
       final op = (1 - p) * 0.8;
       for (final side in const [-1, 1]) {
-        final cx = 340.0 + side * (_chubby ? 100 : 56);
+        final cx = 340.0 + side * (_chubby ? 100 * chubbyCapScale : 56);
         canvas.drawArc(
           Rect.fromCircle(center: Offset(cx, cy), radius: r),
           side > 0 ? -0.6 : math.pi - 0.6,
@@ -265,7 +274,7 @@ class CelebrationPainter extends CustomPainter {
   }
 
   void _confetti(Canvas canvas, List<int> colors) {
-    final origin = Offset(340, _chubby ? 110 : 120);
+    final origin = _chubby ? _capPt(340, 110) : const Offset(340, 120);
     for (var i = 0; i < 30; i++) {
       final ang = -math.pi / 2 + (_r(i, 5) - 0.5) * 2.4;
       final speed = 240 + _r(i, 6) * 220;
@@ -317,7 +326,7 @@ class CelebrationPainter extends CustomPainter {
   // --- Tekboynuz -------------------------------------------------------------
 
   void _hornGlow(Canvas canvas) {
-    final tip = Offset(340, _chubby ? 30 : 60);
+    final tip = _chubby ? _capPt(340, 30) : const Offset(340, 60);
     final pulse = 0.6 + 0.4 * math.sin(t * math.pi * 6);
     canvas.drawCircle(
       tip,
@@ -338,7 +347,7 @@ class CelebrationPainter extends CustomPainter {
   ];
 
   void _stardust(Canvas canvas, [List<int> colors = _rainbow]) {
-    final origin = Offset(340, _chubby ? 30 : 60);
+    final origin = _chubby ? _capPt(340, 30) : const Offset(340, 60);
     for (var i = 0; i < 26; i++) {
       final delay = _r(i, 11) * 0.3;
       final p = ((t - delay) / (1 - delay)).clamp(0.0, 1.0);
@@ -414,6 +423,12 @@ class CelebrationPainter extends CustomPainter {
   static const visorStaticText = 'TEBRİKLER!';
 
   void _visorText(Canvas canvas) {
+    canvas.save();
+    if (_chubby) {
+      canvas.translate(340, 208);
+      canvas.scale(chubbyCapScale);
+      canvas.translate(-340, -208);
+    }
     final visor = _chubby ? _visorChubby : _visorSlim;
     final b = visor.getBounds();
     // Vizör kutlama boyunca yeşil parlar.
@@ -444,6 +459,7 @@ class CelebrationPainter extends CustomPainter {
       final x = b.right - t * (b.width + tp.width) * 1.05;
       tp.paint(canvas, Offset(x, b.center.dy - tp.height / 2));
     }
+    canvas.restore();
     canvas.restore();
   }
 
@@ -488,8 +504,8 @@ class CelebrationPainter extends CustomPainter {
   }
 
   void _compassSpin(Canvas canvas) {
-    final c = Offset(340, _chubby ? 118 : 122);
-    final r = _chubby ? 30.0 : 16.0;
+    final c = _chubby ? _capPt(340, 118) : const Offset(340, 122);
+    final r = _chubby ? 30.0 * chubbyCapScale : 16.0;
     // İğne hızla döner, sonunda kuzeyi gösterip durur.
     final angle = Curves.easeOutCubic.transform(t) * math.pi * 6;
     canvas.save();
