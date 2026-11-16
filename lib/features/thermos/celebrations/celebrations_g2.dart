@@ -6,6 +6,7 @@ import '../celebration_style.dart';
 import '../thermos_painter.dart';
 import 'celebration_context.dart';
 import 'celebrations_g2_kit.dart';
+import 'celebrations_g2_loops.dart';
 
 // TEMA IMZA KUTLAMASI NASIL EKLENIR (grup 2)
 //
@@ -222,7 +223,7 @@ CapPose _tavsanPose(CelebrationContext c) {
   );
 }
 
-void _carrot(G2 g, Offset p, double rot, double sc) {
+void g2Carrot(G2 g, Offset p, double rot, double sc) {
   g.local(p, rot, g.u * sc * 1.15, () {
     final body = Path()
       ..moveTo(-6, -10)
@@ -288,7 +289,7 @@ void _tavsan(Canvas canvas, CelebrationContext c) {
     final y = top - 40 + p * p * 360;
     final fade = p > 0.85 ? (1 - p) / 0.15 : 1.0;
     canvas.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, fade));
-    _carrot(
+    g2Carrot(
       g,
       Offset(x, y),
       (c.rand(i, 4) - 0.5) * 1.2 + p * 5 * (c.rand(i, 5) - 0.5),
@@ -305,7 +306,7 @@ CapPose _ayiPose(CelebrationContext c) {
   return CapPose(rotation: _sin(c, 1.6) * 0.04 * e, dx: _sin(c, 0.8) * 2 * e);
 }
 
-void _bee(G2 g, Offset p, double dir, double sc) {
+void g2Bee(G2 g, Offset p, double dir, double sc) {
   final u = g.u * sc * 1.25;
   final flap = 0.45 + 0.55 * math.sin(g.time * 70 + p.dx).abs();
   g.oval(
@@ -411,7 +412,7 @@ void _ayi(Canvas canvas, CelebrationContext c) {
           );
       g.circle(q, (2.0 - k * 0.3) * u, 0x8B5A2B, 0.4 - k * 0.1);
     }
-    _bee(g, p, dir, g.pop);
+    g2Bee(g, p, dir, g.pop);
   }
 }
 
@@ -879,9 +880,9 @@ void _kurbaga(Canvas canvas, CelebrationContext c) {
     if (g.still) {
       if (i != 0) continue;
       final fp = _flyPos(g, 0, 0.9);
-      _drawFly(g, fp, 1.0);
+      g2DrawFly(g, fp, 1.0);
       final tipP = Offset.lerp(mouth, fp, 0.82)!;
-      _drawTongue(g, mouth, tipP);
+      g2DrawTongue(g, mouth, tipP);
       continue;
     }
     if (g.t < start || g.t > done + 0.04) continue;
@@ -895,11 +896,11 @@ void _kurbaga(Canvas canvas, CelebrationContext c) {
     final caught = span >= 0.45;
     if (!caught) {
       final appear = ((g.t - start) / 0.06).clamp(0.0, 1.0);
-      _drawFly(g, fp, appear);
+      g2DrawFly(g, fp, appear);
     }
     if (inFlick && ext > 0.01) {
       final tip = Offset.lerp(mouth, fp, ext)!;
-      _drawTongue(g, mouth, tip, fly: caught ? fp : null, extent: ext);
+      g2DrawTongue(g, mouth, tip, fly: caught ? fp : null, extent: ext);
     }
     if (caught && span < 0.8) {
       final k = (span - 0.45) / 0.35;
@@ -909,7 +910,7 @@ void _kurbaga(Canvas canvas, CelebrationContext c) {
   }
 }
 
-void _drawFly(G2 g, Offset p, double a) {
+void g2DrawFly(G2 g, Offset p, double a) {
   final u = g.u * 1.9;
   final flap = 0.4 + 0.6 * math.sin(g.time * 90).abs();
   g.oval(
@@ -931,7 +932,7 @@ void _drawFly(G2 g, Offset p, double a) {
   g.circle(p + Offset(6 * u, -2 * u), 1.1 * u, 0xFFFFFF, a);
 }
 
-void _drawTongue(
+void g2DrawTongue(
   G2 g,
   Offset from,
   Offset tip, {
@@ -1105,7 +1106,7 @@ void _kurt(Canvas canvas, CelebrationContext c) {
 
 /// Döngü evresi (hedef aşıldığı sürece) için isteğe bağlı özel imzalar; boşsa
 /// giriş imzasının orta bölümü döngülenir. Bkz. celebration_registry.dart.
-const Map<String, SignatureCelebration> g2Loops = {};
+const Map<String, SignatureCelebration> g2Loops = g2LoopMap;
 
 /// Döngü evresi için isteğe bağlı kapak pozları (boşsa giriş pozu döngülenir).
-const Map<String, CapPoseFn> g2LoopPoses = {};
+const Map<String, CapPoseFn> g2LoopPoses = g2LoopPoseMap;
