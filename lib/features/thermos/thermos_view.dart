@@ -1,8 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'celebration_painter.dart';
+import 'celebrations/celebration_registry.dart';
 import 'slosh_model.dart';
 import 'thermos_painter.dart';
 import 'thermos_theme.dart';
@@ -27,6 +30,7 @@ class ThermosView extends StatefulWidget {
     this.shape = ThermosShape.chubby,
     this.theme = ThermosTheme.classic,
     this.happy = false,
+    this.celebrationT,
   });
 
   final double progress;
@@ -44,6 +48,10 @@ class ThermosView extends StatefulWidget {
   /// Hedefe ulaşıldı: kapaktaki karakter mutlu ifadeye geçer.
   final bool happy;
 
+  /// Kutlama ilerlemesi (0..1; kutlama yoksa null). İmza animasyonunun
+  /// kapak hareketini sürer; CelebrationOverlay.progress ile paylaşılır.
+  final ValueListenable<double?>? celebrationT;
+
   @override
   State<ThermosView> createState() => _ThermosViewState();
 }
@@ -52,6 +60,8 @@ class _ThermosViewState extends State<ThermosView>
     with SingleTickerProviderStateMixin {
   /// "Animasyonları azalt" açıkken çalkalanma gücünün çarpanı.
   static const _reducedGain = 0.35;
+
+  static final _noCelebration = ValueNotifier<double?>(null);
 
   late final Ticker _ticker = createTicker(_tick);
   final _slosh = SloshModel();
@@ -168,18 +178,32 @@ class _ThermosViewState extends State<ThermosView>
         onHorizontalDragUpdate: _onDragUpdate,
         onHorizontalDragEnd: _onDragEnd,
         onHorizontalDragCancel: _onDragCancel,
-        child: CustomPaint(
-          painter: ThermosPainter(
-            shape: widget.shape,
-            theme: widget.theme,
-            level: _shown,
-            goalMl: widget.goalMl,
-            time: _time,
-            slosh: _slosh.agitation * 4,
-            tilt: _slosh.tilt,
-            wave: _slosh.wave,
-            happy: widget.happy,
-            labelStyle: Theme.of(context).textTheme.labelSmall,
+        child: ValueListenableBuilder<double?>(
+          valueListenable:
+              widget.celebrationT ?? _noCelebration,
+          builder: (context, ct, _) => CustomPaint(
+            painter: ThermosPainter(
+              shape: widget.shape,
+              theme: widget.theme,
+              level: _shown,
+              goalMl: widget.goalMl,
+              time: _time,
+              slosh: _slosh.agitation * 4,
+              tilt: _slosh.tilt,
+              wave: _slosh.wave,
+              happy: widget.happy,
+              labelStyle: Theme.of(context).textTheme.labelSmall,
+              capPose: ct == null || _reduceMotion
+                  ? CapPose.identity
+                  : resolveCapPose(
+                      CelebrationPainter(
+                        theme: widget.theme,
+                        shape: widget.shape,
+                        t: ct,
+                        level: _shown,
+                      ),
+                    ),
+            ),
           ),
         ),
       ),

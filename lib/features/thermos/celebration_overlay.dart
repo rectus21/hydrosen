@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'celebration_painter.dart';
 import 'thermos_theme.dart';
@@ -14,12 +15,17 @@ class CelebrationOverlay extends StatefulWidget {
     required this.theme,
     required this.shape,
     this.duration = const Duration(milliseconds: 2600),
+    this.progress,
   });
 
   final int trigger;
   final ThermosTheme theme;
   final ThermosShape shape;
   final Duration duration;
+
+  /// Verilirse kutlama süresince t (0..1), bitince null yazılır; ThermosView'ın
+  /// celebrationT'si ile paylaşılarak kapak hareketi senkronlanır.
+  final ValueNotifier<double?>? progress;
 
   static const message = 'Tebrikler! Günlük hedefe ulaştın.';
 
@@ -35,6 +41,28 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
     duration: widget.duration,
     animationBehavior: AnimationBehavior.preserve,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    _c.addListener(_publish);
+    _c.addStatusListener((_) => _publish());
+  }
+
+  void _publish() {
+    final n = widget.progress;
+    if (n == null) return;
+    final v = _c.isAnimating ? _c.value : null;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      // Build sırasında dinleyicileri tetikleme: kareden sonra yaz.
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) n.value = _c.isAnimating ? _c.value : null;
+      });
+    } else {
+      n.value = v;
+    }
+  }
 
   @override
   void didUpdateWidget(CelebrationOverlay old) {

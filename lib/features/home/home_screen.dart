@@ -304,7 +304,7 @@ class _CustomAmountDialogState extends State<CustomAmountDialog> {
   }
 }
 
-class _ThermosSection extends StatelessWidget {
+class _ThermosSection extends StatefulWidget {
   const _ThermosSection({
     required this.controller,
     required this.glassMl,
@@ -316,6 +316,25 @@ class _ThermosSection extends StatelessWidget {
   final int glassMl;
   final ThermosShape shape;
   final ThermosTheme theme;
+
+  @override
+  State<_ThermosSection> createState() => _ThermosSectionState();
+}
+
+class _ThermosSectionState extends State<_ThermosSection> {
+  /// Kutlama ilerlemesi: overlay yazar, termos kapak hareketi için okur.
+  final _celebrationT = ValueNotifier<double?>(null);
+
+  WaterController get controller => widget.controller;
+  int get glassMl => widget.glassMl;
+  ThermosShape get shape => widget.shape;
+  ThermosTheme get theme => widget.theme;
+
+  @override
+  void dispose() {
+    _celebrationT.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -336,12 +355,14 @@ class _ThermosSection extends StatelessWidget {
                 shape: shape,
                 theme: theme,
                 happy: controller.progress >= 1,
+                celebrationT: _celebrationT,
               ),
               Positioned.fill(
                 child: CelebrationOverlay(
                   trigger: controller.celebrations,
                   theme: theme,
                   shape: shape,
+                  progress: _celebrationT,
                 ),
               ),
             ],

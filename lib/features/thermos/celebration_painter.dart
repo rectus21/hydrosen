@@ -4,6 +4,7 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/rendering.dart';
 
 import 'celebration_style.dart';
+import 'celebrations/celebration_registry.dart';
 import 'svg_path.dart';
 import 'thermos_painter.dart';
 import 'thermos_theme.dart';
@@ -26,7 +27,11 @@ class CelebrationPainter extends CustomPainter {
     required this.shape,
     required this.t,
     this.reduceMotion = false,
+    this.level = 1.0,
   });
+
+  /// Su doluluğu 0..1 (imza kutlamalarına çapa olarak verilir).
+  final double level;
 
   final ThermosTheme theme;
   final ThermosShape shape;
@@ -56,6 +61,20 @@ class CelebrationPainter extends CustomPainter {
   }
 
   /// Parçacık başına sabit, tekrarlanabilir "rastgele" değer (0..1).
+  static double rnd(int i, int salt) => _r(i, salt);
+
+  /// Genel zarf (imza kutlamaları da kullanır).
+  double get alphaEnvelope => _alpha;
+
+  Paint paintOf(int hex, [double op = 1]) => _paint(hex, op);
+
+  void drawStar(Canvas canvas, Offset c, double r, int hex, [double op = 1]) =>
+      _star(canvas, c, r, hex, op);
+
+  /// Genel parçacık efektini (CelebrationKind) çizer.
+  void drawKind(Canvas canvas, CelebrationKind kind, List<int> colors) =>
+      _generic(canvas, CelebrationStyle(kind, colors));
+
   static double _r(int i, int salt) {
     final v = math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
     return v - v.floorToDouble();
@@ -82,6 +101,17 @@ class CelebrationPainter extends CustomPainter {
     canvas.clipRRect(
       RRect.fromRectAndRadius(designRect, const Radius.circular(24)),
     );
+    final signature = signatureCelebrations[theme.id];
+    if (signature != null) {
+      // İmza kutlaması genel efektin yerine geçer; kapağın üstünde çizilir.
+      signature(canvas, CelebrationContext(
+        painter: this,
+        level: level,
+        pose: resolveCapPose(this),
+      ));
+      canvas.restore();
+      return;
+    }
     switch (theme.id) {
       case 'cilek':
         _hearts(canvas);
@@ -539,5 +569,9 @@ class CelebrationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CelebrationPainter old) =>
-      old.t != t || old.theme != theme || old.shape != shape;
+      old.t != t ||
+      old.theme != theme ||
+      old.shape != shape ||
+      old.level != level ||
+      old.reduceMotion != reduceMotion;
 }

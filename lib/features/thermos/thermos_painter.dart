@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 
 import 'art.dart';
+import 'celebrations/celebration_context.dart';
 import 'svg_path.dart';
 import 'thermos_theme.dart';
 
@@ -76,6 +77,7 @@ class ThermosPainter extends CustomPainter {
     this.wave = 0,
     this.happy = false,
     this.labelStyle,
+    this.capPose = CapPose.identity,
   });
 
   final ThermosShape shape;
@@ -103,6 +105,9 @@ class ThermosPainter extends CustomPainter {
   /// Ölçek yazılarının taban stili (temanın yazı tipi); renk ve boyut
   /// termos temasından gelir.
   final TextStyle? labelStyle;
+
+  /// Kutlama sırasında imza animasyonunun kapağa uyguladığı hareket.
+  final CapPose capPose;
 
   static final _paths = <String, Path>{};
   static Path _p(String d) => _paths.putIfAbsent(d, () => svgPath(d));
@@ -230,6 +235,15 @@ class ThermosPainter extends CustomPainter {
     _bands(canvas, geo);
     _marks(canvas, geo);
     final cap = shape == ThermosShape.chubby ? theme.capChubby : theme.capSlim;
+    final posed = !capPose.isIdentity;
+    if (posed) {
+      final pivotY = shape == ThermosShape.chubby ? 208.0 : 178.0;
+      canvas.save();
+      canvas.translate(340 + capPose.dx, pivotY + capPose.dy);
+      canvas.rotate(capPose.rotation);
+      canvas.scale(capPose.scale);
+      canvas.translate(-340, -pivotY);
+    }
     if (shape == ThermosShape.chubby) {
       // Kapaklar geniş boyun için çizildi; ince termos boynuna uyması için
       // alt-orta noktası (340, 208) etrafında küçültülür.
@@ -242,6 +256,7 @@ class ThermosPainter extends CustomPainter {
     } else {
       cap(Art(canvas), happy);
     }
+    if (posed) canvas.restore();
     canvas.restore();
   }
 
@@ -325,6 +340,7 @@ class ThermosPainter extends CustomPainter {
       old.shape != shape ||
       old.theme != theme ||
       old.happy != happy ||
+      old.capPose != capPose ||
       old.goalMl != goalMl ||
       old.labelStyle != labelStyle;
 }
