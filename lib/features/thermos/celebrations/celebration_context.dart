@@ -107,7 +107,19 @@ class CelebrationContext {
   bool get chubby => shape == ThermosShape.chubby;
   bool get reduceMotion => painter.reduceMotion;
 
-  /// Kutlama ilerlemesi 0..1 (overlay süresi boyunca).
+  /// Hedef aşıldığı sürece oynayan döngü evresinde mi?
+  bool get looping => painter.looping;
+
+  /// Döngü evresi 0..1 (tekrarlar; giriş sırasında 0).
+  double get loop => painter.loop ?? 0;
+
+  /// Kaçıncı döngü turu (0'dan).
+  int get loopCount => painter.loopCount;
+
+  /// Efekt şiddeti: giriş 1.0, döngü ~0.8.
+  double get intensity => painter.intensity;
+
+  /// Kutlama ilerlemesi 0..1 (overlay süresi boyunca; döngüde ~0.18..0.88).
   double get t => painter.t;
 
   /// Overlay süresi, saniye.

@@ -7,6 +7,7 @@ class AppSettings {
     this.theme = ThermosTheme.classic,
     this.goalMl = defaultGoalMl,
     this.glassMl = defaultGlassMl,
+    this.animatedCelebrations = true,
   });
 
   static const defaultGoalMl = 2000;
@@ -26,6 +27,10 @@ class AppSettings {
   /// Bir bardağın hacmi (ml).
   final int glassMl;
 
+  /// Hedefte karakter hareketi: açıkken sistem "animasyonları azalt" dese de
+  /// kutlamalar oynar.
+  final bool animatedCelebrations;
+
   /// Hedefi adıma yuvarlar ve sınırlara çeker.
   static int normalizeGoal(int ml) {
     final snapped = (ml / goalStepMl).round() * goalStepMl;
@@ -43,10 +48,12 @@ class AppSettings {
     ThermosTheme? theme,
     int? goalMl,
     int? glassMl,
+    bool? animatedCelebrations,
   }) => AppSettings(
     shape: shape ?? this.shape,
     theme: theme ?? this.theme,
     goalMl: goalMl ?? this.goalMl,
     glassMl: glassMl ?? this.glassMl,
+    animatedCelebrations: animatedCelebrations ?? this.animatedCelebrations,
   );
 }

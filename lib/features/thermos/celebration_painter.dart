@@ -28,7 +28,54 @@ class CelebrationPainter extends CustomPainter {
     required this.t,
     this.reduceMotion = false,
     this.level = 1.0,
+    this.loop,
+    this.loopCount = 0,
+    this.intensity = 1.0,
   });
+
+  /// Hedef aşıldığı sürece oynayan döngü evresi için çizici. [loop] 0..1
+  /// tekrarlayan evre, [loopCount] kaçıncı tur. Varsayılan imza kutlamasının
+  /// orta bölümü (t ~0.18..0.88) döngüsel olarak yeniden oynatılır; tur
+  /// başında/sonunda kısa bir alfa geçişi vardır (sıçrama olmaz).
+  factory CelebrationPainter.looping({
+    required ThermosTheme theme,
+    required ThermosShape shape,
+    required double loop,
+    int loopCount = 0,
+    bool reduceMotion = false,
+    double level = 1.0,
+    double intensity = loopIntensity,
+  }) {
+    final l = loop - loop.floorToDouble();
+    return CelebrationPainter(
+      theme: theme,
+      shape: shape,
+      t: loopT0 + (loopT1 - loopT0) * l,
+      reduceMotion: reduceMotion,
+      level: level,
+      loop: l,
+      loopCount: loopCount,
+      intensity: intensity,
+    );
+  }
+
+  /// Döngü süresi (sn) ve varsayılan eşleme penceresi.
+  static const loopPeriod = 3.2;
+  static const loopT0 = 0.18, loopT1 = 0.88;
+  static const loopIntensity = 0.8;
+
+  /// Döngü evresi 0..1 (giriş kutlamasında null).
+  final double? loop;
+  final int loopCount;
+
+  /// Efekt şiddeti: giriş 1.0, döngü ~0.8.
+  final double intensity;
+
+  bool get looping => loop != null;
+
+  /// Tur başı/sonu alfa geçişi (0..1).
+  static double loopFade(double loop) =>
+      (math.min(loop, 1 - loop) / 0.08).clamp(0.0, 1.0);
 
   /// Su doluluğu 0..1 (imza kutlamalarına çapa olarak verilir).
   final double level;
@@ -55,6 +102,8 @@ class CelebrationPainter extends CustomPainter {
 
   /// Başta hızlı belirir, sonda yumuşakça söner.
   double get _alpha {
+    final l = loop;
+    if (l != null) return loopFade(l) * (0.5 + 0.5 * intensity);
     if (t < 0.08) return t / 0.08;
     if (t > 0.8) return ((1 - t) / 0.2).clamp(0.0, 1.0);
     return 1;
@@ -101,7 +150,9 @@ class CelebrationPainter extends CustomPainter {
     canvas.clipRRect(
       RRect.fromRectAndRadius(designRect, const Radius.circular(24)),
     );
-    final signature = signatureCelebrations[theme.id];
+    final signature =
+        (looping ? signatureLoops[theme.id] : null) ??
+        signatureCelebrations[theme.id];
     if (signature != null) {
       // İmza kutlaması genel efektin yerine geçer; kapağın üstünde çizilir.
       signature(
@@ -576,5 +627,8 @@ class CelebrationPainter extends CustomPainter {
       old.theme != theme ||
       old.shape != shape ||
       old.level != level ||
+      old.loop != loop ||
+      old.loopCount != loopCount ||
+      old.intensity != intensity ||
       old.reduceMotion != reduceMotion;
 }

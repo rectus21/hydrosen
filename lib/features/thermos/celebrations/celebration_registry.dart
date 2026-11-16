@@ -23,10 +23,43 @@ final Map<String, CapPoseFn> signatureCapPoses = {
   ...g4CapPoses,
 };
 
+/// Döngü evresinde (hedef aşıldığı sürece) giriş yerine çizilen isteğe bağlı
+/// imza kutlamaları (tema id -> çizim). Yoksa imzanın orta bölümü döngülenir.
+/// Bağlamda `ctx.looping`, `ctx.loop` (0..1), `ctx.loopCount`, `ctx.intensity`.
+final Map<String, SignatureCelebration> signatureLoops = {
+  ...g1Loops,
+  ...g2Loops,
+  ...g3Loops,
+  ...g4Loops,
+};
+
+/// Döngü evresi için isteğe bağlı kapak pozları (yoksa [signatureCapPoses]
+/// kullanılır, döngü eşlemesiyle).
+final Map<String, CapPoseFn> signatureLoopPoses = {
+  ...g1LoopPoses,
+  ...g2LoopPoses,
+  ...g3LoopPoses,
+  ...g4LoopPoses,
+};
+
 /// [painter] için (t'ye göre) kapak pozu; kayıtlı poz yoksa ya da hareket
 /// azaltılmışsa [CapPose.identity].
 CapPose resolveCapPose(CelebrationPainter painter) {
-  final fn = signatureCapPoses[painter.theme.id];
+  final id = painter.theme.id;
+  final fn =
+      (painter.looping ? signatureLoopPoses[id] : null) ??
+      signatureCapPoses[id];
   if (fn == null || painter.reduceMotion) return CapPose.identity;
-  return fn(CelebrationContext(painter: painter, level: painter.level));
+  final pose = fn(CelebrationContext(painter: painter, level: painter.level));
+  final l = painter.loop;
+  if (l == null) return pose;
+  // Tur başı/sonunda kapak yumuşakça normale döner (sıçrama olmaz).
+  final f = CelebrationPainter.loopFade(l);
+  if (f >= 1) return pose;
+  return CapPose(
+    dx: pose.dx * f,
+    dy: pose.dy * f,
+    rotation: pose.rotation * f,
+    scale: 1 + (pose.scale - 1) * f,
+  );
 }

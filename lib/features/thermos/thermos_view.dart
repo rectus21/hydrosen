@@ -31,7 +31,16 @@ class ThermosView extends StatefulWidget {
     this.theme = ThermosTheme.classic,
     this.happy = false,
     this.celebrationT,
+    this.celebrationLoop,
+    this.animatedCelebrations = false,
   });
+
+  /// Döngü evresinde birikimli tur (tam kısım tur, kesir evre); yoksa null.
+  /// CelebrationOverlay.loopProgress ile paylaşılır; kapak pozunu sürer.
+  final ValueListenable<double?>? celebrationLoop;
+
+  /// "Hareketli kutlamalar": açıksa sistem "azalt" dese de kapak pozu uygulanır.
+  final bool animatedCelebrations;
 
   final double progress;
   final int goalMl;
@@ -178,9 +187,35 @@ class _ThermosViewState extends State<ThermosView>
         onHorizontalDragUpdate: _onDragUpdate,
         onHorizontalDragEnd: _onDragEnd,
         onHorizontalDragCancel: _onDragCancel,
-        child: ValueListenableBuilder<double?>(
-          valueListenable: widget.celebrationT ?? _noCelebration,
-          builder: (context, ct, _) => CustomPaint(
+        child: ListenableBuilder(
+          listenable: Listenable.merge([
+            widget.celebrationT ?? _noCelebration,
+            widget.celebrationLoop ?? _noCelebration,
+          ]),
+          builder: (context, _) {
+            final ct = (widget.celebrationT ?? _noCelebration).value;
+            final lp = (widget.celebrationLoop ?? _noCelebration).value;
+            final poseOff = _reduceMotion && !widget.animatedCelebrations;
+            CelebrationPainter? posePainter;
+            if (!poseOff) {
+              if (ct != null) {
+                posePainter = CelebrationPainter(
+                  theme: widget.theme,
+                  shape: widget.shape,
+                  t: ct,
+                  level: _shown,
+                );
+              } else if (lp != null) {
+                posePainter = CelebrationPainter.looping(
+                  theme: widget.theme,
+                  shape: widget.shape,
+                  loop: lp,
+                  loopCount: lp.floor(),
+                  level: _shown,
+                );
+              }
+            }
+            return CustomPaint(
             painter: ThermosPainter(
               shape: widget.shape,
               theme: widget.theme,
@@ -192,18 +227,12 @@ class _ThermosViewState extends State<ThermosView>
               wave: _slosh.wave,
               happy: widget.happy,
               labelStyle: Theme.of(context).textTheme.labelSmall,
-              capPose: ct == null || _reduceMotion
+              capPose: posePainter == null
                   ? CapPose.identity
-                  : resolveCapPose(
-                      CelebrationPainter(
-                        theme: widget.theme,
-                        shape: widget.shape,
-                        t: ct,
-                        level: _shown,
-                      ),
-                    ),
+                  : resolveCapPose(posePainter),
             ),
-          ),
+            );
+          },
         ),
       ),
     );

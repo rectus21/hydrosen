@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrosen/app/app.dart';
 import 'package:hydrosen/data/settings_repository.dart';
 import 'package:hydrosen/data/water_repository.dart';
+import 'package:hydrosen/domain/app_settings.dart';
 import 'package:hydrosen/features/thermos/celebration_overlay.dart';
 import 'package:hydrosen/features/thermos/celebration_painter.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
@@ -214,7 +215,13 @@ void main() {
     // ~2,6 sn sonra kaybolur; hedefin üstünde kaldıkça tekrar oynamaz.
     await frames(60);
     expect(message, findsNothing);
-    expect(particles, findsNothing);
+    // Hedefte sürekli döngü: yazısız, girişsiz hareket sürer.
+    expect(particles, findsOneWidget);
+    expect(
+      (tester.widget<CustomPaint>(particles).painter! as CelebrationPainter)
+          .looping,
+      isTrue,
+    );
     await tester.tap(glassPlus);
     await frames(4);
     expect(message, findsNothing);
@@ -230,7 +237,9 @@ void main() {
       await tester.pumpWidget(
         HydroSenApp(
           repository: InMemoryWaterRepository(),
-          settingsRepository: InMemorySettingsRepository(),
+          settingsRepository: InMemorySettingsRepository(
+            const AppSettings(animatedCelebrations: false),
+          ),
         ),
       );
       await tester.pumpAndSettle();

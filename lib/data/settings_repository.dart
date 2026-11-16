@@ -14,6 +14,7 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
   static const themeKey = 'settings_theme_v1';
   static const goalKey = 'settings_goal_ml_v1';
   static const glassKey = 'settings_glass_ml_v1';
+  static const animatedKey = 'settings_animated_celebrations_v1';
 
   @override
   Future<AppSettings> load() async {
@@ -23,6 +24,7 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
     final themeId = prefs.get(themeKey);
     final goal = prefs.get(goalKey);
     final glass = prefs.get(glassKey);
+    final animated = prefs.get(animatedKey);
     return AppSettings(
       shape: ThermosShape.values.firstWhere(
         (s) => s.name == shapeName,
@@ -37,6 +39,7 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
       glassMl: glass is int
           ? AppSettings.normalizeGlass(glass)
           : AppSettings.defaultGlassMl,
+      animatedCelebrations: animated is bool ? animated : true,
     );
   }
 
@@ -47,7 +50,8 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
         await prefs.setString(shapeKey, settings.shape.name) &&
         await prefs.setString(themeKey, settings.theme.id) &&
         await prefs.setInt(goalKey, settings.goalMl) &&
-        await prefs.setInt(glassKey, settings.glassMl);
+        await prefs.setInt(glassKey, settings.glassMl) &&
+        await prefs.setBool(animatedKey, settings.animatedCelebrations);
     if (!ok) throw StateError('Ayarlar saklanamadı');
   }
 }

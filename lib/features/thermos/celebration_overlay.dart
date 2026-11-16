@@ -16,7 +16,22 @@ class CelebrationOverlay extends StatefulWidget {
     required this.shape,
     this.duration = const Duration(milliseconds: 2600),
     this.progress,
+    this.looping = false,
+    this.loopProgress,
+    this.animated = false,
   });
+
+  /// Hedef aşılmış durumda mı: true oldukça giriş bittikten sonra (ya da
+  /// açılışta hemen, girişsiz/yazısız) döngü evresi sürekli oynar.
+  final bool looping;
+
+  /// Döngü sırasında birikimli tur sayısı (tam kısım = tur, kesir = evre);
+  /// döngü yokken null. ThermosView.celebrationLoop ile paylaşılır.
+  final ValueNotifier<double?>? loopProgress;
+
+  /// "Hareketli kutlamalar" ayarı: true ise sistem "animasyonları azalt"
+  /// dese de kutlama tam oynar ve döngü çalışır.
+  final bool animated;
 
   final int trigger;
   final ThermosTheme theme;
@@ -34,7 +49,7 @@ class CelebrationOverlay extends StatefulWidget {
 }
 
 class _CelebrationOverlayState extends State<CelebrationOverlay>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // preserve: "animasyonları azalt" süreyi kısaltmasın; yazı yine ~2,6 sn kalır.
   late final AnimationController _c = AnimationController(
     vsync: this,
@@ -42,11 +57,70 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
     animationBehavior: AnimationBehavior.preserve,
   );
 
+  // Döngü: yalnız hedef aşılmışken ve görünürken çalışır (TickerMode ile
+  // rota görünmezken otomatik susar).
+  late final Ticker _loopTicker = createTicker(_onLoopTick);
+  final _cycles = ValueNotifier<double>(0);
+  bool _loopOn = false;
+  bool _reduceMotion = false;
+
+  bool get _animate => !_reduceMotion || widget.animated;
+
+  static const _loopPeriodUs = CelebrationPainter.loopPeriod * 1e6;
+
+  void _onLoopTick(Duration e) {
+    _cycles.value = e.inMicroseconds / _loopPeriodUs;
+    _publishLoop(_cycles.value);
+  }
+
+  void _setLoopOut(double? v) {
+    final n = widget.loopProgress;
+    if (n == null || n.value == v) return;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) n.value = v;
+      });
+    } else {
+      n.value = v;
+    }
+  }
+
+  void _publishLoop(double v) => _setLoopOut(v);
+
+  /// Döngüyü gerekene göre başlatır/durdurur (giriş oynarken durur).
+  void _syncLoop() {
+    final want = widget.looping && _animate && !_c.isAnimating;
+    if (want && !_loopOn) {
+      _loopOn = true;
+      _cycles.value = 0;
+      _loopTicker.start();
+      _publishLoop(0);
+      if (mounted) setState(() {});
+    } else if (!want && _loopOn) {
+      _loopOn = false;
+      _loopTicker.stop();
+      _cycles.value = 0;
+      _setLoopOut(null);
+      if (mounted) setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _c.addListener(_publish);
-    _c.addStatusListener((_) => _publish());
+    _c.addStatusListener((_) {
+      _publish();
+      _syncLoop();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.of(context).disableAnimations;
+    _syncLoop();
   }
 
   void _publish() {
@@ -69,22 +143,38 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
     super.didUpdateWidget(old);
     if (widget.duration != old.duration) _c.duration = widget.duration;
     if (widget.trigger != old.trigger) _c.forward(from: 0);
+    _syncLoop();
   }
 
   @override
   void dispose() {
+    _loopTicker.dispose();
+    _cycles.dispose();
     _c.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    // Ayar açıksa sistem "azalt" dese de tam hareket.
+    final reduceMotion = _reduceMotion && !widget.animated;
     return IgnorePointer(
       child: AnimatedBuilder(
-        animation: _c,
+        animation: Listenable.merge([_c, _cycles]),
         builder: (context, _) {
-          if (!_c.isAnimating) return const SizedBox.shrink();
+          if (!_c.isAnimating) {
+            if (!_loopOn) return const SizedBox.shrink();
+            final cy = _cycles.value;
+            return CustomPaint(
+              size: Size.infinite,
+              painter: CelebrationPainter.looping(
+                theme: widget.theme,
+                shape: widget.shape,
+                loop: cy,
+                loopCount: cy.floor(),
+              ),
+            );
+          }
           final t = _c.value;
           return Stack(
             fit: StackFit.expand,

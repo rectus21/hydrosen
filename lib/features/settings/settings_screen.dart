@@ -80,7 +80,18 @@ class SettingsScreen extends StatelessWidget {
                       showSelectedIcon: false,
                       onSelectionChanged: (s) => controller.setShape(s.first),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      key: const ValueKey('animated-celebrations-switch'),
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Hareketli kutlamalar'),
+                      subtitle: const Text(
+                        'Hedefe ulaşınca karakter hareket eder',
+                      ),
+                      value: controller.animatedCelebrations,
+                      onChanged: controller.setAnimatedCelebrations,
+                    ),
+                    const SizedBox(height: 16),
                     Text('Tema', style: text.titleMedium),
                     const SizedBox(height: 8),
                     LayoutBuilder(

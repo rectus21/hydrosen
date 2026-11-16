@@ -149,6 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             glassMl: widget.settings.glassMl,
                             shape: widget.settings.shape,
                             theme: widget.settings.theme,
+                            animatedCelebrations:
+                                widget.settings.animatedCelebrations,
                           ),
                           if (kQuickThemeStrip) ...[
                             const SizedBox(height: 12),
@@ -320,8 +322,10 @@ class _ThermosSection extends StatefulWidget {
     required this.glassMl,
     required this.shape,
     required this.theme,
+    required this.animatedCelebrations,
   });
 
+  final bool animatedCelebrations;
   final GlobalKey thermosKey;
   final WaterController controller;
   final int glassMl;
@@ -336,6 +340,9 @@ class _ThermosSectionState extends State<_ThermosSection> {
   /// Kutlama ilerlemesi: overlay yazar, termos kapak hareketi için okur.
   final _celebrationT = ValueNotifier<double?>(null);
 
+  /// Döngü evresi (hedef aşıldıkça): birikimli tur sayısı, yoksa null.
+  final _celebrationLoop = ValueNotifier<double?>(null);
+
   WaterController get controller => widget.controller;
   int get glassMl => widget.glassMl;
   ThermosShape get shape => widget.shape;
@@ -344,6 +351,7 @@ class _ThermosSectionState extends State<_ThermosSection> {
   @override
   void dispose() {
     _celebrationT.dispose();
+    _celebrationLoop.dispose();
     super.dispose();
   }
 
@@ -369,6 +377,8 @@ class _ThermosSectionState extends State<_ThermosSection> {
                 theme: theme,
                 happy: controller.progress >= 1,
                 celebrationT: _celebrationT,
+                celebrationLoop: _celebrationLoop,
+                animatedCelebrations: widget.animatedCelebrations,
               ),
               Positioned.fill(
                 child: CelebrationOverlay(
@@ -376,6 +386,9 @@ class _ThermosSectionState extends State<_ThermosSection> {
                   theme: theme,
                   shape: shape,
                   progress: _celebrationT,
+                  looping: controller.progress >= 1,
+                  loopProgress: _celebrationLoop,
+                  animated: widget.animatedCelebrations,
                 ),
               ),
             ],

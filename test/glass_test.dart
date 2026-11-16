@@ -220,13 +220,13 @@ void main() {
       await openApp(tester);
       for (var i = 0; i < 10; i++) {
         await tester.tap(glass(9));
-        await tester.pumpAndSettle();
+        await _flush(tester);
       }
       expect(find.text('Hedefe ulaştın!'), findsOneWidget);
       expect(glassPlus, findsOneWidget);
 
       await tester.tap(glassPlus);
-      await tester.pumpAndSettle();
+      await _flush(tester);
       expect(find.text('2200 / 2000 ml'), findsOneWidget);
       expect(find.text('11 / 10'), findsOneWidget);
       expect(glass(10), findsOneWidget); // fazladan dolu bardak
@@ -234,7 +234,7 @@ void main() {
 
       // Son dolu bardağa dokun: fazlalık çıkar.
       await tester.tap(glass(10));
-      await tester.pumpAndSettle();
+      await _flush(tester);
       expect(find.text('2000 / 2000 ml'), findsOneWidget);
     });
 
@@ -249,7 +249,7 @@ void main() {
       expect(find.text('0 / 7'), findsOneWidget);
       for (var i = 0; i < 6; i++) {
         await tester.tap(glass(6));
-        await tester.pumpAndSettle();
+        await _flush(tester);
       }
       expect(find.text('1800 / 2000 ml'), findsOneWidget);
       expect(find.text('6 / 7'), findsOneWidget);
@@ -257,17 +257,17 @@ void main() {
 
       // Özel 200 ml: 7. bardak 2/3 dolu, "6,6 / 7" gösterilir.
       await tester.tap(find.text('Özel miktar'));
-      await tester.pumpAndSettle();
+      await _flush(tester);
       await tester.enterText(find.byType(TextField), '200');
       await tester.tap(find.text('Ekle'));
-      await tester.pumpAndSettle();
+      await _flush(tester);
       expect(find.text('2000 / 2000 ml'), findsOneWidget);
       expect(find.text('6,6 / 7'), findsOneWidget);
       expect(glassPlus, findsNothing);
 
       // 7. bardak tamamlanınca "+" belirir.
       await tester.tap(glass(6));
-      await tester.pumpAndSettle();
+      await _flush(tester);
       expect(glassPlus, findsOneWidget);
     });
 
@@ -309,4 +309,10 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+}
+
+/// Hedefte kutlama döngüsü sürekli çalıştığından pumpAndSettle bitmez.
+Future<void> _flush(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 600));
 }

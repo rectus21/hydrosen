@@ -1102,3 +1102,10 @@ void _kurt(Canvas canvas, CelebrationContext c) {
     );
   }
 }
+
+/// Döngü evresi (hedef aşıldığı sürece) için isteğe bağlı özel imzalar; boşsa
+/// giriş imzasının orta bölümü döngülenir. Bkz. celebration_registry.dart.
+const Map<String, SignatureCelebration> g2Loops = {};
+
+/// Döngü evresi için isteğe bağlı kapak pozları (boşsa giriş pozu döngülenir).
+const Map<String, CapPoseFn> g2LoopPoses = {};

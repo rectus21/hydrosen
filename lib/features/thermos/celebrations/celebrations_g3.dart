@@ -41,3 +41,10 @@ const Map<String, CapPoseFn> g3CapPoses = {
   'okyanus': okyanusPose,
   'ahtapot': ahtapotPose,
 };
+
+/// Döngü evresi (hedef aşıldığı sürece) için isteğe bağlı özel imzalar; boşsa
+/// giriş imzasının orta bölümü döngülenir. Bkz. celebration_registry.dart.
+const Map<String, SignatureCelebration> g3Loops = {};
+
+/// Döngü evresi için isteğe bağlı kapak pozları (boşsa giriş pozu döngülenir).
+const Map<String, CapPoseFn> g3LoopPoses = {};
