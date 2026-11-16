@@ -68,10 +68,22 @@ void sparkle(Canvas cv, Offset p, double r, Paint paint) {
 Path heartPath(Offset c, double s) {
   return Path()
     ..moveTo(c.dx, c.dy + s * 0.95)
-    ..cubicTo(c.dx - s * 1.7, c.dy - s * 0.1, c.dx - s * 0.95, c.dy - s * 1.3,
-        c.dx, c.dy - s * 0.45)
-    ..cubicTo(c.dx + s * 0.95, c.dy - s * 1.3, c.dx + s * 1.7, c.dy - s * 0.1,
-        c.dx, c.dy + s * 0.95)
+    ..cubicTo(
+      c.dx - s * 1.7,
+      c.dy - s * 0.1,
+      c.dx - s * 0.95,
+      c.dy - s * 1.3,
+      c.dx,
+      c.dy - s * 0.45,
+    )
+    ..cubicTo(
+      c.dx + s * 0.95,
+      c.dy - s * 1.3,
+      c.dx + s * 1.7,
+      c.dy - s * 0.1,
+      c.dx,
+      c.dy + s * 0.95,
+    )
     ..close();
 }
 
@@ -91,8 +103,16 @@ void teardrop(Canvas cv, Offset p, double r, double ang, Paint paint) {
 }
 
 /// Su damlasi: damla + beyaz parlak nokta.
-void waterDrop(Ctx c, Canvas cv, Offset p, double r, double ang, double op,
-    {int base = 0x4BA3E3, int light = 0xFFFFFF}) {
+void waterDrop(
+  Ctx c,
+  Canvas cv,
+  Offset p,
+  double r,
+  double ang,
+  double op, {
+  int base = 0x4BA3E3,
+  int light = 0xFFFFFF,
+}) {
   teardrop(cv, p, r, ang, fillP(c, base, op));
   cv.drawCircle(
     p + Offset(-r * 0.25, -r * 0.1),
@@ -101,8 +121,14 @@ void waterDrop(Ctx c, Canvas cv, Offset p, double r, double ang, double op,
   );
 }
 
-void bubble(Ctx c, Canvas cv, Offset p, double r, double op,
-    {int tint = 0xBFE6FA}) {
+void bubble(
+  Ctx c,
+  Canvas cv,
+  Offset p,
+  double r,
+  double op, {
+  int tint = 0xBFE6FA,
+}) {
   cv.drawCircle(p, r, fillP(c, tint, op * 0.22));
   cv.drawCircle(p, r, lineP(c, 0xFFFFFF, math.max(1.0, r * 0.14), op * 0.9));
   cv.drawCircle(
@@ -112,8 +138,15 @@ void bubble(Ctx c, Canvas cv, Offset p, double r, double op,
   );
 }
 
-void heart(Ctx c, Canvas cv, Offset p, double s, int hex, double op,
-    {double rot = 0}) {
+void heart(
+  Ctx c,
+  Canvas cv,
+  Offset p,
+  double s,
+  int hex,
+  double op, {
+  double rot = 0,
+}) {
   cv.save();
   cv.translate(p.dx, p.dy);
   cv.rotate(rot);
@@ -140,9 +173,16 @@ void snowflake(Ctx c, Canvas cv, Offset p, double r, double rot, double op) {
 }
 
 /// Tuy: x ekseni boyunca [len] uzunlukta.
-void feather(Ctx c, Canvas cv, Offset p, double len, double ang, int hex,
-    double op,
-    {int vein = 0x5E3F26}) {
+void feather(
+  Ctx c,
+  Canvas cv,
+  Offset p,
+  double len,
+  double ang,
+  int hex,
+  double op, {
+  int vein = 0x5E3F26,
+}) {
   cv.save();
   cv.translate(p.dx, p.dy);
   cv.rotate(ang);
@@ -170,8 +210,17 @@ void feather(Ctx c, Canvas cv, Offset p, double len, double ang, int hex,
   cv.restore();
 }
 
-void butterfly(Ctx c, Canvas cv, Offset p, double s, double flap, double rot,
-    int wing, int wing2, double op) {
+void butterfly(
+  Ctx c,
+  Canvas cv,
+  Offset p,
+  double s,
+  double flap,
+  double rot,
+  int wing,
+  int wing2,
+  double op,
+) {
   cv.save();
   cv.translate(p.dx, p.dy);
   cv.rotate(rot);
@@ -179,14 +228,43 @@ void butterfly(Ctx c, Canvas cv, Offset p, double s, double flap, double rot,
   for (final d in const [-1.0, 1.0]) {
     cv.save();
     cv.scale(d * f, 1);
-    cv.drawOval(Rect.fromCenter(center: Offset(s * 0.62, -s * 0.45), width: s * 1.3, height: s * 1.0), fillP(c, wing, op));
-    cv.drawOval(Rect.fromCenter(center: Offset(s * 0.45, s * 0.45), width: s * 0.85, height: s * 0.75), fillP(c, wing2, op));
-    cv.drawCircle(Offset(s * 0.66, -s * 0.5), s * 0.16, fillP(c, 0xFFFFFF, op * 0.8));
+    cv.drawOval(
+      Rect.fromCenter(
+        center: Offset(s * 0.62, -s * 0.45),
+        width: s * 1.3,
+        height: s * 1.0,
+      ),
+      fillP(c, wing, op),
+    );
+    cv.drawOval(
+      Rect.fromCenter(
+        center: Offset(s * 0.45, s * 0.45),
+        width: s * 0.85,
+        height: s * 0.75,
+      ),
+      fillP(c, wing2, op),
+    );
+    cv.drawCircle(
+      Offset(s * 0.66, -s * 0.5),
+      s * 0.16,
+      fillP(c, 0xFFFFFF, op * 0.8),
+    );
     cv.restore();
   }
-  cv.drawOval(Rect.fromCenter(center: Offset.zero, width: s * 0.2, height: s * 1.1), fillP(c, 0x4A3222, op));
-  cv.drawLine(Offset(0, -s * 0.5), Offset(-s * 0.25, -s * 0.8), lineP(c, 0x4A3222, 1.1, op));
-  cv.drawLine(Offset(0, -s * 0.5), Offset(s * 0.25, -s * 0.8), lineP(c, 0x4A3222, 1.1, op));
+  cv.drawOval(
+    Rect.fromCenter(center: Offset.zero, width: s * 0.2, height: s * 1.1),
+    fillP(c, 0x4A3222, op),
+  );
+  cv.drawLine(
+    Offset(0, -s * 0.5),
+    Offset(-s * 0.25, -s * 0.8),
+    lineP(c, 0x4A3222, 1.1, op),
+  );
+  cv.drawLine(
+    Offset(0, -s * 0.5),
+    Offset(s * 0.25, -s * 0.8),
+    lineP(c, 0x4A3222, 1.1, op),
+  );
   cv.restore();
 }
 
@@ -215,11 +293,26 @@ void banana(Ctx c, Canvas cv, Offset p, double s, double rot, double op) {
 
 void apple(Ctx c, Canvas cv, Offset p, double r, double op) {
   cv.drawCircle(p, r, fillP(c, 0xD0392B, op));
-  cv.drawCircle(p + Offset(r * 0.3, r * 0.2), r * 0.7, fillP(c, 0xB02A20, op * 0.5));
-  cv.drawCircle(p + Offset(-r * 0.35, -r * 0.35), r * 0.26, fillP(c, 0xF2A39A, op * 0.85));
-  cv.drawLine(p + Offset(0, -r), p + Offset(r * 0.3, -r * 1.5), lineP(c, 0x5A3A22, r * 0.2, op));
+  cv.drawCircle(
+    p + Offset(r * 0.3, r * 0.2),
+    r * 0.7,
+    fillP(c, 0xB02A20, op * 0.5),
+  );
+  cv.drawCircle(
+    p + Offset(-r * 0.35, -r * 0.35),
+    r * 0.26,
+    fillP(c, 0xF2A39A, op * 0.85),
+  );
+  cv.drawLine(
+    p + Offset(0, -r),
+    p + Offset(r * 0.3, -r * 1.5),
+    lineP(c, 0x5A3A22, r * 0.2, op),
+  );
   xf(cv, p + Offset(r * 0.7, -r * 1.2), -0.45, 1, () {
-    cv.drawOval(Rect.fromCenter(center: Offset.zero, width: r * 0.95, height: r * 0.5), fillP(c, 0x6FA85A, op));
+    cv.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: r * 0.95, height: r * 0.5),
+      fillP(c, 0x6FA85A, op),
+    );
   });
 }
 
@@ -227,10 +320,38 @@ void acorn(Ctx c, Canvas cv, Offset p, double r, double rot, double op) {
   cv.save();
   cv.translate(p.dx, p.dy);
   cv.rotate(rot);
-  cv.drawOval(Rect.fromCenter(center: Offset(0, r * 0.15), width: r * 1.5, height: r * 1.9), fillP(c, 0xD9A05B, op));
-  cv.drawOval(Rect.fromCenter(center: Offset(-r * 0.2, r * 0.3), width: r * 0.4, height: r * 0.9), fillP(c, 0xF0C58A, op * 0.8));
-  cv.drawArc(Rect.fromCenter(center: Offset(0, -r * 0.35), width: r * 1.9, height: r * 1.3), math.pi, math.pi, true, fillP(c, 0x7A4A22, op));
-  cv.drawLine(Offset(0, -r * 1.0), Offset(r * 0.15, -r * 1.35), lineP(c, 0x5A3A22, r * 0.2, op));
+  cv.drawOval(
+    Rect.fromCenter(
+      center: Offset(0, r * 0.15),
+      width: r * 1.5,
+      height: r * 1.9,
+    ),
+    fillP(c, 0xD9A05B, op),
+  );
+  cv.drawOval(
+    Rect.fromCenter(
+      center: Offset(-r * 0.2, r * 0.3),
+      width: r * 0.4,
+      height: r * 0.9,
+    ),
+    fillP(c, 0xF0C58A, op * 0.8),
+  );
+  cv.drawArc(
+    Rect.fromCenter(
+      center: Offset(0, -r * 0.35),
+      width: r * 1.9,
+      height: r * 1.3,
+    ),
+    math.pi,
+    math.pi,
+    true,
+    fillP(c, 0x7A4A22, op),
+  );
+  cv.drawLine(
+    Offset(0, -r * 1.0),
+    Offset(r * 0.15, -r * 1.35),
+    lineP(c, 0x5A3A22, r * 0.2, op),
+  );
   cv.restore();
 }
 
@@ -243,12 +364,24 @@ void coin(Ctx c, Canvas cv, Offset p, double r, double spin, double op) {
   cv.drawCircle(Offset.zero, r * 1.0, fillP(c, 0xC99A2E, op));
   cv.drawCircle(Offset.zero, r * 0.82, fillP(c, 0xF2C94C, op));
   cv.drawCircle(Offset.zero, r * 0.52, lineP(c, 0xC99A2E, r * 0.16, op * 0.8));
-  cv.drawLine(Offset(-r * 0.4, r * 0.5), Offset(r * 0.3, -r * 0.55), lineP(c, 0xFFF3B0, r * 0.2, op * 0.9));
+  cv.drawLine(
+    Offset(-r * 0.4, r * 0.5),
+    Offset(r * 0.3, -r * 0.55),
+    lineP(c, 0xFFF3B0, r * 0.2, op * 0.9),
+  );
   cv.restore();
 }
 
-void fish(Ctx c, Canvas cv, Offset p, double s, double rot, double op,
-    {int body = 0xF2994A, int belly = 0xFFD7A8}) {
+void fish(
+  Ctx c,
+  Canvas cv,
+  Offset p,
+  double s,
+  double rot,
+  double op, {
+  int body = 0xF2994A,
+  int belly = 0xFFD7A8,
+}) {
   cv.save();
   cv.translate(p.dx, p.dy);
   cv.rotate(rot);
@@ -262,11 +395,21 @@ void fish(Ctx c, Canvas cv, Offset p, double s, double rot, double op,
       ..close(),
     fillP(c, body, op),
   );
-  cv.drawOval(Rect.fromCenter(center: Offset.zero, width: 28, height: 15), fillP(c, body, op));
-  cv.drawOval(Rect.fromCenter(center: const Offset(1, 3), width: 20, height: 7), fillP(c, belly, op * 0.9));
+  cv.drawOval(
+    Rect.fromCenter(center: Offset.zero, width: 28, height: 15),
+    fillP(c, body, op),
+  );
+  cv.drawOval(
+    Rect.fromCenter(center: const Offset(1, 3), width: 20, height: 7),
+    fillP(c, belly, op * 0.9),
+  );
   cv.drawCircle(const Offset(7, -2), 2.1, fillP(c, 0x24262C, op));
   cv.drawCircle(const Offset(7.6, -2.6), 0.7, fillP(c, 0xFFFFFF, op));
-  cv.drawLine(const Offset(-1, -6), const Offset(-1, 6), lineP(c, 0xD97A22, 1.2, op * 0.7));
+  cv.drawLine(
+    const Offset(-1, -6),
+    const Offset(-1, 6),
+    lineP(c, 0xD97A22, 1.2, op * 0.7),
+  );
   cv.restore();
 }
 

@@ -129,13 +129,7 @@ class ThermosPainter extends CustomPainter {
     canvas.scale(scale);
     canvas.translate(-designRect.left, -designRect.top);
 
-    // Temanın arka planı (köşeleri yuvarlatılmış kart).
-    canvas.save();
-    canvas.clipRRect(
-      RRect.fromRectAndRadius(designRect, const Radius.circular(24)),
-    );
-    theme.background(Art(canvas));
-    canvas.restore();
+    // Arka plan burada çizilmez: sahne tüm ekranı kaplar (ThemeScene).
 
     final geo = _g;
     final body = _p(geo.body);

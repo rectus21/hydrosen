@@ -529,7 +529,10 @@ void _rakunEar(Art a, num x, num y, num r) {
   a.canvas.save();
   a.canvas.clipPath(
     Path()..addOval(
-      Rect.fromCircle(center: Offset(x.toDouble(), y.toDouble()), radius: r.toDouble()),
+      Rect.fromCircle(
+        center: Offset(x.toDouble(), y.toDouble()),
+        radius: r.toDouble(),
+      ),
     ),
   );
   // Çizgili uç: koyu iç, açık bant, koyu uç.

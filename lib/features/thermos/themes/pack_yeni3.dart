@@ -116,7 +116,8 @@ String _y3Mirror(String d) {
       continue;
     }
     final v = double.parse(t);
-    final flip = cmd == 'H' || ((cmd == 'M' || cmd == 'L' || cmd == 'Q') && idx.isEven);
+    final flip =
+        cmd == 'H' || ((cmd == 'M' || cmd == 'L' || cmd == 'Q') && idx.isEven);
     idx++;
     b.write(' ${flip ? 680 - v : v}');
   }
@@ -445,7 +446,11 @@ void _samuruFish(Art a, num x, num y, double s) {
     0xE07A2E,
   );
   a.c(x - 8 * s, y - 1.5 * s, 1.8 * s, k);
-  a.s('M${x - 3 * s} ${y - 5 * s} q${3 * s} ${5 * s} 0 ${10 * s}', 0xC8682A, 1.2);
+  a.s(
+    'M${x - 3 * s} ${y - 5 * s} q${3 * s} ${5 * s} 0 ${10 * s}',
+    0xC8682A,
+    1.2,
+  );
 }
 
 void _samuruA(Art a, bool happy) {
@@ -661,7 +666,11 @@ void _fokFace(Art a, {required bool slim, required bool happy}) {
     if (happy) {
       a.s('M328 146 Q340 156 352 146', 0x2A3540, 2.6);
     } else {
-      a.s('M340 140 v4 M332 148 Q336 153 340 148 Q344 153 348 148', 0x2A3540, 2.2);
+      a.s(
+        'M340 140 v4 M332 148 Q336 153 340 148 Q344 153 348 148',
+        0x2A3540,
+        2.2,
+      );
     }
   }
 }

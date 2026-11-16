@@ -11,8 +11,10 @@ import '../thermos_theme.dart';
 /// Tema imza kutlaması: [ctx] ile tasarım koordinatlarında (440x504 kart,
 /// bkz. [designRect]) doğrudan [canvas]'a çizer. Kart kırpması ve ölçek
 /// çağıran tarafından uygulanmıştır.
-typedef SignatureCelebration =
-    void Function(Canvas canvas, CelebrationContext ctx);
+typedef SignatureCelebration = void Function(
+  Canvas canvas,
+  CelebrationContext ctx,
+);
 
 /// İmza kutlamasının kapağa uyguladığı küçük hareket (zıplama/sallanma).
 /// Kapağın alt-orta noktası etrafında [dx],[dy] (tasarım birimi), [rotation]
@@ -187,8 +189,10 @@ class CelebrationContext {
   Paint paintOf(int hex, [double opacity = 1]) => painter.paintOf(hex, opacity);
 
   /// Zarfsız boya.
-  Paint solid(int hex, [double opacity = 1]) => Paint()
-    ..color = Color(0xFF000000 | hex).withValues(alpha: opacity.clamp(0.0, 1.0));
+  Paint solid(int hex, [double opacity = 1]) =>
+      Paint()
+        ..color = Color(0xFF000000 | hex)
+            .withValues(alpha: opacity.clamp(0.0, 1.0));
 
   /// 8 köşeli yıldız.
   void star(Canvas canvas, Offset c, double r, int hex, [double op = 1]) =>

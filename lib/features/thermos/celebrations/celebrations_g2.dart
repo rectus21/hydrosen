@@ -30,7 +30,6 @@ import 'celebrations_g2_kit.dart';
 // 7. test/celebrations_test.dart haritalari otomatik dolasir (iki sekil,
 //    t=0..1, reduceMotion); ayrica test gerekmez.
 
-
 const Map<String, SignatureCelebration> g2Celebrations = {
   'kedi': _kedi,
   'kopek': _kopek,
@@ -144,11 +143,7 @@ void _bone(G2 g, Offset p, double rot, double sc) {
       );
       for (final sx in const [-1.0, 1.0]) {
         for (final sy in const [-1.0, 1.0]) {
-          g.canvas.drawCircle(
-            Offset(sx * 16, sy * 5.5),
-            6.4 + grow,
-            g.f(col),
-          );
+          g.canvas.drawCircle(Offset(sx * 16, sy * 5.5), 6.4 + grow, g.f(col));
         }
       }
     }
@@ -174,16 +169,16 @@ void _kopek(Canvas canvas, CelebrationContext c) {
     ..moveTo(m.dx - tw, m.dy)
     ..lineTo(m.dx + tw, m.dy)
     ..lineTo(m.dx + tw, m.dy + tl)
-    ..quadraticBezierTo(m.dx + tw, m.dy + tl + tw * 1.2, m.dx, m.dy + tl + tw * 1.2)
+    ..quadraticBezierTo(
+      m.dx + tw,
+      m.dy + tl + tw * 1.2,
+      m.dx,
+      m.dy + tl + tw * 1.2,
+    )
     ..quadraticBezierTo(m.dx - tw, m.dy + tl + tw * 1.2, m.dx - tw, m.dy + tl)
     ..close();
   canvas.drawPath(tongue, g.f(0xE8758F));
-  g.line(
-    m + Offset(0, 2 * u),
-    m + Offset(0, tl + tw * 0.7),
-    1.6 * u,
-    0xC0455F,
-  );
+  g.line(m + Offset(0, 2 * u), m + Offset(0, tl + tw * 0.7), 1.6 * u, 0xC0455F);
 
   // Kuyruk (sag yanda), cok hizli sallanir.
   final b = g.at(402, 190, 392, 170);
@@ -262,7 +257,11 @@ void _carrot(G2 g, Offset p, double rot, double sc) {
 void _tavsan(Canvas canvas, CelebrationContext c) {
   final g = G2(canvas, c);
   final u = g.u;
-  g.ambient(CelebrationKind.fallingFlowers, const [0xF4A6C0, 0xFFFFFF, 0xFAC775]);
+  g.ambient(CelebrationKind.fallingFlowers, const [
+    0xF4A6C0,
+    0xFFFFFF,
+    0xFAC775,
+  ]);
 
   // Kulaklar: ucu one arkaya yatar (kapak gorselinin ustune kivrik uc).
   for (final side in const [-1.0, 1.0]) {
@@ -281,13 +280,20 @@ void _tavsan(Canvas canvas, CelebrationContext c) {
   final top = c.capTop.dy;
   for (var i = 0; i < n; i++) {
     final delay = i / n * 0.58;
-    final p = g.still ? (i + 1) / (n + 1) * 0.85 : ((g.t - delay) / 0.38).clamp(0.0, 1.0);
+    final p = g.still
+        ? (i + 1) / (n + 1) * 0.85
+        : ((g.t - delay) / 0.38).clamp(0.0, 1.0);
     if (p <= 0 || p >= 1) continue;
     final x = c.capCenter.dx + (c.rand(i, 3) - 0.5) * 300 * (0.8 + u * 0.3);
     final y = top - 40 + p * p * 360;
     final fade = p > 0.85 ? (1 - p) / 0.15 : 1.0;
     canvas.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, fade));
-    _carrot(g, Offset(x, y), (c.rand(i, 4) - 0.5) * 1.2 + p * 5 * (c.rand(i, 5) - 0.5), 1);
+    _carrot(
+      g,
+      Offset(x, y),
+      (c.rand(i, 4) - 0.5) * 1.2 + p * 5 * (c.rand(i, 5) - 0.5),
+      1,
+    );
     canvas.restore();
   }
 }
@@ -302,8 +308,20 @@ CapPose _ayiPose(CelebrationContext c) {
 void _bee(G2 g, Offset p, double dir, double sc) {
   final u = g.u * sc * 1.25;
   final flap = 0.45 + 0.55 * math.sin(g.time * 70 + p.dx).abs();
-  g.oval(p + Offset(-2 * u * dir, -6 * u), 5 * u, 7.5 * u * flap, g.f(0xFFFFFF, 0.8), -0.5 * dir);
-  g.oval(p + Offset(2 * u * dir, -6.5 * u), 4 * u, 6.5 * u * flap, g.f(0xE8F4FF, 0.75), 0.5 * dir);
+  g.oval(
+    p + Offset(-2 * u * dir, -6 * u),
+    5 * u,
+    7.5 * u * flap,
+    g.f(0xFFFFFF, 0.8),
+    -0.5 * dir,
+  );
+  g.oval(
+    p + Offset(2 * u * dir, -6.5 * u),
+    4 * u,
+    6.5 * u * flap,
+    g.f(0xE8F4FF, 0.75),
+    0.5 * dir,
+  );
   g.oval(p, 9 * u, 6.2 * u, g.f(0x2C2C2A));
   g.oval(p, 8.2 * u, 5.4 * u, g.f(0xFFD23F));
   for (final x in const [-3.2, 1.0]) {
@@ -316,16 +334,31 @@ void _bee(G2 g, Offset p, double dir, double sc) {
 void _ayi(Canvas canvas, CelebrationContext c) {
   final g = G2(canvas, c);
   final u = g.u;
-  g.ambient(CelebrationKind.confetti, const [0xF2B632, 0xE39A14, 0xFFDE8C, 0x8B5A2B]);
+  g.ambient(CelebrationKind.confetti, const [
+    0xF2B632,
+    0xE39A14,
+    0xFFDE8C,
+    0x8B5A2B,
+  ]);
   const honey = 0xF2B632, honeyDark = 0xC98A12, honeyLight = 0xFFDE8C;
 
   // Kafanin tepesinde bal: damlalar uzar, kopar, duser.
   final cy = g.chubby ? 64.0 : 96.0;
   final blob = g.at(340, cy, 340, cy);
   final grow = g.pop;
-  g.oval(blob + Offset(0, 1.5 * u), (g.chubby ? 56 : 40) * u * grow, 13 * u * grow, g.f(honeyDark));
+  g.oval(
+    blob + Offset(0, 1.5 * u),
+    (g.chubby ? 56 : 40) * u * grow,
+    13 * u * grow,
+    g.f(honeyDark),
+  );
   g.oval(blob, (g.chubby ? 54 : 38) * u * grow, 11.5 * u * grow, g.f(honey));
-  g.oval(blob + Offset(-10 * u, -3.5 * u), 16 * u * grow, 3 * u, g.f(honeyLight, 0.9));
+  g.oval(
+    blob + Offset(-10 * u, -3.5 * u),
+    16 * u * grow,
+    3 * u,
+    g.f(honeyLight, 0.9),
+  );
   const drips = [
     [-0.62, 0.0],
     [-0.12, 0.45],
@@ -336,7 +369,10 @@ void _ayi(Canvas canvas, CelebrationContext c) {
     final dx = drips[i][0] * (g.chubby ? 52 : 36) * u;
     final x0 = blob.dx + dx;
     final cycle = g.still ? 0.55 : ((g.time * 0.5 + drips[i][1]) % 1);
-    final len = (6 + 30 * CelebrationContext.easeInOut((cycle / 0.8).clamp(0.0, 1.0))) * u * grow;
+    final len =
+        (6 + 30 * CelebrationContext.easeInOut((cycle / 0.8).clamp(0.0, 1.0))) *
+        u *
+        grow;
     final top = blob.dy + 3 * u;
     g.line(Offset(x0, top), Offset(x0, top + len), 8.5 * u, honeyDark);
     g.line(Offset(x0, top), Offset(x0, top + len), 6.2 * u, honey);
@@ -357,12 +393,22 @@ void _ayi(Canvas canvas, CelebrationContext c) {
   for (var i = 0; i < 4; i++) {
     final a = g.time * 2.4 + i * g2Tau / 4 + (g.still ? i * 0.9 : 0);
     final rx = (g.chubby ? 128 : 96) + i * 6;
-    final p = ctr + Offset(math.sin(a) * rx, math.sin(a * 2 + i) * (g.chubby ? 50 : 40) - 18 * u);
+    final p =
+        ctr +
+        Offset(
+          math.sin(a) * rx,
+          math.sin(a * 2 + i) * (g.chubby ? 50 : 40) - 18 * u,
+        );
     final dir = math.cos(a) >= 0 ? 1.0 : -1.0;
     // Kesikli ucus izi.
     for (var k = 1; k <= 3; k++) {
       final a2 = a - k * 0.16;
-      final q = ctr + Offset(math.sin(a2) * rx, math.sin(a2 * 2 + i) * (g.chubby ? 50 : 40) - 18 * u);
+      final q =
+          ctr +
+          Offset(
+            math.sin(a2) * rx,
+            math.sin(a2 * 2 + i) * (g.chubby ? 50 : 40) - 18 * u,
+          );
       g.circle(q, (2.0 - k * 0.3) * u, 0x8B5A2B, 0.4 - k * 0.1);
     }
     _bee(g, p, dir, g.pop);
@@ -373,13 +419,20 @@ void _ayi(Canvas canvas, CelebrationContext c) {
 
 CapPose _koalaPose(CelebrationContext c) {
   final e = _env(c);
-  return CapPose(rotation: _sin(c, 0.9) * 0.075 * e, dx: _sin(c, 0.9) * 3.5 * e);
+  return CapPose(
+    rotation: _sin(c, 0.9) * 0.075 * e,
+    dx: _sin(c, 0.9) * 3.5 * e,
+  );
 }
 
 void _koala(Canvas canvas, CelebrationContext c) {
   final g = G2(canvas, c);
   final u = g.u;
-  g.ambient(CelebrationKind.fallingLeaves, const [0x6FA85A, 0x97C459, 0xB5D4A0]);
+  g.ambient(CelebrationKind.fallingLeaves, const [
+    0x6FA85A,
+    0x97C459,
+    0xB5D4A0,
+  ]);
 
   // Okaliptus dali: sag ustten sallanan yuvarlak yapraklar.
   const cols = [0x8FBF9B, 0x6FA085, 0xA6CDB0];
@@ -390,8 +443,10 @@ void _koala(Canvas canvas, CelebrationContext c) {
     final stem = [
       for (var i = 0; i <= 8; i++)
         base +
-            Offset(sgn * (i * 6.5 * u) + math.sin(sw + i * 0.2) * i * 1.2 * u,
-                -i * 8.5 * u * g.pop),
+            Offset(
+              sgn * (i * 6.5 * u) + math.sin(sw + i * 0.2) * i * 1.2 * u,
+              -i * 8.5 * u * g.pop,
+            ),
     ];
     for (var i = 0; i < stem.length - 1; i++) {
       g.line(stem[i], stem[i + 1], 2.2 * u, 0x5F7F55);
@@ -400,7 +455,13 @@ void _koala(Canvas canvas, CelebrationContext c) {
       final side = i.isEven ? -1.0 : 1.0;
       final p = stem[i] + Offset(side * 7 * u, 2 * u);
       g.oval(p, 8.5 * u, 5.4 * u, g.f(cols[i % 3]), side * 0.6 + sw);
-      g.oval(p - Offset(side * 1.5 * u, 1.2 * u), 4 * u, 1.6 * u, g.f(0xE6F2E6, 0.6), side * 0.6 + sw);
+      g.oval(
+        p - Offset(side * 1.5 * u, 1.2 * u),
+        4 * u,
+        1.6 * u,
+        g.f(0xE6F2E6, 0.6),
+        side * 0.6 + sw,
+      );
     }
   }
 
@@ -408,21 +469,34 @@ void _koala(Canvas canvas, CelebrationContext c) {
   final squeeze = 0.5 + 0.5 * g.wave(0.9, -1.4);
   for (final side in const [-1.0, 1.0]) {
     final sh = g.at(side < 0 ? 248 : 432, 178, side < 0 ? 287 : 393, 144);
-    final hand = g.at(340 + side * (30 - squeeze * 14), 216, 340 + side * (16 - squeeze * 6), 182);
+    final hand = g.at(
+      340 + side * (30 - squeeze * 14),
+      216,
+      340 + side * (16 - squeeze * 6),
+      182,
+    );
     final elbow = Offset(
       (sh.dx + hand.dx) / 2 + side * 6 * u,
       math.max(sh.dy, hand.dy) + 10 * u,
     );
     final arm = [
       for (var i = 0; i <= 10; i++)
-        Offset.lerp(Offset.lerp(sh, elbow, i / 10), Offset.lerp(elbow, hand, i / 10), i / 10)!,
+        Offset.lerp(
+          Offset.lerp(sh, elbow, i / 10),
+          Offset.lerp(elbow, hand, i / 10),
+          i / 10,
+        )!,
     ];
     g.taper(arm, (f) => (8.5 - 1.2 * f) * u, 0x818A97, grow: 2.2 * u);
     g.taper(arm, (f) => (8.5 - 1.2 * f) * u, 0xAEB6C0);
     g.circle(hand, 8 * u, 0x818A97);
     g.circle(hand, 6.2 * u, 0xAEB6C0);
     for (var k = -1; k <= 1; k++) {
-      g.circle(hand + Offset(k * 3 * u - side * 2 * u, 5 * u), 1.6 * u, 0x3C3F46);
+      g.circle(
+        hand + Offset(k * 3 * u - side * 2 * u, 5 * u),
+        1.6 * u,
+        0x3C3F46,
+      );
     }
   }
   g.sparkle(g.at(250, 90, 296, 106), 5 * u, 0xFFFFFF, 0.8);
@@ -432,13 +506,20 @@ void _koala(Canvas canvas, CelebrationContext c) {
 
 CapPose _pandaPose(CelebrationContext c) {
   final e = _env(c);
-  return CapPose(dy: _sin(c, 3).abs() * 2.6 * e, rotation: _sin(c, 1.5) * 0.03 * e);
+  return CapPose(
+    dy: _sin(c, 3).abs() * 2.6 * e,
+    rotation: _sin(c, 1.5) * 0.03 * e,
+  );
 }
 
 void _panda(Canvas canvas, CelebrationContext c) {
   final g = G2(canvas, c);
   final u = g.u;
-  g.ambient(CelebrationKind.fallingLeaves, const [0x1D9E75, 0x97C459, 0x639922]);
+  g.ambient(CelebrationKind.fallingLeaves, const [
+    0x1D9E75,
+    0x97C459,
+    0x639922,
+  ]);
 
   final chew = g.still ? 0.6 : g.wave(3);
   final mouth = g.at(340, 176, 340, 152);
@@ -460,18 +541,35 @@ void _panda(Canvas canvas, CelebrationContext c) {
   // Yapraklar bambunun ucunda sallanir.
   for (var i = 0; i < 3; i++) {
     final a = -0.9 + i * 0.75 + g.wave(1.4, i.toDouble()) * 0.12;
-    g.leaf(end + Offset.fromDirection(a, 15 * u), 13 * u, a, i == 1 ? 0x639922 : 0x97C459, 0x3D6B1A);
+    g.leaf(
+      end + Offset.fromDirection(a, 15 * u),
+      13 * u,
+      a,
+      i == 1 ? 0x639922 : 0x97C459,
+      0x3D6B1A,
+    );
   }
   // Siyah patiler bambuyu tutar.
   for (final f in const [0.45, 0.78]) {
     final p = tip + (end - tip) * f + Offset(0, g.wave(3, f * 3) * 0.8 * u);
     g.oval(p, 9.4 * u, 7.4 * u, g.f(0x2C2C2A), 0.55);
-    g.oval(p + Offset(-2.2 * u, -2.5 * u), 3 * u, 1.8 * u, g.f(0xFFFFFF, 0.25), 0.55);
+    g.oval(
+      p + Offset(-2.2 * u, -2.5 * u),
+      3 * u,
+      1.8 * u,
+      g.f(0xFFFFFF, 0.25),
+      0.55,
+    );
   }
   // Cirpilan kirintilar.
   for (var i = 0; i < 6; i++) {
     final cyc = g.still ? i / 6 : ((g.time * 1.5 + i / 6) % 1);
-    final p = tip + Offset(-6 * u - cyc * (12 + c.rand(i, 2) * 26) * u, cyc * -8 * u + cyc * cyc * 50 * u);
+    final p =
+        tip +
+        Offset(
+          -6 * u - cyc * (12 + c.rand(i, 2) * 26) * u,
+          cyc * -8 * u + cyc * cyc * 50 * u,
+        );
     g.circle(p, (3 - cyc * 1.6) * u, i.isEven ? 0xB4E08C : 0x7CC15A, 1 - cyc);
   }
 }
@@ -492,7 +590,12 @@ void _inek(Canvas canvas, CelebrationContext c) {
   // Can: boyunda asili, sallanir.
   final pivot = g.at(340, 208, 340, 176);
   final swing = g.still ? 0.3 : g.wave(2.6) * 0.55 * (1 - g.t * 0.35);
-  g.line(pivot + Offset(-17 * u, 0), pivot + Offset(17 * u, 0), 6 * u, 0xC0392B);
+  g.line(
+    pivot + Offset(-17 * u, 0),
+    pivot + Offset(17 * u, 0),
+    6 * u,
+    0xC0392B,
+  );
   g.local(pivot + Offset(0, 4 * u), swing, u, () {
     final bell = Path()
       ..moveTo(-12, 20)
@@ -507,7 +610,11 @@ void _inek(Canvas canvas, CelebrationContext c) {
       ..close();
     canvas.drawPath(inner, g.f(0xFAC775));
     canvas.drawOval(Rect.fromLTWH(-6.5, 5, 4, 8), g.f(0xFFF0C4, 0.8));
-    canvas.drawLine(const Offset(-12, 19.5), const Offset(12, 19.5), g.s(0xB07A22, 3));
+    canvas.drawLine(
+      const Offset(-12, 19.5),
+      const Offset(12, 19.5),
+      g.s(0xB07A22, 3),
+    );
     canvas.drawCircle(Offset(-swing * 6, 23), 3.4, g.f(0x8A5A12));
   });
   // Can sesi cizgileri.
@@ -530,10 +637,13 @@ void _inek(Canvas canvas, CelebrationContext c) {
   final out = 1 - c.span(0.88, 1);
   final pop = g.still
       ? 1.0
-      : (CelebrationContext.easeOut(show) * (1 + 0.14 * math.sin(show * math.pi))) * out;
+      : (CelebrationContext.easeOut(show) *
+                (1 + 0.14 * math.sin(show * math.pi))) *
+            out;
   if (pop > 0.02) {
     final top = c.capTop;
-    final ctr = Offset(top.dx + (g.chubby ? 98 : 88), top.dy - (g.chubby ? 34 : 38)) +
+    final ctr =
+        Offset(top.dx + (g.chubby ? 98 : 88), top.dy - (g.chubby ? 34 : 38)) +
         Offset(0, g.still ? 0 : g.wave(1.6) * 2);
     final w = 116.0, h = 56.0;
     final r = RRect.fromRectAndRadius(
@@ -579,7 +689,10 @@ void _inek(Canvas canvas, CelebrationContext c) {
 
 CapPose _koyunPose(CelebrationContext c) {
   final e = _env(c);
-  return CapPose(dy: -_hop(c.elapsed * 1.1) * 7 * e, rotation: _sin(c, 1.1) * 0.03 * e);
+  return CapPose(
+    dy: -_hop(c.elapsed * 1.1) * 7 * e,
+    rotation: _sin(c, 1.1) * 0.03 * e,
+  );
 }
 
 void _koyun(Canvas canvas, CelebrationContext c) {
@@ -602,7 +715,12 @@ void _koyun(Canvas canvas, CelebrationContext c) {
     final p = base + out * (h * 12 * u) + Offset(0, -lift * 0.9);
     final r = (11 + c.rand(i, 9) * 5) * u * g.pop;
     // Golge ve yumusak pof.
-    g.oval(base + Offset(0, 4 * u), r * (1 - h * 0.3), r * 0.28, g.f(0x3A5A32, 0.12 * (1 - h)));
+    g.oval(
+      base + Offset(0, 4 * u),
+      r * (1 - h * 0.3),
+      r * 0.28,
+      g.f(0x3A5A32, 0.12 * (1 - h)),
+    );
     g.circle(p + Offset(0, 1.6 * u), r + 1.8 * u, 0xD9C9A8);
     g.circle(p, r, 0xFFFFFF);
     g.circle(p + Offset(-r * 0.3, -r * 0.3), r * 0.4, 0xFFFFFF);
@@ -611,10 +729,18 @@ void _koyun(Canvas canvas, CelebrationContext c) {
   // Havada suzulen kucuk pufler ve parilti.
   for (var i = 0; i < 5; i++) {
     final cyc = g.still ? 0.2 + i * 0.15 : ((g.time * 0.45 + i / 5) % 1);
-    final x = c.capCenter.dx + (c.rand(i, 11) - 0.5) * 230 + math.sin(cyc * 6 + i) * 8;
+    final x =
+        c.capCenter.dx +
+        (c.rand(i, 11) - 0.5) * 230 +
+        math.sin(cyc * 6 + i) * 8;
     final y = c.capTop.dy - 6 - cyc * 90;
     final fade = math.sin(cyc * math.pi);
-    g.circle(Offset(x, y), (5 + c.rand(i, 12) * 4) * u * 1.2, 0xFFFFFF, 0.9 * fade);
+    g.circle(
+      Offset(x, y),
+      (5 + c.rand(i, 12) * 4) * u * 1.2,
+      0xFFFFFF,
+      0.9 * fade,
+    );
   }
 }
 
@@ -627,7 +753,8 @@ const _bogaNostrilsSlim = [Offset(329, 143), Offset(351, 143)];
 /// Kafa sallama: hizli yatay-donus titresimi, sona dogru sonumlenir.
 CapPose _bogaShake(CelebrationContext ctx) {
   final t = ctx.t;
-  final env = CelebrationContext.pulse(CelebrationContext.easeOut(t * 1.1)) *
+  final env =
+      CelebrationContext.pulse(CelebrationContext.easeOut(t * 1.1)) *
       (1 - t * 0.5);
   final s = math.sin(t * math.pi * 2 * 6);
   return CapPose(rotation: s * 0.07 * env, dx: s * 2.2 * env);
@@ -650,7 +777,8 @@ void _bogaSteam(Canvas canvas, CelebrationContext ctx) {
       if (p <= 0 || p >= 1) continue;
       final e = CelebrationContext.easeOut(p);
       final r = (5 + 17 * e) * (ctx.chubby ? 1.0 : 0.85) * (0.8 + k * 0.2);
-      final c = base +
+      final c =
+          base +
           Offset(
             dir * (6 + 26 * e) + math.sin(p * 5 + i + side) * 5,
             -4 - 78 * e,
@@ -713,7 +841,9 @@ const _flyWindows = [
 
 Offset _flyPos(G2 g, int i, double time) {
   final side = _flyWindows[i][3];
-  final mid = g.c.capCenter + Offset(side * (g.chubby ? 128.0 : 104.0), -(g.chubby ? 36.0 : 40.0));
+  final mid =
+      g.c.capCenter +
+      Offset(side * (g.chubby ? 128.0 : 104.0), -(g.chubby ? 36.0 : 40.0));
   return mid +
       Offset(
         math.sin(time * 6.5 + i * 2) * 24 + math.sin(time * 2.1) * 10,
@@ -782,14 +912,32 @@ void _kurbaga(Canvas canvas, CelebrationContext c) {
 void _drawFly(G2 g, Offset p, double a) {
   final u = g.u * 1.9;
   final flap = 0.4 + 0.6 * math.sin(g.time * 90).abs();
-  g.oval(p + Offset(-3 * u, -5 * u), 4.5 * u, 7 * u * flap, g.f(0xFFFFFF, 0.7 * a), -0.4);
-  g.oval(p + Offset(3 * u, -5 * u), 4.5 * u, 7 * u * flap, g.f(0xE8F4FF, 0.7 * a), 0.4);
+  g.oval(
+    p + Offset(-3 * u, -5 * u),
+    4.5 * u,
+    7 * u * flap,
+    g.f(0xFFFFFF, 0.7 * a),
+    -0.4,
+  );
+  g.oval(
+    p + Offset(3 * u, -5 * u),
+    4.5 * u,
+    7 * u * flap,
+    g.f(0xE8F4FF, 0.7 * a),
+    0.4,
+  );
   g.oval(p, 6.5 * u, 4.6 * u, g.f(0x2C2C2A, a));
   g.circle(p + Offset(5 * u, -1 * u), 2.8 * u, 0x3E5A2E, a);
   g.circle(p + Offset(6 * u, -2 * u), 1.1 * u, 0xFFFFFF, a);
 }
 
-void _drawTongue(G2 g, Offset from, Offset tip, {Offset? fly, double extent = 1}) {
+void _drawTongue(
+  G2 g,
+  Offset from,
+  Offset tip, {
+  Offset? fly,
+  double extent = 1,
+}) {
   final u = g.u;
   g.line(from, tip, 13 * u, 0xC73F5D);
   g.line(from, tip, 10 * u, 0xF0607D);
@@ -805,7 +953,10 @@ void _drawTongue(G2 g, Offset from, Offset tip, {Offset? fly, double extent = 1}
 
 CapPose _tilkiPose(CelebrationContext c) {
   final e = _env(c);
-  return CapPose(rotation: _sin(c, 1.4, 0.8) * 0.06 * e, dy: -_sin(c, 2.8).abs() * 1.5 * e);
+  return CapPose(
+    rotation: _sin(c, 1.4, 0.8) * 0.06 * e,
+    dy: -_sin(c, 2.8).abs() * 1.5 * e,
+  );
 }
 
 void _tilki(Canvas canvas, CelebrationContext c) {
@@ -843,7 +994,10 @@ void _tilki(Canvas canvas, CelebrationContext c) {
         i / 16,
       ),
   ];
-  double half(double f) => (7 + 14 * math.sin(math.pow(f, 0.7) * math.pi * 0.9 + 0.1)) * u * (f > 0.93 ? (1 - f) / 0.07 * 0.6 + 0.4 : 1);
+  double half(double f) =>
+      (7 + 14 * math.sin(math.pow(f, 0.7) * math.pi * 0.9 + 0.1)) *
+      u *
+      (f > 0.93 ? (1 - f) / 0.07 * 0.6 + 0.4 : 1);
   g.taper(spine, half, 0xB5551A, grow: 2.4 * u);
   g.taper(spine, half, 0xE8782A);
   g.taper(spine, (f) => half(f) * 0.6, 0xF4A25E, to: 0.6, op: 0.6);
@@ -856,7 +1010,9 @@ void _tilki(Canvas canvas, CelebrationContext c) {
 // --- Kurt: aya uluma, ses dalgalari -------------------------------------------------------------
 
 CapPose _kurtPose(CelebrationContext c) {
-  final up = CelebrationContext.easeOut(c.span(0.08, 0.28)) * (1 - CelebrationContext.easeInOut(c.span(0.86, 1)));
+  final up =
+      CelebrationContext.easeOut(c.span(0.08, 0.28)) *
+      (1 - CelebrationContext.easeInOut(c.span(0.86, 1)));
   return CapPose(
     rotation: -0.17 * up + _sin(c, 2.2) * 0.006 * up,
     dy: -4 * up,
@@ -871,28 +1027,59 @@ void _kurt(Canvas canvas, CelebrationContext c) {
 
   // Arka plandaki ay (190, 96): uluyunca parlar, etrafinda yildizlar belirir.
   const moon = Offset(190, 96);
-  final lit = g.still ? 1.0 : CelebrationContext.easeOut(c.span(0.1, 0.3)) * (1 - c.span(0.88, 1));
+  final lit = g.still
+      ? 1.0
+      : CelebrationContext.easeOut(c.span(0.1, 0.3)) * (1 - c.span(0.88, 1));
   final glow = 1 + 0.07 * math.sin(g.time * 3.4);
   for (var i = 3; i >= 1; i--) {
-    canvas.drawCircle(moon, 36.0 * (1 + i * 0.3) * glow, c.paintOf(0xFFF3C4, 0.09 * (4 - i) * lit));
+    canvas.drawCircle(
+      moon,
+      36.0 * (1 + i * 0.3) * glow,
+      c.paintOf(0xFFF3C4, 0.09 * (4 - i) * lit),
+    );
   }
   canvas.drawCircle(moon, 36, c.paintOf(0xFFF1B8, 0.85 * lit));
-  canvas.drawCircle(moon + const Offset(-4, -3), 31, c.paintOf(0xFFF8D8, 0.7 * lit));
-  canvas.drawCircle(moon + const Offset(-10, -8), 7, c.paintOf(0xE9D68E, 0.7 * lit));
-  canvas.drawCircle(moon + const Offset(12, 12), 5, c.paintOf(0xE9D68E, 0.7 * lit));
+  canvas.drawCircle(
+    moon + const Offset(-4, -3),
+    31,
+    c.paintOf(0xFFF8D8, 0.7 * lit),
+  );
+  canvas.drawCircle(
+    moon + const Offset(-10, -8),
+    7,
+    c.paintOf(0xE9D68E, 0.7 * lit),
+  );
+  canvas.drawCircle(
+    moon + const Offset(12, 12),
+    5,
+    c.paintOf(0xE9D68E, 0.7 * lit),
+  );
   for (var i = 0; i < 5; i++) {
     final tw = 0.5 + 0.5 * math.sin(g.time * 4 + i * 1.7);
-    g.sparkle(moon + Offset.fromDirection(i * 1.3 + 0.5, 62 + (i % 2) * 8), (3 + tw * 3.5) * 1.4, 0xFFFFFF, (0.4 + tw * 0.6) * lit);
+    g.sparkle(
+      moon + Offset.fromDirection(i * 1.3 + 0.5, 62 + (i % 2) * 8),
+      (3 + tw * 3.5) * 1.4,
+      0xFFFFFF,
+      (0.4 + tw * 0.6) * lit,
+    );
   }
 
   // Uluyan agiz: kapak uzerinde acilan koyu agiz.
   final mouth = g.at(340, 190, 340, 152);
-  final open = g.still ? 1.0 : CelebrationContext.easeOut(c.span(0.1, 0.26)) * (1 - c.span(0.84, 0.96));
+  final open = g.still
+      ? 1.0
+      : CelebrationContext.easeOut(c.span(0.1, 0.26)) *
+            (1 - c.span(0.84, 0.96));
   if (open > 0.02) {
     final wob = g.still ? 0.0 : g.wave(5) * 0.6;
     final ry = (g.chubby ? 5 + 13 * open : 4 + 9 * open) * u + wob * open;
     final rx = (g.chubby ? 13 : 10) * u * (0.7 + 0.3 * open);
-    g.oval(mouth + Offset(0, ry * 0.3), rx + 1.6 * u, ry + 1.6 * u, g.f(0x3E3C58));
+    g.oval(
+      mouth + Offset(0, ry * 0.3),
+      rx + 1.6 * u,
+      ry + 1.6 * u,
+      g.f(0x3E3C58),
+    );
     g.oval(mouth + Offset(0, ry * 0.3), rx, ry, g.f(0x3A1A28));
     g.oval(mouth + Offset(0, ry * 0.75), rx * 0.62, ry * 0.5, g.f(0xE8758F));
   }
@@ -903,7 +1090,7 @@ void _kurt(Canvas canvas, CelebrationContext c) {
   final dist = to.distance;
   for (var i = 0; i < 4; i++) {
     final cyc = g.still ? 0.2 + i * 0.22 : ((g.time * 0.9 + i / 4) % 1);
-    final r = (18 + cyc * (dist - 12)) ;
+    final r = (18 + cyc * (dist - 12));
     final fade = math.sin(cyc * math.pi).clamp(0.0, 1.0) * open;
     if (fade <= 0.02) continue;
     canvas.drawArc(

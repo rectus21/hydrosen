@@ -57,7 +57,13 @@ void aslan(Canvas cv, Ctx c) {
     final w = 6.5 * k * (1 - p * 0.5);
     final rect = Rect.fromCircle(center: m, radius: r);
     for (final s in const [0.0, math.pi]) {
-      cv.drawArc(rect, s - 0.62, 1.24, false, lineP(c, 0x8A4A12, w + 2.4 * k, op * 0.45));
+      cv.drawArc(
+        rect,
+        s - 0.62,
+        1.24,
+        false,
+        lineP(c, 0x8A4A12, w + 2.4 * k, op * 0.45),
+      );
       cv.drawArc(rect, s - 0.62, 1.24, false, lineP(c, 0xFFF1BD, w, op));
     }
   }
@@ -65,7 +71,10 @@ void aslan(Canvas cv, Ctx c) {
   for (var i = 0; i < 6; i++) {
     final a = -math.pi * (0.1 + 0.8 * c.rand(i, 9));
     final ph = frac(c.t * 2.2 + c.rand(i, 4));
-    final p = c.capPt(340 + (rx + 30) * math.cos(a), cy + (ry + 26) * math.sin(a));
+    final p = c.capPt(
+      340 + (rx + 30) * math.cos(a),
+      cy + (ry + 26) * math.sin(a),
+    );
     sparkle(cv, p, 13 * k * Ctx.pulse(ph) * puffV + 1, fillP(c, 0xFFE08A));
   }
 }
@@ -110,7 +119,8 @@ void fil(Canvas cv, Ctx c) {
 // --- Maymun: muz firlatir, sallanir ----------------------------------------
 
 CapPose maymunPose(Ctx c) {
-  final env = Ctx.easeOut(c.span(0, 0.12)) * (1 - Ctx.easeInOut(c.span(0.85, 1)));
+  final env =
+      Ctx.easeOut(c.span(0, 0.12)) * (1 - Ctx.easeInOut(c.span(0.85, 1)));
   final s = math.sin(c.t * tau * 2.2);
   return CapPose(rotation: s * 0.1 * env, dx: s * 4 * env);
 }
@@ -133,8 +143,13 @@ void maymun(Canvas cv, Ctx c) {
       final uu = u - j * 0.035;
       if (uu <= 0) continue;
       final xx = Ctx.lerp(from.dx, to.dx, uu);
-      final yy = Ctx.lerp(from.dy, to.dy, uu) - 4 * uu * (1 - uu) * (from.dy - peak);
-      cv.drawCircle(Offset(xx, yy), (5.4 - j * 1.1) * k + 0.8, fillP(c, 0xFFE58F, op * 0.6));
+      final yy =
+          Ctx.lerp(from.dy, to.dy, uu) - 4 * uu * (1 - uu) * (from.dy - peak);
+      cv.drawCircle(
+        Offset(xx, yy),
+        (5.4 - j * 1.1) * k + 0.8,
+        fillP(c, 0xFFE58F, op * 0.6),
+      );
     }
   }
 
@@ -144,7 +159,12 @@ void maymun(Canvas cv, Ctx c) {
   for (final (a, p) in [(0.55, earR), (0.8, earL)]) {
     final u = (c.t - a) / 0.1;
     if (u > 0 && u < 1) {
-      sparkle(cv, p + Offset(0, -10 * k), 20 * k * Ctx.pulse(u), fillP(c, 0xFFF1A0));
+      sparkle(
+        cv,
+        p + Offset(0, -10 * k),
+        20 * k * Ctx.pulse(u),
+        fillP(c, 0xFFF1A0),
+      );
     }
   }
   if (c.reduceMotion) {
@@ -172,24 +192,32 @@ Path _antlerPath(Ctx c, int d, double x, double y, double s) {
 void geyik(Canvas cv, Ctx c) {
   final k = capK(c);
   final env = c.reduceMotion ? 1.0 : Ctx.easeOut(c.span(0.04, 0.2));
-  final pulseV = c.reduceMotion
-      ? 1.0
-      : 0.65 + 0.35 * math.sin(c.t * tau * 3.2);
+  final pulseV = c.reduceMotion ? 1.0 : 0.65 + 0.35 * math.sin(c.t * tau * 3.2);
   final ants = c.chubby
       ? const [(-1, 304.0, 76.0, 1.05), (1, 376.0, 76.0, 1.05)]
       : const [(-1, 292.0, 98.0, 0.78), (1, 388.0, 98.0, 0.78)];
   for (final (d, x, y, s) in ants) {
     final path = _antlerPath(c, d, x, y, s);
-    cv.drawPath(path, glowP(c, 0xFFE08A, 9 * k + 2, 0.85 * env * pulseV)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 11 * k
-      ..strokeCap = StrokeCap.round);
+    cv.drawPath(
+      path,
+      glowP(c, 0xFFE08A, 9 * k + 2, 0.85 * env * pulseV)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 11 * k
+        ..strokeCap = StrokeCap.round,
+    );
     cv.drawPath(path, lineP(c, 0xFFF3C4, 3.4 * k, 0.9 * env * pulseV));
     // Uc yildizlari.
     var idx = 0;
-    for (final (tx, ty) in const [(2.0, -54.0), (24.0, -48.0), (-12.0, -66.0), (4.0, -76.0)]) {
+    for (final (tx, ty) in const [
+      (2.0, -54.0),
+      (24.0, -48.0),
+      (-12.0, -66.0),
+      (4.0, -76.0),
+    ]) {
       final p = c.capPt(x + d * tx * s, y + ty * s);
-      final ph = c.reduceMotion ? 0.5 : frac(c.t * 2.4 + idx * 0.27 + (d + 1) * 0.1);
+      final ph = c.reduceMotion
+          ? 0.5
+          : frac(c.t * 2.4 + idx * 0.27 + (d + 1) * 0.1);
       sparkle(cv, p, 14 * k * Ctx.pulse(ph) * env + 1, fillP(c, 0xFFFFFF));
       idx++;
     }
@@ -208,11 +236,25 @@ void geyik(Canvas cv, Ctx c) {
     final appear = clamp01((c.t - 0.1 - i * 0.04) / 0.1);
     if (appear <= 0) continue;
     final a = (c.reduceMotion ? 0.5 : c.t) * tau * 0.9 + i * tau / 5;
-    final p = cc + Offset(math.cos(a + i) * w * 0.78, math.sin(a * 1.3 + i * 1.7) * w * 0.4 - w * 0.2);
+    final p =
+        cc +
+        Offset(
+          math.cos(a + i) * w * 0.78,
+          math.sin(a * 1.3 + i * 1.7) * w * 0.4 - w * 0.2,
+        );
     final flap = c.reduceMotion ? 0.8 : math.cos(c.t * tau * 9 + i * 2);
     final (w1, w2) = wings[i];
-    butterfly(c, cv, p, (15 + 5 * c.rand(i, 2)) * (0.6 + 0.4 * k) + 4,
-        flap, math.sin(a) * 0.4, w1, w2, appear);
+    butterfly(
+      c,
+      cv,
+      p,
+      (15 + 5 * c.rand(i, 2)) * (0.6 + 0.4 * k) + 4,
+      flap,
+      math.sin(a) * 0.4,
+      w1,
+      w2,
+      appear,
+    );
   }
 }
 
@@ -220,7 +262,10 @@ void geyik(Canvas cv, Ctx c) {
 
 CapPose rakunPose(Ctx c) {
   final env = win(c, 0.05, 0.9);
-  return CapPose(rotation: math.sin(c.t * tau * 2) * 0.045 * env, dy: -1.5 * env);
+  return CapPose(
+    rotation: math.sin(c.t * tau * 2) * 0.045 * env,
+    dy: -1.5 * env,
+  );
 }
 
 void rakun(Canvas cv, Ctx c) {
@@ -229,13 +274,16 @@ void rakun(Canvas cv, Ctx c) {
   final winkOn = c.reduceMotion
       ? 1.0
       : math.max(win(c, 0.2, 0.34), win(c, 0.6, 0.74)) > 0.02
-          ? 1.0
-          : 0.0;
+      ? 1.0
+      : 0.0;
   if (winkOn > 0) {
     final ctr = at(c, 378, 125, 363, 117);
     final rxp = (c.chubby ? 21.0 : 14.0) * k;
     final ryp = (c.chubby ? 14.0 : 9.5) * k;
-    cv.drawOval(Rect.fromCenter(center: ctr, width: rxp * 2, height: ryp * 2), c.solid(0x24262C));
+    cv.drawOval(
+      Rect.fromCenter(center: ctr, width: rxp * 2, height: ryp * 2),
+      c.solid(0x24262C),
+    );
     final a = at(c, 363, 128, 352, 118);
     final b = at(c, 393, 128, 374, 118);
     final m = at(c, 378, 133, 363, 121);
@@ -263,12 +311,22 @@ void rakun(Canvas cv, Ctx c) {
     final op = (u < 0.08 ? u / 0.08 : 1.0) * (1 - clamp01((u - 0.8) / 0.2));
     coin(c, cv, p, r, tt * (6 + 4 * c.rand(i, 5)), op);
     final ph = frac(u * 3 + c.rand(i, 6));
-    sparkle(cv, p + Offset(r * 0.6, -r * 0.7), r * 1.5 * Ctx.pulse(ph) * op, fillP(c, 0xFFFFFF));
+    sparkle(
+      cv,
+      p + Offset(r * 0.6, -r * 0.7),
+      r * 1.5 * Ctx.pulse(ph) * op,
+      fillP(c, 0xFFFFFF),
+    );
   }
   // Mekan kivilcimlari.
   for (var i = 0; i < 6; i++) {
     final a = tau * (i / 6) + 0.4;
-    final p = c.capCenter + Offset(math.cos(a) * c.capWidth * 0.68, math.sin(a) * c.capWidth * 0.46 - c.capWidth * 0.1);
+    final p =
+        c.capCenter +
+        Offset(
+          math.cos(a) * c.capWidth * 0.68,
+          math.sin(a) * c.capWidth * 0.46 - c.capWidth * 0.1,
+        );
     final ph = c.reduceMotion ? 0.5 : frac(c.t * 1.8 + c.rand(i, 7));
     sparkle(cv, p, 12 * k * Ctx.pulse(ph) + 1, fillP(c, 0xF6E7B0, 0.95));
   }
@@ -277,7 +335,8 @@ void rakun(Canvas cv, Ctx c) {
 // --- Kirpi: dikenler kabarir, elmalar duser --------------------------------
 
 CapPose kirpiPose(Ctx c) {
-  final puffV = Ctx.easeOut(c.span(0.04, 0.2)) * (1 - Ctx.easeInOut(c.span(0.85, 1)));
+  final puffV =
+      Ctx.easeOut(c.span(0.04, 0.2)) * (1 - Ctx.easeInOut(c.span(0.85, 1)));
   final shake = win(c, 0.04, 0.3);
   return CapPose(
     scale: 1 + 0.05 * puffV,
@@ -294,7 +353,10 @@ void kirpi(Canvas cv, Ctx c) {
   const cols = [0x4A3222, 0x6B4A2E, 0x8A6240];
   for (var i = 0; i < n; i++) {
     final a = (168 + (i + 0.5) / n * 204) * math.pi / 180;
-    final base = c.capPt(340 + rx * 0.98 * math.cos(a), cy + ry * 0.98 * math.sin(a));
+    final base = c.capPt(
+      340 + rx * 0.98 * math.cos(a),
+      cy + ry * 0.98 * math.sin(a),
+    );
     final out = Offset(math.cos(a), math.sin(a));
     final wob = c.reduceMotion ? 0.0 : math.sin(c.t * tau * 9 + i * 2.1) * 0.15;
     final len = (8 + 42 * puffV * (1 + wob) * (0.8 + 0.4 * c.rand(i, 2))) * k;
@@ -332,7 +394,12 @@ void kirpi(Canvas cv, Ctx c) {
     final ap = Offset(target.dx, y);
     apple(c, cv, ap, r, 1);
     if (u >= 0.7 && u < 0.85 && !c.reduceMotion) {
-      sparkle(cv, ap + Offset(r * 1.2, -r * 1.1), 12 * k + 2, fillP(c, 0xFFE58F));
+      sparkle(
+        cv,
+        ap + Offset(r * 1.2, -r * 1.1),
+        12 * k + 2,
+        fillP(c, 0xFFE58F),
+      );
     }
   }
 }
@@ -341,7 +408,10 @@ void kirpi(Canvas cv, Ctx c) {
 
 CapPose sincapPose(Ctx c) {
   final env = win(c, 0.03, 0.9);
-  return CapPose(dy: -6 * math.sin(c.t * tau * 2.5).abs() * env, rotation: math.sin(c.t * tau * 2.5) * 0.03 * env);
+  return CapPose(
+    dy: -6 * math.sin(c.t * tau * 2.5).abs() * env,
+    rotation: math.sin(c.t * tau * 2.5) * 0.03 * env,
+  );
 }
 
 void sincap(Canvas cv, Ctx c) {
@@ -350,33 +420,61 @@ void sincap(Canvas cv, Ctx c) {
   final bx = c.chubby ? 420.0 : 392.0, by = c.chubby ? 196.0 : 170.0;
   final s = c.chubby ? 1.0 : 0.62;
   final fl = c.reduceMotion ? 0.8 : Ctx.easeOut(c.span(0.06, 0.25));
-  const blobs = [(100.0, -40.0, 15.0), (94.0, -84.0, 16.0), (64.0, -128.0, 16.0)];
+  const blobs = [
+    (100.0, -40.0, 15.0),
+    (94.0, -84.0, 16.0),
+    (64.0, -128.0, 16.0),
+  ];
   for (var i = 0; i < blobs.length; i++) {
     final (ox, oy, r) = blobs[i];
     final p = c.capPt(bx + ox * s, by + oy * s);
-    final pul = c.reduceMotion ? 0.5 : 0.5 + 0.5 * math.sin(c.t * tau * 4 - i * 1.2);
+    final pul = c.reduceMotion
+        ? 0.5
+        : 0.5 + 0.5 * math.sin(c.t * tau * 4 - i * 1.2);
     final rr = r * s * k * (1 + 0.4 * fl + 0.15 * pul * fl);
     cv.drawCircle(p, rr, fillP(c, 0xDE8A3A));
-    cv.drawCircle(p + Offset(-rr * 0.2, -rr * 0.2), rr * 0.6, fillP(c, 0xEDA255, 0.9));
+    cv.drawCircle(
+      p + Offset(-rr * 0.2, -rr * 0.2),
+      rr * 0.6,
+      fillP(c, 0xEDA255, 0.9),
+    );
   }
   final tip = c.capPt(bx + 46 * s, by - 144 * s);
   final pulT = c.reduceMotion ? 0.5 : 0.5 + 0.5 * math.sin(c.t * tau * 4);
   final tipR = 25 * s * k * (1 + 0.4 * fl + 0.12 * pulT * fl);
   cv.drawCircle(tip, tipR, fillP(c, 0xFBE3C0));
-  cv.drawCircle(tip + Offset(-tipR * 0.25, -tipR * 0.25), tipR * 0.45, fillP(c, 0xFFFFFF, 0.55));
+  cv.drawCircle(
+    tip + Offset(-tipR * 0.25, -tipR * 0.25),
+    tipR * 0.45,
+    fillP(c, 0xFFFFFF, 0.55),
+  );
   // Tuy telleri.
   for (var i = 0; i < 9; i++) {
     final a = -math.pi * 0.95 + i / 8 * math.pi * 1.4;
     final dirv = Offset(math.cos(a), math.sin(a));
-    final l0 = tipR * 0.92, l1 = tipR * (1.18 + 0.12 * math.sin(c.t * tau * 5 + i) * fl);
-    cv.drawLine(tip + dirv * l0, tip + dirv * l1, lineP(c, 0xFBE3C0, 2.4 * k + 0.6, 0.9 * fl));
+    final l0 = tipR * 0.92,
+        l1 = tipR * (1.18 + 0.12 * math.sin(c.t * tau * 5 + i) * fl);
+    cv.drawLine(
+      tip + dirv * l0,
+      tip + dirv * l1,
+      lineP(c, 0xFBE3C0, 2.4 * k + 0.6, 0.9 * fl),
+    );
   }
   // Ucusan tuy puflari.
   for (var i = 0; i < 6; i++) {
     final u = frac(c.t * 1.6 + c.rand(i, 1));
     final a = -math.pi * (0.2 + 0.7 * c.rand(i, 2));
-    final p = tip + Offset(math.cos(a) * (tipR + 44 * u), math.sin(a) * (tipR + 44 * u) - 8 * u);
-    cv.drawCircle(p, (5 + 2.5 * c.rand(i, 3)) * (1 - u * 0.4), fillP(c, 0xFBE3C0, (1 - u) * 0.9 * fl));
+    final p =
+        tip +
+        Offset(
+          math.cos(a) * (tipR + 44 * u),
+          math.sin(a) * (tipR + 44 * u) - 8 * u,
+        );
+    cv.drawCircle(
+      p,
+      (5 + 2.5 * c.rand(i, 3)) * (1 - u * 0.4),
+      fillP(c, 0xFBE3C0, (1 - u) * 0.9 * fl),
+    );
   }
   // Palamutlar firlar.
   for (var i = 0; i < 6; i++) {
@@ -392,15 +490,22 @@ void sincap(Canvas cv, Ctx c) {
     final vy = -(262 + 90 * c.rand(i, 3)) * (0.82 + 0.18 * k);
     final p = Offset(x0 + vx * tt, y0 + vy * tt + 0.5 * 560 * tt * tt);
     final op = (u < 0.06 ? u / 0.06 : 1.0) * (1 - clamp01((u - 0.82) / 0.18));
-    acorn(c, cv, p, (12 + 3 * c.rand(i, 4)) * (0.65 + 0.35 * k + 0.1), tt * (3 + 3 * c.rand(i, 5)) * side, op);
+    acorn(
+      c,
+      cv,
+      p,
+      (12 + 3 * c.rand(i, 4)) * (0.65 + 0.35 * k + 0.1),
+      tt * (3 + 3 * c.rand(i, 5)) * side,
+      op,
+    );
   }
 }
 
 // --- Baykus: kafa yatar, goz kirpar, tuyler suzulur ------------------------
 
 CapPose baykusPose(Ctx c) {
-  final tilt = Ctx.easeOut(c.span(0.06, 0.28)) *
-      (1 - Ctx.easeInOut(c.span(0.74, 0.94)));
+  final tilt =
+      Ctx.easeOut(c.span(0.06, 0.28)) * (1 - Ctx.easeInOut(c.span(0.74, 0.94)));
   return CapPose(rotation: 0.17 * tilt, dx: 2 * tilt);
 }
 
@@ -416,15 +521,26 @@ void baykus(Canvas cv, Ctx c) {
     cv.save();
     cv.clipPath(Path()..addOval(Rect.fromCircle(center: eye, radius: rr)));
     final bottom = eye.dy - rr + closing * rr * 2.02;
-    cv.drawRect(Rect.fromLTRB(eye.dx - rr, eye.dy - rr, eye.dx + rr, bottom), c.solid(0xFFF3D6));
+    cv.drawRect(
+      Rect.fromLTRB(eye.dx - rr, eye.dy - rr, eye.dx + rr, bottom),
+      c.solid(0xFFF3D6),
+    );
     cv.restore();
     final edge = Path()
       ..moveTo(eye.dx - rr * 0.8, bottom)
-      ..quadraticBezierTo(eye.dx, bottom + rr * 0.3 * closing, eye.dx + rr * 0.8, bottom);
-    cv.drawPath(edge, c.solid(0x3A2412)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 4.2 * k);
+      ..quadraticBezierTo(
+        eye.dx,
+        bottom + rr * 0.3 * closing,
+        eye.dx + rr * 0.8,
+        bottom,
+      );
+    cv.drawPath(
+      edge,
+      c.solid(0x3A2412)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 4.2 * k,
+    );
   }
   // Suzulen tuyler.
   const cols = [0x8B6240, 0xB38A5E, 0xF3E3C4, 0xA67A50, 0xD9BD92];
@@ -438,9 +554,17 @@ void baykus(Canvas cv, Ctx c) {
     final x0 = c.capCenter.dx + side * c.capWidth * (0.3 + 0.2 * c.rand(i, 1));
     final y0 = c.capTop.dy + 14 * k;
     final x = x0 + math.sin(u * tau * 1.4 + i) * 18 * k + side * 22 * u;
-    final y = y0 - 18 * k * math.sin(u * math.pi) + u * (170 + 40 * c.rand(i, 2));
+    final y =
+        y0 - 18 * k * math.sin(u * math.pi) + u * (170 + 40 * c.rand(i, 2));
     final op = (u < 0.1 ? u / 0.1 : 1.0) * (1 - clamp01((u - 0.78) / 0.22));
-    feather(c, cv, Offset(x, y), (26 + 8 * c.rand(i, 3)) * (0.7 + 0.3 * k), math.sin(u * tau * 1.7 + i) * 1.0 + 0.6, cols[i % 5], op);
+    feather(
+      c,
+      cv,
+      Offset(x, y),
+      (26 + 8 * c.rand(i, 3)) * (0.7 + 0.3 * k),
+      math.sin(u * tau * 1.7 + i) * 1.0 + 0.6,
+      cols[i % 5],
+      op,
+    );
   }
 }
-

@@ -62,7 +62,14 @@ class G2 {
       canvas.drawLine(a, b, s(hex, w, op));
 
   /// Koyu konturlu kalin cubuk.
-  void capsule(Offset a, Offset b, double w, int hex, int dark, [double op = 1]) {
+  void capsule(
+    Offset a,
+    Offset b,
+    double w,
+    int hex,
+    int dark, [
+    double op = 1,
+  ]) {
     line(a, b, w + 2.6 * u, dark, op);
     line(a, b, w, hex, op);
   }
@@ -165,7 +172,14 @@ class G2 {
   }
 
   /// Almond yaprak (ucu [ang] yonunde), merkez [p].
-  void leaf(Offset p, double r, double ang, int hex, int vein, [double op = 1]) {
+  void leaf(
+    Offset p,
+    double r,
+    double ang,
+    int hex,
+    int vein, [
+    double op = 1,
+  ]) {
     local(p, ang, 1, () {
       final path = Path()
         ..moveTo(-r, 0)

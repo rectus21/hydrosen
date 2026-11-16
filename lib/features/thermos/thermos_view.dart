@@ -179,8 +179,7 @@ class _ThermosViewState extends State<ThermosView>
         onHorizontalDragEnd: _onDragEnd,
         onHorizontalDragCancel: _onDragCancel,
         child: ValueListenableBuilder<double?>(
-          valueListenable:
-              widget.celebrationT ?? _noCelebration,
+          valueListenable: widget.celebrationT ?? _noCelebration,
           builder: (context, ct, _) => CustomPaint(
             painter: ThermosPainter(
               shape: widget.shape,

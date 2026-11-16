@@ -21,17 +21,33 @@ void penguen(Canvas cv, Ctx c) {
   // Kar taneleri.
   for (var i = 0; i < 20; i++) {
     final u = frac(c.t * 0.85 + c.rand(i, 1));
-    final x = c.capCenter.dx + (c.rand(i, 2) - 0.5) * 330 + math.sin(u * tau * 2 + i) * 14;
+    final x =
+        c.capCenter.dx +
+        (c.rand(i, 2) - 0.5) * 330 +
+        math.sin(u * tau * 2 + i) * 14;
     final y = 6 + u * 430;
     final op = clamp01(u / 0.08) * (1 - clamp01((u - 0.88) / 0.12));
-    snowflake(c, cv, Offset(x, y), 5.5 + 6.5 * c.rand(i, 3), u * tau * (c.rand(i, 4) - 0.5) * 3, op * 0.95);
+    snowflake(
+      c,
+      cv,
+      Offset(x, y),
+      5.5 + 6.5 * c.rand(i, 3),
+      u * tau * (c.rand(i, 4) - 0.5) * 3,
+      op * 0.95,
+    );
   }
   // Kanatlar: omuzdan acilip cirpar.
-  final env = c.reduceMotion ? 1.0 : Ctx.easeOut(c.span(0.03, 0.14)) * (1 - Ctx.easeInOut(c.span(0.88, 1)));
-  final th = c.reduceMotion ? 1.15 : 0.95 + 0.75 * math.sin(c.t * tau * 5) * env;
+  final env = c.reduceMotion
+      ? 1.0
+      : Ctx.easeOut(c.span(0.03, 0.14)) * (1 - Ctx.easeInOut(c.span(0.88, 1)));
+  final th = c.reduceMotion
+      ? 1.15
+      : 0.95 + 0.75 * math.sin(c.t * tau * 5) * env;
   final len = (c.chubby ? 84.0 : 56.0) * capK(c);
   for (final side in const [-1.0, 1.0]) {
-    final pivot = side < 0 ? at(c, 256, 170, 286, 150) : at(c, 424, 170, 394, 150);
+    final pivot = side < 0
+        ? at(c, 256, 170, 286, 150)
+        : at(c, 424, 170, 394, 150);
     final dir = Offset(side * math.sin(th), math.cos(th));
     final ctr = pivot + dir * len * 0.5;
     final ang = math.atan2(dir.dy, dir.dx);
@@ -39,8 +55,18 @@ void penguen(Canvas cv, Ctx c) {
     cv.translate(ctr.dx, ctr.dy);
     cv.rotate(ang);
     final h = len * 0.4;
-    cv.drawOval(Rect.fromCenter(center: Offset.zero, width: len, height: h), fillP(c, 0x2B3A55, env));
-    cv.drawOval(Rect.fromCenter(center: Offset(-len * 0.05, -h * 0.12), width: len * 0.82, height: h * 0.5), fillP(c, 0x4A5C7C, 0.85 * env));
+    cv.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: len, height: h),
+      fillP(c, 0x2B3A55, env),
+    );
+    cv.drawOval(
+      Rect.fromCenter(
+        center: Offset(-len * 0.05, -h * 0.12),
+        width: len * 0.82,
+        height: h * 0.5,
+      ),
+      fillP(c, 0x4A5C7C, 0.85 * env),
+    );
     cv.restore();
     cv.drawCircle(pivot, 5 * k, fillP(c, 0x2B3A55, env));
   }
@@ -66,13 +92,19 @@ void fok(Canvas cv, Ctx c) {
   final nose = c.nose;
   final r = 30 * k + 1;
   final h = (c.chubby ? 92.0 : 84.0) * (1 - (2 * f - 1) * (2 * f - 1));
-  final xo = c.reduceMotion ? 6.0 : math.sin(c.t * tau * 1.3) * c.capWidth * 0.07;
+  final xo = c.reduceMotion
+      ? 6.0
+      : math.sin(c.t * tau * 1.3) * c.capWidth * 0.07;
   final squash = h < 3 ? 1 - 0.16 * (1 - h / 3) : 1.0;
   final ctr = nose + Offset(xo, -(r * 0.92) - h);
   final spin = c.t * tau * 4;
   // Golge.
   cv.drawOval(
-    Rect.fromCenter(center: nose + Offset(xo, -2 * k), width: r * (1.3 - 0.4 * h / 70), height: r * 0.28),
+    Rect.fromCenter(
+      center: nose + Offset(xo, -2 * k),
+      width: r * (1.3 - 0.4 * h / 70),
+      height: r * 0.28,
+    ),
     fillP(c, 0x2A3540, 0.18),
   );
   cv.save();
@@ -85,7 +117,12 @@ void fok(Canvas cv, Ctx c) {
     cv.drawPath(
       Path()
         ..moveTo(0, 0)
-        ..arcTo(Rect.fromCircle(center: Offset.zero, radius: r * 1.2), a0, tau / cols.length + 0.01, false)
+        ..arcTo(
+          Rect.fromCircle(center: Offset.zero, radius: r * 1.2),
+          a0,
+          tau / cols.length + 0.01,
+          false,
+        )
         ..close(),
       fillP(c, cols[i]),
     );
@@ -98,7 +135,12 @@ void fok(Canvas cv, Ctx c) {
   final hit = c.reduceMotion ? 0.0 : 1 - clamp01(f / 0.22);
   if (hit > 0) {
     for (final d in const [-1.0, 1.0]) {
-      sparkle(cv, nose + Offset(d * r * 1.25, -r * 0.5), 14 * k * hit + 1, fillP(c, 0xFFF1A0));
+      sparkle(
+        cv,
+        nose + Offset(d * r * 1.25, -r * 0.5),
+        14 * k * hit + 1,
+        fillP(c, 0xFFF1A0),
+      );
     }
   }
   if (c.reduceMotion) {
@@ -109,7 +151,11 @@ void fok(Canvas cv, Ctx c) {
   for (var i = 0; i < 6; i++) {
     final u = frac(c.t * 0.8 + c.rand(i, 1));
     final p = Offset(c.capCenter.dx + (c.rand(i, 2) - 0.5) * 300, 8 + u * 300);
-    cv.drawCircle(p, 2 + 1.8 * c.rand(i, 3), fillP(c, 0xFFFFFF, 0.85 * clamp01(u / 0.1)));
+    cv.drawCircle(
+      p,
+      2 + 1.8 * c.rand(i, 3),
+      fillP(c, 0xFFFFFF, 0.85 * clamp01(u / 0.1)),
+    );
   }
 }
 
@@ -117,7 +163,10 @@ void fok(Canvas cv, Ctx c) {
 
 CapPose samuruPose(Ctx c) {
   final env = win(c, 0.03, 0.92);
-  return CapPose(dy: -3 * math.sin(c.t * tau * 2).abs() * env, rotation: math.sin(c.t * tau * 2) * 0.03 * env);
+  return CapPose(
+    dy: -3 * math.sin(c.t * tau * 2).abs() * env,
+    rotation: math.sin(c.t * tau * 2) * 0.03 * env,
+  );
 }
 
 void susamuru(Canvas cv, Ctx c) {
@@ -142,7 +191,11 @@ void susamuru(Canvas cv, Ctx c) {
       if (uu <= 0) continue;
       final xx = Ctx.lerp(fromX, toX, uu);
       final yy = baseY - 4 * uu * (baseY - peak) * (1 - uu) + j * 3;
-      cv.drawCircle(Offset(xx, yy), (3.2 - j * 0.5) * k + 0.8, fillP(c, 0xBFE6FA, op * 0.8));
+      cv.drawCircle(
+        Offset(xx, yy),
+        (3.2 - j * 0.5) * k + 0.8,
+        fillP(c, 0xBFE6FA, op * 0.8),
+      );
     }
     fish(c, cv, Offset(x, y), 1.0 * (0.9 + 0.8 * k) + 0.25, rot, op);
     if (u > 0.9 || u < 0.1) {
@@ -156,7 +209,10 @@ void susamuru(Canvas cv, Ctx c) {
   for (var i = 0; i < 12; i++) {
     final u = frac(c.t * 0.9 + c.rand(i, 1));
     final side = c.rand(i, 2) < 0.5 ? -1.0 : 1.0;
-    final x = cc.dx + side * c.capWidth * (0.42 + 0.35 * c.rand(i, 3)) + math.sin(u * tau * 2 + i) * 7;
+    final x =
+        cc.dx +
+        side * c.capWidth * (0.42 + 0.35 * c.rand(i, 3)) +
+        math.sin(u * tau * 2 + i) * 7;
     final y = cc.dy + 46 * k - u * 190;
     final r = (5 + 8 * c.rand(i, 4)) * (0.65 + 0.35 * k + 0.1);
     final op = clamp01(u / 0.1) * (1 - clamp01((u - 0.75) / 0.25));
@@ -168,7 +224,10 @@ void susamuru(Canvas cv, Ctx c) {
 
 CapPose balinaPose(Ctx c) {
   final env = win(c, 0.03, 0.92);
-  return CapPose(dy: -3 * math.sin(c.t * tau * 3).abs() * env, rotation: math.sin(c.t * tau * 1.5) * 0.025 * env);
+  return CapPose(
+    dy: -3 * math.sin(c.t * tau * 3).abs() * env,
+    rotation: math.sin(c.t * tau * 1.5) * 0.025 * env,
+  );
 }
 
 void balina(Canvas cv, Ctx c) {
@@ -179,7 +238,8 @@ void balina(Canvas cv, Ctx c) {
   // Gokkusagi yay (hafif).
   final env = c.reduceMotion ? 1.0 : win(c, 0.05, 0.9);
   // Fiskiye kolonu.
-  final hCol = (c.chubby ? 52.0 : 60.0) * (0.85 + 0.15 * math.sin(c.t * tau * 5)) * env;
+  final hCol =
+      (c.chubby ? 52.0 : 60.0) * (0.85 + 0.15 * math.sin(c.t * tau * 5)) * env;
   final colTop = o + Offset(0, -hCol);
   cv.drawLine(o, colTop, lineP(c, 0x8FCDEE, 14 * k + 3, 0.95));
   cv.drawLine(o, colTop, lineP(c, 0xFFFFFF, 6 * k + 1.5, 0.95));
@@ -197,14 +257,26 @@ void balina(Canvas cv, Ctx c) {
     final p = o + Offset(vx * tt, -hCol * 0.5 + vy * tt + 0.5 * g * tt * tt);
     final ang = math.atan2(vy + g * tt, vx);
     final op = clamp01(u / 0.07) * (1 - clamp01((u - 0.78) / 0.22));
-    waterDrop(c, cv, p, (4.6 + 3.2 * c.rand(i, 3)) * (0.75 + 0.25 * k + 0.15), ang, op,
-        base: cols[i % 4], light: 0xFFFFFF);
+    waterDrop(
+      c,
+      cv,
+      p,
+      (4.6 + 3.2 * c.rand(i, 3)) * (0.75 + 0.25 * k + 0.15),
+      ang,
+      op,
+      base: cols[i % 4],
+      light: 0xFFFFFF,
+    );
   }
   // Su yuzeyi halkalari tepede.
   for (var j = 0; j < 2; j++) {
     final p = c.reduceMotion ? 0.3 + j * 0.4 : frac(c.t * 1.8 + j * 0.5);
     cv.drawOval(
-      Rect.fromCenter(center: o, width: (16 + 46 * p) * k, height: (6 + 12 * p) * k),
+      Rect.fromCenter(
+        center: o,
+        width: (16 + 46 * p) * k,
+        height: (6 + 12 * p) * k,
+      ),
       lineP(c, 0xFFFFFF, 2 * k + 0.5, (1 - p) * 0.85 * env),
     );
   }
@@ -214,7 +286,10 @@ void balina(Canvas cv, Ctx c) {
 
 CapPose okyanusPose(Ctx c) {
   final env = win(c, 0.03, 0.92);
-  return CapPose(dy: -2 * math.cos(c.t * tau * 3) * env, rotation: math.sin(c.t * tau * 1.5) * 0.04 * env);
+  return CapPose(
+    dy: -2 * math.cos(c.t * tau * 3) * env,
+    rotation: math.sin(c.t * tau * 1.5) * 0.04 * env,
+  );
 }
 
 void okyanus(Canvas cv, Ctx c) {
@@ -223,7 +298,8 @@ void okyanus(Canvas cv, Ctx c) {
   final center = c.capCenter + Offset(0, W * 0.28);
   final rx = W * 0.8, ry = W * 0.3;
   final tNow = c.reduceMotion ? 0.5 : c.t;
-  Offset orbit(double th) => center + Offset(math.cos(th) * rx, math.sin(th) * ry);
+  Offset orbit(double th) =>
+      center + Offset(math.cos(th) * rx, math.sin(th) * ry);
   double theta(double t) => t * tau * 1.5 + 0.7;
   final th = theta(tNow);
   final p = orbit(th);
@@ -234,12 +310,23 @@ void okyanus(Canvas cv, Ctx c) {
     final q = orbit(th - j * 0.13 * sgn.sign * (sgn > 0 ? 1 : 1));
     final op = (1 - j / 12) * appear;
     cv.drawOval(
-      Rect.fromCenter(center: q, width: (28 + j * 2.6) * k + 6, height: (8 + j * 0.7) * k + 2),
+      Rect.fromCenter(
+        center: q,
+        width: (28 + j * 2.6) * k + 6,
+        height: (8 + j * 0.7) * k + 2,
+      ),
       lineP(c, 0xFFFFFF, 2.6, op),
     );
   }
   // Su cizgisi fin altinda.
-  cv.drawOval(Rect.fromCenter(center: p + Offset(0, 1), width: 52 * k + 8, height: 13 * k + 3), fillP(c, 0xFFFFFF, 0.65 * appear));
+  cv.drawOval(
+    Rect.fromCenter(
+      center: p + Offset(0, 1),
+      width: 52 * k + 8,
+      height: 13 * k + 3,
+    ),
+    fillP(c, 0xFFFFFF, 0.65 * appear),
+  );
   // Yuzgec.
   final fs = 1.0 + 0.7 * k;
   cv.save();
@@ -268,7 +355,13 @@ void okyanus(Canvas cv, Ctx c) {
     final y = q.dy - age / 0.3 * 70 * (0.8 + 0.2 * k);
     final x = q.dx + math.sin(age * 40 + i) * 5;
     final op = (1 - age / 0.3) * clamp01(appear);
-    bubble(c, cv, Offset(x, y), (5 + 5 * c.rand(i, 2)) * (0.7 + 0.3 * k + 0.1), op);
+    bubble(
+      c,
+      cv,
+      Offset(x, y),
+      (5 + 5 * c.rand(i, 2)) * (0.7 + 0.3 * k + 0.1),
+      op,
+    );
   }
 }
 
@@ -279,8 +372,16 @@ CapPose ahtapotPose(Ctx c) {
   return CapPose(rotation: math.sin(c.t * tau * 4) * 0.05 * env, dy: -2 * env);
 }
 
-void _tentacle(Ctx c, Canvas cv, Offset root, Offset dir, double len, double amp,
-    double phase, double w0) {
+void _tentacle(
+  Ctx c,
+  Canvas cv,
+  Offset root,
+  Offset dir,
+  double len,
+  double amp,
+  double phase,
+  double w0,
+) {
   final perp = Offset(-dir.dy, dir.dx);
   const seg = 16;
   Offset pt(double s) {
@@ -305,7 +406,11 @@ void _tentacle(Ctx c, Canvas cv, Offset root, Offset dir, double len, double amp
   }
   for (var i = 3; i <= seg; i += 3) {
     final w = w0 * (1 - 0.72 * i / seg);
-    cv.drawCircle(pts[i] + perp * (w * 0.1), math.max(0.9, w * 0.2), fillP(c, 0xF9C2D6));
+    cv.drawCircle(
+      pts[i] + perp * (w * 0.1),
+      math.max(0.9, w * 0.2),
+      fillP(c, 0xF9C2D6),
+    );
   }
 }
 
@@ -317,11 +422,22 @@ void ahtapot(Canvas cv, Ctx c) {
   final amp = 15.0 * k;
   const angs = [-0.95, -0.15, 0.6];
   for (final side in const [-1.0, 1.0]) {
-    final root = side < 0 ? at(c, 262, 186, 292, 162) : at(c, 418, 186, 388, 162);
+    final root = side < 0
+        ? at(c, 262, 186, 292, 162)
+        : at(c, 418, 186, 388, 162);
     for (var j = 0; j < angs.length; j++) {
       final a = angs[j];
       final dir = Offset(side * math.cos(a), math.sin(a));
-      _tentacle(c, cv, root, dir, len * (1 - j * 0.07), amp, ph + j * 1.1 + (side + 1) * 0.8, 11 * k + 2);
+      _tentacle(
+        c,
+        cv,
+        root,
+        dir,
+        len * (1 - j * 0.07),
+        amp,
+        ph + j * 1.1 + (side + 1) * 0.8,
+        11 * k + 2,
+      );
     }
   }
   // Kalp seklinde murekkep puflari.
@@ -332,13 +448,29 @@ void ahtapot(Canvas cv, Ctx c) {
     final u = (c.t - t0) / life;
     if (u <= 0 || u >= 1) continue;
     final side = i.isEven ? -1.0 : 1.0;
-    final x = c.mouth.dx + side * (c.capWidth * 0.12 + u * c.capWidth * 0.5 * (0.5 + c.rand(i, 1))) + math.sin(u * tau * 2 + i) * 6;
+    final x =
+        c.mouth.dx +
+        side *
+            (c.capWidth * 0.12 + u * c.capWidth * 0.5 * (0.5 + c.rand(i, 1))) +
+        math.sin(u * tau * 2 + i) * 6;
     final y = c.mouth.dy + 6 * k - u * 210 * (0.8 + 0.2 * k);
     final s = (7 + 11 * Ctx.easeOut(u)) * (0.65 + 0.35 * k + 0.1);
     final op = clamp01(u / 0.1) * (1 - clamp01((u - 0.7) / 0.3));
     final hc = Offset(x, y);
     cv.drawCircle(hc, s * 1.5, glowP(c, cols[i % 3], s * 0.8, 0.28 * op));
-    heart(c, cv, hc, s, cols[i % 3], 0.92 * op, rot: math.sin(u * tau + i) * 0.35);
-    cv.drawCircle(hc + Offset(-s * 0.5, -s * 0.35), s * 0.2, fillP(c, 0xFFFFFF, 0.55 * op));
+    heart(
+      c,
+      cv,
+      hc,
+      s,
+      cols[i % 3],
+      0.92 * op,
+      rot: math.sin(u * tau + i) * 0.35,
+    );
+    cv.drawCircle(
+      hc + Offset(-s * 0.5, -s * 0.35),
+      s * 0.2,
+      fillP(c, 0xFFFFFF, 0.55 * op),
+    );
   }
 }

@@ -117,7 +117,11 @@ void drop(Canvas canvas, Offset c, double r, double dir, Paint paint) {
     Path()
       ..moveTo(0, -r * 2.1)
       ..quadraticBezierTo(r * 0.9, -r * 0.5, r, r * 0.2)
-      ..arcToPoint(Offset(-r, r * 0.2), radius: Radius.circular(r), clockwise: true)
+      ..arcToPoint(
+        Offset(-r, r * 0.2),
+        radius: Radius.circular(r),
+        clockwise: true,
+      )
       ..quadraticBezierTo(-r * 0.9, -r * 0.5, 0, -r * 2.1)
       ..close(),
     paint,
@@ -154,8 +158,15 @@ Path gearPath(double r, int teeth, double rot) {
 }
 
 /// Yumusak duman/bulut topu (iki katmanli).
-void puff(Canvas canvas, CelebrationContext ctx, Offset c, double r, int hex,
-    double op, int shade) {
+void puff(
+  Canvas canvas,
+  CelebrationContext ctx,
+  Offset c,
+  double r,
+  int hex,
+  double op,
+  int shade,
+) {
   canvas.drawCircle(c, r, ctx.paintOf(hex, op));
   canvas.drawCircle(
     c + Offset(-r * 0.3, r * 0.25),
@@ -183,17 +194,17 @@ void textAt(
   double letterSpacing = 0,
 }) {
   TextPainter tp(Paint paint) => TextPainter(
-        text: TextSpan(
-          text: s,
-          style: TextStyle(
-            fontSize: size,
-            fontWeight: weight,
-            letterSpacing: letterSpacing,
-            foreground: paint,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
+    text: TextSpan(
+      text: s,
+      style: TextStyle(
+        fontSize: size,
+        fontWeight: weight,
+        letterSpacing: letterSpacing,
+        foreground: paint,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
   final f = tp(fill);
   canvas.save();
   canvas.translate(c.dx, c.dy);
@@ -218,7 +229,12 @@ int rampColor(List<int> ramp, double p) {
 }
 
 /// Sinus tabanli yumusak 0..1 zarf: [a]..[b] arasinda acik.
-double window(CelebrationContext ctx, double a, double b, [double soft = 0.05]) {
+double window(
+  CelebrationContext ctx,
+  double a,
+  double b, [
+  double soft = 0.05,
+]) {
   if (ctx.reduceMotion) return 1;
   final t = ctx.t;
   return (((t - a) / soft).clamp(0.0, 1.0) * ((b - t) / soft).clamp(0.0, 1.0));

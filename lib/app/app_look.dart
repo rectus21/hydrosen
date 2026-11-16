@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../features/thermos/art.dart';
 import '../features/thermos/thermos_theme.dart';
+import 'theme_scene.dart';
 
 /// Türkçe karakterleri (ç ğ ı İ ö ş ü) içeren (latin-ext) Google yazı
 /// tipleri. Paketin indirdiği dosyaların cmap tablosu tek tek denetlendi
@@ -151,6 +152,7 @@ class AppLook {
       bottom: bottom,
       bubble: bubble,
       wave: wave,
+      scene: t,
     );
     final grounds = backdrop.surfaces;
 
@@ -371,9 +373,13 @@ class BackdropColors extends ThemeExtension<BackdropColors> {
     required this.bottom,
     required this.bubble,
     required this.wave,
+    this.scene,
   });
 
   final Color top, bottom, bubble, wave;
+
+  /// Tam ekran sahne olarak çizilecek tema (null ise düz geçiş çizilir).
+  final ThermosTheme? scene;
 
   /// Metnin üzerine düşebileceği tüm opak renkler (kabarcık ve dalga
   /// karışımları dahil); kontrast bunların hepsine karşı sağlanır.
@@ -393,11 +399,13 @@ class BackdropColors extends ThemeExtension<BackdropColors> {
     Color? bottom,
     Color? bubble,
     Color? wave,
+    ThermosTheme? scene,
   }) => BackdropColors(
     top: top ?? this.top,
     bottom: bottom ?? this.bottom,
     bubble: bubble ?? this.bubble,
     wave: wave ?? this.wave,
+    scene: scene ?? this.scene,
   );
 
   @override
@@ -408,6 +416,7 @@ class BackdropColors extends ThemeExtension<BackdropColors> {
       bottom: Color.lerp(bottom, other.bottom, t)!,
       bubble: Color.lerp(bubble, other.bubble, t)!,
       wave: Color.lerp(wave, other.wave, t)!,
+      scene: t < 0.5 ? scene : other.scene,
     );
   }
 }
@@ -416,14 +425,35 @@ class BackdropColors extends ThemeExtension<BackdropColors> {
 /// iki yumuşak dalga ve birkaç saydam kabarcık. Sayfalar Scaffold'u şeffaf
 /// yapıp bunun içine koyar.
 class ThemeBackdrop extends StatelessWidget {
-  const ThemeBackdrop({super.key, required this.child});
+  const ThemeBackdrop({
+    super.key,
+    required this.child,
+    this.thermosKey,
+    this.scroll,
+  });
 
   final Widget child;
+
+  /// Termosun bulunduğu widget; sahne zeminini termosun durduğu yere hizalar.
+  /// Verilmezse sahne sabit bir konuma oturur (ayarlar ekranı).
+  final GlobalKey? thermosKey;
+
+  /// Sahne içerikle birlikte kayıyorsa kaydırma denetleyicisi.
+  final Listenable? scroll;
 
   @override
   Widget build(BuildContext context) {
     final c = Theme.of(context).extension<BackdropColors>();
     if (c == null) return child;
+    final scene = c.scene;
+    if (scene != null) {
+      return ThemeScene(
+        theme: scene,
+        thermosKey: thermosKey,
+        scroll: scroll,
+        child: child,
+      );
+    }
     return CustomPaint(painter: _BackdropPainter(c), child: child);
   }
 }

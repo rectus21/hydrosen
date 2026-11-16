@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_look.dart';
+import '../../app/frosted_panel.dart';
 import '../../data/water_repository.dart';
 import '../../domain/glass_math.dart';
 import '../settings/settings_controller.dart';
@@ -29,6 +30,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final WaterController _controller;
+  final _scroll = ScrollController();
+  final _thermosKey = GlobalKey();
 
   @override
   void initState() {
@@ -54,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     widget.settings.removeListener(_syncGoal);
     _controller.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -101,6 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return ThemeBackdrop(
+      thermosKey: _thermosKey,
+      scroll: _scroll,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -123,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 480),
                       child: ListView(
+                        controller: _scroll,
                         padding: const EdgeInsets.all(16),
                         children: [
                           if (_controller.saveFailed)
@@ -137,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           _ThermosSection(
+                            thermosKey: _thermosKey,
                             controller: _controller,
                             glassMl: widget.settings.glassMl,
                             shape: widget.settings.shape,
@@ -147,95 +155,96 @@ class _HomeScreenState extends State<HomeScreen> {
                             QuickThemeStrip(settings: widget.settings),
                           ],
                           const SizedBox(height: 16),
-                          GlassRow(
-                            glass: GlassMath(
-                              goalMl: _controller.goalMl,
-                              glassMl: widget.settings.glassMl,
-                            ),
-                            totalMl: _controller.totalMl,
-                            theme: widget.settings.theme,
-                            onAdd: _addGlass,
-                            onRemove: _removeGlass,
-                          ),
-                          const SizedBox(height: 12),
-                          QuickGlassButtons(
-                            glassMl: widget.settings.glassMl,
-                            onAdd: _addGlasses,
-                            onRemove: _controller.totalMl > 0
-                                ? _removeGlass
-                                : null,
-                          ),
-                          const SizedBox(height: 8),
-                          Center(
-                            child: TextButton.icon(
-                              onPressed: _addCustom,
-                              icon: const Icon(Icons.edit_outlined),
-                              label: const Text('Özel miktar'),
+                          FrostedPanel(
+                            child: Column(
+                              children: [
+                                GlassRow(
+                                  glass: GlassMath(
+                                    goalMl: _controller.goalMl,
+                                    glassMl: widget.settings.glassMl,
+                                  ),
+                                  totalMl: _controller.totalMl,
+                                  theme: widget.settings.theme,
+                                  onAdd: _addGlass,
+                                  onRemove: _removeGlass,
+                                ),
+                                const SizedBox(height: 12),
+                                QuickGlassButtons(
+                                  glassMl: widget.settings.glassMl,
+                                  onAdd: _addGlasses,
+                                  onRemove: _controller.totalMl > 0
+                                      ? _removeGlass
+                                      : null,
+                                ),
+                                const SizedBox(height: 4),
+                                Center(
+                                  child: TextButton.icon(
+                                    onPressed: _addCustom,
+                                    icon: const Icon(Icons.edit_outlined),
+                                    label: const Text('Özel miktar'),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 28),
-                          Text(
-                            'Bugünün kayıtları',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                          FrostedPanel(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Bugünün kayıtları',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
                                 ),
-                          ),
-                          const SizedBox(height: 8),
-                          Card(
-                            elevation: 0,
-                            color: Theme.of(context).colorScheme.surface
-                                .withValues(alpha: 0.5),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              child: Column(
-                                children: [
-                                  if (_controller.todayEntries.isEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 24,
-                                      ),
-                                      child: Text(
-                                        'Henüz su kaydı yok. Yukarıdaki bardaklara dokunarak ilk bardağını ekle.',
-                                        textAlign: TextAlign.center,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    )
-                                  else
-                                    for (final e in _controller.todayEntries)
-                                      ListTile(
-                                        key: ValueKey(e.id),
-                                        contentPadding: EdgeInsets.zero,
-                                        leading: const Icon(Icons.water_drop),
-                                        title: Text('${e.amountMl} ml'),
-                                        subtitle: Text(_formatTime(e.time)),
-                                        trailing: IconButton(
-                                          tooltip: 'Sil',
-                                          icon: const Icon(
-                                            Icons.delete_outline,
+                                const SizedBox(height: 4),
+                                if (_controller.todayEntries.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 24,
+                                    ),
+                                    child: Text(
+                                      'Henüz su kaydı yok. Yukarıdaki bardaklara dokunarak ilk bardağını ekle.',
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
                                           ),
-                                          onPressed: () {
-                                            _controller.remove(e.id);
-                                            _notify('Kayıt silindi');
-                                          },
-                                        ),
+                                    ),
+                                  )
+                                else
+                                  for (final e in _controller.todayEntries)
+                                    ListTile(
+                                      key: ValueKey(e.id),
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: const Icon(Icons.water_drop),
+                                      title: Text('${e.amountMl} ml'),
+                                      subtitle: Text(_formatTime(e.time)),
+                                      trailing: IconButton(
+                                        tooltip: 'Sil',
+                                        icon: const Icon(Icons.delete_outline),
+                                        onPressed: () {
+                                          _controller.remove(e.id);
+                                          _notify('Kayıt silindi');
+                                        },
                                       ),
-                                ],
-                              ),
+                                    ),
+                              ],
                             ),
                           ),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
@@ -306,12 +315,14 @@ class _CustomAmountDialogState extends State<CustomAmountDialog> {
 
 class _ThermosSection extends StatefulWidget {
   const _ThermosSection({
+    required this.thermosKey,
     required this.controller,
     required this.glassMl,
     required this.shape,
     required this.theme,
   });
 
+  final GlobalKey thermosKey;
   final WaterController controller;
   final int glassMl;
   final ThermosShape shape;
@@ -346,8 +357,10 @@ class _ThermosSectionState extends State<_ThermosSection> {
         SizedBox(
           height: 380,
           child: Stack(
+            alignment: Alignment.center,
             children: [
               ThermosView(
+                key: widget.thermosKey,
                 progress: controller.progress,
                 goalMl: controller.goalMl,
                 totalMl: controller.totalMl,
@@ -369,27 +382,37 @@ class _ThermosSectionState extends State<_ThermosSection> {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              '${GlassMath.format(glass.glassesOf(controller.totalMl))} / '
-              '${glass.goalGlasses}',
-              style: text.headlineMedium,
-            ),
-            const SizedBox(width: 8),
-            Text('bardak', style: text.titleMedium),
-          ],
-        ),
-        Text(
-          '${controller.totalMl} / ${controller.goalMl} ml',
-          style: text.bodySmall,
-        ),
-        Text(
-          controller.progress >= 1 ? 'Hedefe ulaştın!' : '%$percent tamamlandı',
-          style: text.titleMedium,
+        FrostedPanel(
+          radius: 22,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '${GlassMath.format(glass.glassesOf(controller.totalMl))} / '
+                    '${glass.goalGlasses}',
+                    style: text.headlineMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  Text('bardak', style: text.titleMedium),
+                ],
+              ),
+              Text(
+                '${controller.totalMl} / ${controller.goalMl} ml',
+                style: text.bodySmall,
+              ),
+              Text(
+                controller.progress >= 1
+                    ? 'Hedefe ulaştın!'
+                    : '%$percent tamamlandı',
+                style: text.titleMedium,
+              ),
+            ],
+          ),
         ),
       ],
     );

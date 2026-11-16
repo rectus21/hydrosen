@@ -21,7 +21,9 @@ void setUpBundledFonts() {
   GoogleFonts.config.allowRuntimeFetching = false;
   LicenseRegistry.addLicense(() async* {
     for (final e in bundledFontLicenses.entries) {
-      yield LicenseEntryWithLineBreaks([e.key], await rootBundle.loadString(e.value));
+      yield LicenseEntryWithLineBreaks([
+        e.key,
+      ], await rootBundle.loadString(e.value));
     }
   });
 }

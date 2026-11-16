@@ -55,7 +55,10 @@ void _ell(Canvas cv, Offset o, double rx, double ry, double rot, Paint p) {
   cv.save();
   cv.translate(o.dx, o.dy);
   cv.rotate(rot);
-  cv.drawOval(Rect.fromCenter(center: Offset.zero, width: rx * 2, height: ry * 2), p);
+  cv.drawOval(
+    Rect.fromCenter(center: Offset.zero, width: rx * 2, height: ry * 2),
+    p,
+  );
   cv.restore();
 }
 
@@ -101,12 +104,26 @@ void _bar(Canvas cv, Offset o, double len, double w, double rot, Paint p) {
 }
 
 /// Yaprak/cicek tomurcugu: 5 yapraklı cicek.
-void _blossom(CelebrationContext c, Canvas cv, Offset o, double r, double rot,
-    int petal, int center, [double op = 1]) {
+void _blossom(
+  CelebrationContext c,
+  Canvas cv,
+  Offset o,
+  double r,
+  double rot,
+  int petal,
+  int center, [
+  double op = 1,
+]) {
   for (var i = 0; i < 5; i++) {
     final a = rot + i * _tau / 5;
-    _ell(cv, o + Offset(math.cos(a), math.sin(a)) * (r * 0.62), r * 0.62,
-        r * 0.42, a, c.paintOf(petal, op));
+    _ell(
+      cv,
+      o + Offset(math.cos(a), math.sin(a)) * (r * 0.62),
+      r * 0.62,
+      r * 0.42,
+      a,
+      c.paintOf(petal, op),
+    );
   }
   cv.drawCircle(o, r * 0.34, c.paintOf(center, op));
 }
@@ -121,8 +138,14 @@ CapPose _kaktusPose(CelebrationContext c) {
   return CapPose(dy: -3 * p, scale: 1 + 0.045 * p, rotation: w);
 }
 
-void _bigFlower(CelebrationContext c, Canvas cv, Offset o, double r, double grow,
-    double spin) {
+void _bigFlower(
+  CelebrationContext c,
+  Canvas cv,
+  Offset o,
+  double r,
+  double grow,
+  double spin,
+) {
   if (grow <= 0) return;
   final g = grow;
   // Yumusak hale.
@@ -134,17 +157,32 @@ void _bigFlower(CelebrationContext c, Canvas cv, Offset o, double r, double grow
     for (var i = 0; i < n; i++) {
       final a = spin * (layer == 0 ? 1 : -1.4) + i * _tau / n + layer * 0.4;
       final d = len * 0.62;
-      _ell(cv, o + Offset(math.cos(a), math.sin(a)) * d, len * 0.62,
-          len * 0.36, a, c.paintOf(col));
-      _ell(cv, o + Offset(math.cos(a), math.sin(a)) * (d * 1.05), len * 0.4,
-          len * 0.12, a, c.paintOf(0xFFFFFF, layer == 0 ? 0.28 : 0.4));
+      _ell(
+        cv,
+        o + Offset(math.cos(a), math.sin(a)) * d,
+        len * 0.62,
+        len * 0.36,
+        a,
+        c.paintOf(col),
+      );
+      _ell(
+        cv,
+        o + Offset(math.cos(a), math.sin(a)) * (d * 1.05),
+        len * 0.4,
+        len * 0.12,
+        a,
+        c.paintOf(0xFFFFFF, layer == 0 ? 0.28 : 0.4),
+      );
     }
   }
   cv.drawCircle(o, r * 0.34 * g, c.paintOf(0xFFD166));
   for (var i = 0; i < 6; i++) {
     final a = i * _tau / 6 + spin;
-    cv.drawCircle(o + Offset(math.cos(a), math.sin(a)) * (r * 0.18 * g),
-        r * 0.05 * g, c.paintOf(0xE8A317));
+    cv.drawCircle(
+      o + Offset(math.cos(a), math.sin(a)) * (r * 0.18 * g),
+      r * 0.05 * g,
+      c.paintOf(0xE8A317),
+    );
   }
 }
 
@@ -166,15 +204,25 @@ void _kaktus(Canvas cv, CelebrationContext c) {
     final ag = c.reduceMotion
         ? 1.0
         : Curves.easeOutBack.transform(c.span(0.2 + i * 0.07, 0.5 + i * 0.07));
-    _bigFlower(c, cv, arms[i], R * 0.46, ag * breathe, -spin * (i == 0 ? 1 : -1));
+    _bigFlower(
+      c,
+      cv,
+      arms[i],
+      R * 0.46,
+      ag * breathe,
+      -spin * (i == 0 ? 1 : -1),
+    );
   }
   _bigFlower(c, cv, f, R, g * breathe, spin);
 
   // Acilis halkasi + polen kivilcimlari.
   final ring = c.reduceMotion ? 0.0 : c.span(0.12, 0.5);
   if (ring > 0 && ring < 1) {
-    cv.drawCircle(f, R * (0.8 + 1.9 * _E.easeOut(ring)),
-        _stroke(c, 0xFFFFFF, 3, 0.8 * (1 - ring)));
+    cv.drawCircle(
+      f,
+      R * (0.8 + 1.9 * _E.easeOut(ring)),
+      _stroke(c, 0xFFFFFF, 3, 0.8 * (1 - ring)),
+    );
   }
   for (var i = 0; i < 12; i++) {
     final ph = c.reduceMotion
@@ -183,7 +231,8 @@ void _kaktus(Canvas cv, CelebrationContext c) {
     if (ph <= 0 || ph >= 1) continue;
     final a = -math.pi / 2 + (c.rand(i, 2) - 0.5) * 3.0;
     final d = R * (0.9 + 2.0 * _E.easeOut(ph)) * (0.7 + 0.5 * c.rand(i, 3));
-    final p = f + Offset(math.cos(a), math.sin(a)) * d + Offset(0, 14 * ph * ph);
+    final p =
+        f + Offset(math.cos(a), math.sin(a)) * d + Offset(0, 14 * ph * ph);
     final r = (2.6 + 3 * c.rand(i, 4)) * (1 - ph * 0.5);
     c.star(cv, p, r, i.isEven ? 0xFFD166 : 0xFFFFFF, 1 - ph);
   }
@@ -253,8 +302,11 @@ void _kardanScarfFlutter(Canvas cv, CelebrationContext c, double k) {
   final end = (top.last + bot.last) / 2;
   for (var j = -1; j <= 1; j++) {
     final o = Offset(j * 5.0 * k, 0) + (top.last - bot.last) * (j * 0.28);
-    cv.drawLine(end + o * 0.4, end + o * 0.4 + Offset(6 * k, 5 * k * (1 + j.abs() * 0.0)),
-        _stroke(c, 0xC0392B, 2.5 * k + 0.8));
+    cv.drawLine(
+      end + o * 0.4,
+      end + o * 0.4 + Offset(6 * k, 5 * k * (1 + j.abs() * 0.0)),
+      _stroke(c, 0xC0392B, 2.5 * k + 0.8),
+    );
   }
 }
 
@@ -341,8 +393,13 @@ void _kardanHat(Canvas cv, CelebrationContext c, double h) {
   for (var i = 0; i < 3; i++) {
     final a2 = -math.pi / 2 + (i - 1) * 0.7;
     final d = (14 + 10 * h) * _ck(c) * 1.4;
-    c.star(cv, top + Offset(math.cos(a2), math.sin(a2)) * (d + 6), 3.4 + i % 2,
-        0xFFFFFF, 0.9 * _sat(h * 1.4));
+    c.star(
+      cv,
+      top + Offset(math.cos(a2), math.sin(a2)) * (d + 6),
+      3.4 + i % 2,
+      0xFFFFFF,
+      0.9 * _sat(h * 1.4),
+    );
   }
 }
 
@@ -354,7 +411,8 @@ void _snow(Canvas cv, CelebrationContext c) {
     final sp = 46 + 70 * c.rand(i, 1);
     final span = rect.height + 40;
     final y = rect.top - 20 + ((c.rand(i, 2) * span + el * sp) % span);
-    final x = rect.left +
+    final x =
+        rect.left +
         c.rand(i, 3) * rect.width +
         math.sin(el * (1.2 + c.rand(i, 4)) + i) * 12 +
         el * 14;
@@ -396,11 +454,24 @@ void _sonbahar(Canvas cv, CelebrationContext c) {
     final rx = cw * (0.62 + 0.14 * j), ry = cw * (0.2 + 0.05 * j);
     final start = _tau * (ph * 1.4 + j * 0.33);
     final rect = Rect.fromCenter(
-        center: o + Offset(0, -cw * 0.04 - j * 6), width: rx * 2, height: ry * 2);
-    cv.drawArc(rect, start, 1.2 + 0.4 * j, false,
-        _stroke(c, 0xFFFFFF, 3.2, 0.7 * math.sin(ph * math.pi)));
-    cv.drawArc(rect, start + 0.1, 0.9, false,
-        _stroke(c, 0xE8A21E, 1.6, 0.5 * math.sin(ph * math.pi)));
+      center: o + Offset(0, -cw * 0.04 - j * 6),
+      width: rx * 2,
+      height: ry * 2,
+    );
+    cv.drawArc(
+      rect,
+      start,
+      1.2 + 0.4 * j,
+      false,
+      _stroke(c, 0xFFFFFF, 3.2, 0.7 * math.sin(ph * math.pi)),
+    );
+    cv.drawArc(
+      rect,
+      start + 0.1,
+      0.9,
+      false,
+      _stroke(c, 0xE8A21E, 1.6, 0.5 * math.sin(ph * math.pi)),
+    );
   }
   const n = 24;
   for (var i = 0; i < n; i++) {
@@ -411,7 +482,8 @@ void _sonbahar(Canvas cv, CelebrationContext c) {
     if (p <= 0 || p >= 1) continue;
     final th = c.rand(i, 2) * _tau + p * _tau * 1.7;
     final rr = cw * (0.4 + 0.75 * _E.easeOut(p)) * (0.75 + 0.45 * c.rand(i, 3));
-    var pos = o +
+    var pos =
+        o +
         Offset(math.cos(th) * rr, math.sin(th) * rr * 0.5) +
         Offset((p > 0.8 ? (p - 0.8) * 160 : 0), -cw * 0.1 - p * cw * 0.5);
     final fade = math.pow(math.sin(p * math.pi), 0.6).toDouble();
@@ -424,8 +496,11 @@ void _sonbahar(Canvas cv, CelebrationContext c) {
     cv.scale(1, flip);
     final col = cols[i % cols.length];
     cv.drawPath(_leafPath(len, len * 0.28), c.paintOf(col, fade));
-    cv.drawLine(Offset(-len * 0.5, 0), Offset(len * 0.5, 0),
-        _stroke(c, 0x5A2E12, 1.2, 0.55 * fade));
+    cv.drawLine(
+      Offset(-len * 0.5, 0),
+      Offset(len * 0.5, 0),
+      _stroke(c, 0x5A2E12, 1.2, 0.55 * fade),
+    );
     cv.restore();
   }
 }
@@ -436,7 +511,11 @@ CapPose _bulutPose(CelebrationContext c) {
   final rain = _E.pulse(c.span(0.04, 0.46));
   final shiver = math.sin(c.t * _tau * 9) * 1.4 * rain;
   final hop = _E.pulse(c.span(0.46, 0.7)) * -4;
-  return CapPose(dx: shiver, dy: hop, scale: 1 + 0.03 * _E.pulse(c.span(0.46, 0.7)));
+  return CapPose(
+    dx: shiver,
+    dy: hop,
+    scale: 1 + 0.03 * _E.pulse(c.span(0.46, 0.7)),
+  );
 }
 
 void _bulut(Canvas cv, CelebrationContext c) {
@@ -455,9 +534,17 @@ void _bulut(Canvas cv, CelebrationContext c) {
     for (var i = 0; i < cols.length; i++) {
       final rx = rxo - i * bw, ry = ryo - i * bw;
       final rect = Rect.fromCenter(
-          center: Offset(cc.dx, cy), width: rx * 2, height: ry * 2);
-      cv.drawArc(rect, math.pi, math.pi * rb, false,
-          _stroke(c, cols[i], bw + 0.8, 0.95));
+        center: Offset(cc.dx, cy),
+        width: rx * 2,
+        height: ry * 2,
+      );
+      cv.drawArc(
+        rect,
+        math.pi,
+        math.pi * rb,
+        false,
+        _stroke(c, cols[i], bw + 0.8, 0.95),
+      );
     }
     // Uclarda minik bulutlar.
     final pf = _sat((rb - 0.6) / 0.4);
@@ -467,10 +554,13 @@ void _bulut(Canvas cv, CelebrationContext c) {
         for (final q in const [
           [0.0, 0.0, 9.0],
           [-8.0, 4.0, 7.0],
-          [8.0, 4.0, 7.0]
+          [8.0, 4.0, 7.0],
         ]) {
-          cv.drawCircle(e + Offset(q[0], q[1]) * pf, q[2] * pf * (k + 0.3),
-              c.paintOf(0xFFFFFF, 0.95));
+          cv.drawCircle(
+            e + Offset(q[0], q[1]) * pf,
+            q[2] * pf * (k + 0.3),
+            c.paintOf(0xFFFFFF, 0.95),
+          );
         }
       }
     }
@@ -486,12 +576,16 @@ void _bulut(Canvas cv, CelebrationContext c) {
     for (var i = 0; i < 30; i++) {
       if (c.rand(i, 3) > rainAmt) continue;
       final x = cc.dx + (c.rand(i, 1) - 0.5) * cw * 0.92;
-      final ph = (c.elapsed * (1.7 + 0.5 * c.rand(i, 2)) + c.rand(i, 4) * 3) % 1;
+      final ph =
+          (c.elapsed * (1.7 + 0.5 * c.rand(i, 2)) + c.rand(i, 4) * 3) % 1;
       final y = y0 - 6 + ph * fall;
       final fade = _sat((1 - ph) * 3) * _sat(ph * 8);
       final l = 9 + 7 * c.rand(i, 5);
-      cv.drawLine(Offset(x, y), Offset(x - 1.6, y + l),
-          _stroke(c, i.isEven ? 0x4BA3E3 : 0x8CC8F0, 2.8, 0.95 * fade));
+      cv.drawLine(
+        Offset(x, y),
+        Offset(x - 1.6, y + l),
+        _stroke(c, i.isEven ? 0x4BA3E3 : 0x8CC8F0, 2.8, 0.95 * fade),
+      );
     }
   }
 
@@ -508,14 +602,25 @@ void _bulut(Canvas cv, CelebrationContext c) {
       final a = (-165 + i * (225 / (rays - 1))) * math.pi / 180 + rot * 0.12;
       final inner = sr * 1.18;
       final outer = sr * (1.75 + 0.35 * math.sin(c.elapsed * 6 + i)) * sg;
-      cv.drawLine(sun + Offset(math.cos(a), math.sin(a)) * inner,
-          sun + Offset(math.cos(a), math.sin(a)) * (inner + (outer - inner)),
-          _stroke(c, 0xFFC83D, 3.2 * (c.chubby ? 1 : 0.85), sg));
+      cv.drawLine(
+        sun + Offset(math.cos(a), math.sin(a)) * inner,
+        sun + Offset(math.cos(a), math.sin(a)) * (inner + (outer - inner)),
+        _stroke(c, 0xFFC83D, 3.2 * (c.chubby ? 1 : 0.85), sg),
+      );
     }
     for (var i = 0; i < 4; i++) {
-      final a = -2.6 + i * 0.7 + (c.reduceMotion ? 0 : math.sin(c.elapsed * 3 + i) * 0.1);
+      final a =
+          -2.6 +
+          i * 0.7 +
+          (c.reduceMotion ? 0 : math.sin(c.elapsed * 3 + i) * 0.1);
       final d = sr * (2.5 + 0.2 * (i % 2));
-      c.star(cv, sun + Offset(math.cos(a), math.sin(a)) * d, 3.4, 0xFFFFFF, sg * 0.9);
+      c.star(
+        cv,
+        sun + Offset(math.cos(a), math.sin(a)) * d,
+        3.4,
+        0xFFFFFF,
+        sg * 0.9,
+      );
     }
   }
 }
@@ -542,12 +647,19 @@ void _karpuz(Canvas cv, CelebrationContext c) {
   final fl = c.reduceMotion ? 0.0 : c.span(t0, t0 + 0.2);
   if (fl > 0 && fl < 1) {
     final e = _E.easeOut(fl);
-    cv.drawCircle(o, cw * 0.55 * e, _stroke(c, 0xFFFFFF, 4 * (1 - fl), 0.9 * (1 - fl)));
+    cv.drawCircle(
+      o,
+      cw * 0.55 * e,
+      _stroke(c, 0xFFFFFF, 4 * (1 - fl), 0.9 * (1 - fl)),
+    );
     for (var i = 0; i < 12; i++) {
       final a = i * _tau / 12;
       final d = Offset(math.cos(a), math.sin(a));
-      cv.drawLine(o + d * (cw * 0.35 + cw * 0.3 * e), o + d * (cw * 0.35 + cw * (0.3 + 0.25 * (1 - fl)) * e),
-          _stroke(c, i.isEven ? 0xE5485A : 0xF9B7BE, 3, 1 - fl));
+      cv.drawLine(
+        o + d * (cw * 0.35 + cw * 0.3 * e),
+        o + d * (cw * 0.35 + cw * (0.3 + 0.25 * (1 - fl)) * e),
+        _stroke(c, i.isEven ? 0xE5485A : 0xF9B7BE, 3, 1 - fl),
+      );
     }
   }
   const n = 40;
@@ -560,8 +672,12 @@ void _karpuz(Canvas cv, CelebrationContext c) {
     final a = -math.pi / 2 + (c.rand(i, 1) - 0.5) * 2.7;
     final sp = 210 + 170 * c.rand(i, 2);
     final start = o + Offset((c.rand(i, 7) - 0.5) * cw * 0.3, -cw * 0.1);
-    final p = start +
-        Offset(math.cos(a) * sp * tau, math.sin(a) * sp * tau + 0.5 * g * tau * tau);
+    final p =
+        start +
+        Offset(
+          math.cos(a) * sp * tau,
+          math.sin(a) * sp * tau + 0.5 * g * tau * tau,
+        );
     final life = _sat(1 - (c.t - 0.7) / 0.28);
     final fade = c.reduceMotion ? 1.0 : life;
     if (fade <= 0) continue;
@@ -576,11 +692,14 @@ void _karpuz(Canvas cv, CelebrationContext c) {
       cv.translate(p.dx, p.dy);
       cv.rotate(spin);
       cv.scale(sq, 1);
-      cv.drawOval(Rect.fromCenter(center: Offset.zero, width: 8.5, height: 15),
-          c.paintOf(0x2C2C2A, fade));
       cv.drawOval(
-          Rect.fromCenter(center: const Offset(-1.2, -2.4), width: 2, height: 4),
-          c.paintOf(0xFFFFFF, 0.55 * fade));
+        Rect.fromCenter(center: Offset.zero, width: 8.5, height: 15),
+        c.paintOf(0x2C2C2A, fade),
+      );
+      cv.drawOval(
+        Rect.fromCenter(center: const Offset(-1.2, -2.4), width: 2, height: 4),
+        c.paintOf(0xFFFFFF, 0.55 * fade),
+      );
       cv.restore();
     }
   }
@@ -613,7 +732,9 @@ void _limon(Canvas cv, CelebrationContext c) {
     final tau0 = c.reduceMotion ? 0.0 : c.elapsed - (hit + 0.05) * _E.duration;
     for (var i = 0; i < per; i++) {
       final id = e * 40 + i;
-      final tau = c.reduceMotion ? 0.12 + 0.5 * c.rand(id, 8) : tau0 - c.rand(id, 6) * 0.06;
+      final tau = c.reduceMotion
+          ? 0.12 + 0.5 * c.rand(id, 8)
+          : tau0 - c.rand(id, 6) * 0.06;
       if (tau < 0) continue;
       final side = (c.rand(id, 1) - 0.5) * 2;
       final a = -math.pi / 2 + side * 1.35;
@@ -627,15 +748,23 @@ void _limon(Canvas cv, CelebrationContext c) {
       final r = 4.2 + 4.2 * c.rand(id, 3);
       final ang = math.atan2(vel.dy, vel.dx);
       _drop(cv, p, r, ang, c.paintOf(i % 3 == 0 ? 0xFFE97A : 0xF5D400, life));
-      cv.drawCircle(p + Offset(-r * 0.3, -r * 0.3), r * 0.28,
-          c.paintOf(0xFFFFFF, 0.8 * life));
+      cv.drawCircle(
+        p + Offset(-r * 0.3, -r * 0.3),
+        r * 0.28,
+        c.paintOf(0xFFFFFF, 0.8 * life),
+      );
     }
     // Sikma halkasi.
     final ring = c.reduceMotion ? 0.0 : c.span(hit, hit + 0.18);
     if (ring > 0 && ring < 1) {
-      _ell(cv, o + Offset(0, cw * 0.05), cw * (0.4 + 0.5 * _E.easeOut(ring)),
-          cw * (0.3 + 0.28 * _E.easeOut(ring)), 0,
-          _stroke(c, 0xFFF08A, 3, 0.9 * (1 - ring)));
+      _ell(
+        cv,
+        o + Offset(0, cw * 0.05),
+        cw * (0.4 + 0.5 * _E.easeOut(ring)),
+        cw * (0.3 + 0.28 * _E.easeOut(ring)),
+        0,
+        _stroke(c, 0xFFF08A, 3, 0.9 * (1 - ring)),
+      );
     }
   }
   // Sudaki halkalar ve damlama.
@@ -645,8 +774,14 @@ void _limon(Canvas cv, CelebrationContext c) {
     final ph = c.reduceMotion ? 0.35 + 0.1 * i : _sat((c.t - base) / 0.2);
     if (ph <= 0 || ph >= 1) continue;
     final x = g.left + g.width * (0.2 + 0.6 * c.rand(i, 11));
-    _ell(cv, Offset(x, c.waterY + 1), 4 + 14 * ph, 1.6 + 4 * ph, 0,
-        _stroke(c, 0xFFFFFF, 2, 0.8 * (1 - ph)));
+    _ell(
+      cv,
+      Offset(x, c.waterY + 1),
+      4 + 14 * ph,
+      1.6 + 4 * ph,
+      0,
+      _stroke(c, 0xFFFFFF, 2, 0.8 * (1 - ph)),
+    );
   }
   // Sag taraftan suzulen kalin damla.
   final dr = c.reduceMotion ? 0.5 : c.span(0.34, 0.8);
@@ -658,11 +793,17 @@ void _limon(Canvas cv, CelebrationContext c) {
     final col = c.paintOf(0xF5D400, 1 - _sat((dr - 0.9) * 8));
     cv.drawRRect(
       RRect.fromRectAndRadius(
-          Rect.fromLTWH(x - 3, y0 + fall, 6, len), const Radius.circular(3)),
+        Rect.fromLTWH(x - 3, y0 + fall, 6, len),
+        const Radius.circular(3),
+      ),
       col,
     );
     cv.drawCircle(Offset(x, y0 + len + fall), 5.2, col);
-    cv.drawCircle(Offset(x - 1.6, y0 + len + fall - 1.5), 1.5, c.paintOf(0xFFFFFF, 0.8));
+    cv.drawCircle(
+      Offset(x - 1.6, y0 + len + fall - 1.5),
+      1.5,
+      c.paintOf(0xFFFFFF, 0.8),
+    );
   }
 }
 
@@ -680,7 +821,9 @@ void _limon(Canvas cv, CelebrationContext c) {
     final s = segs[i];
     if (t >= s[0] && t < s[1]) {
       final x = (t - s[0]) / (s[1] - s[0]);
-      final sq = (x > 0.84 ? (x - 0.84) / 0.16 : 0.0) + (x < 0.1 ? (0.1 - x) / 0.1 * 0.5 : 0.0);
+      final sq =
+          (x > 0.84 ? (x - 0.84) / 0.16 : 0.0) +
+          (x < 0.1 ? (0.1 - x) / 0.1 * 0.5 : 0.0);
       return (4 * x * (1 - x) * s[2], sq);
     }
   }
@@ -693,7 +836,10 @@ CapPose _avokadoPose(CelebrationContext c) {
     land += math.sin(_sat(c.span(l, l + 0.07)) * math.pi);
   }
   final launch = math.sin(_sat(c.span(0.04, 0.1)) * math.pi);
-  return CapPose(dy: 3.5 * land - 3 * launch, scale: 1 - 0.025 * land + 0.03 * launch);
+  return CapPose(
+    dy: 3.5 * land - 3 * launch,
+    scale: 1 - 0.025 * land + 0.03 * launch,
+  );
 }
 
 void _avokado(Canvas cv, CelebrationContext c) {
@@ -705,13 +851,20 @@ void _avokado(Canvas cv, CelebrationContext c) {
   if (!c.reduceMotion && c.t < 0.05) return;
   final height = h * (c.chubby ? 60.0 : 42.0);
   final pop = _sat((c.t - 0.05) / 0.04);
-  final pos = top + Offset(0, -r * 0.55 - height) +
-      (c.reduceMotion ? const Offset(0, 0) : Offset(math.sin(c.t * 9) * 0 + (c.t * 0), 0));
+  final pos =
+      top +
+      Offset(0, -r * 0.55 - height) +
+      (c.reduceMotion
+          ? const Offset(0, 0)
+          : Offset(math.sin(c.t * 9) * 0 + (c.t * 0), 0));
   // Gunes gibi parlama: cikis aninda halka.
   final ring = c.reduceMotion ? 0.0 : c.span(0.05, 0.22);
   if (ring > 0 && ring < 1) {
-    cv.drawCircle(top, r * (1.0 + 2.6 * _E.easeOut(ring)),
-        _stroke(c, 0xFFFFFF, 3, 0.8 * (1 - ring)));
+    cv.drawCircle(
+      top,
+      r * (1.0 + 2.6 * _E.easeOut(ring)),
+      _stroke(c, 0xFFFFFF, 3, 0.8 * (1 - ring)),
+    );
   }
   final sy = 1 - 0.22 * sq + (rest ? 0 : 0.12 * (h > 0.05 ? 1 : 0));
   final sx = 1 + 0.26 * sq - (rest ? 0 : 0.05 * (h > 0.05 ? 1 : 0));
@@ -724,11 +877,19 @@ void _avokado(Canvas cv, CelebrationContext c) {
   cv.scale(sx * pop, sy * pop);
   final k2 = k + 0.3;
   cv.drawCircle(Offset.zero, r, c.paintOf(0x6E4524));
-  cv.drawCircle(Offset(-r * 0.3, -r * 0.35), r * 0.38, c.paintOf(0xA77649, 0.85));
+  cv.drawCircle(
+    Offset(-r * 0.3, -r * 0.35),
+    r * 0.38,
+    c.paintOf(0xA77649, 0.85),
+  );
   cv.drawCircle(Offset(r * 0.35, r * 0.3), r * 0.5, c.paintOf(0x4B2D14, 0.45));
   // Yuz.
   final ey = r * 0.02, ex = r * 0.36;
-  cv.drawCircle(Offset(-ex, ey), r * 0.14 * (1 + k2 * 0.1), c.paintOf(0x2C2C2A));
+  cv.drawCircle(
+    Offset(-ex, ey),
+    r * 0.14 * (1 + k2 * 0.1),
+    c.paintOf(0x2C2C2A),
+  );
   cv.drawCircle(Offset(ex, ey), r * 0.14 * (1 + k2 * 0.1), c.paintOf(0x2C2C2A));
   cv.drawCircle(Offset(-ex - 1, ey - 1.2), r * 0.05, c.paintOf(0xFFFFFF));
   cv.drawCircle(Offset(ex - 1, ey - 1.2), r * 0.05, c.paintOf(0xFFFFFF));
@@ -736,10 +897,22 @@ void _avokado(Canvas cv, CelebrationContext c) {
     ..moveTo(-r * 0.22, r * 0.34)
     ..quadraticBezierTo(0, r * (0.34 + 0.28 + 0.12 * h), r * 0.22, r * 0.34);
   cv.drawPath(smile, _stroke(c, 0x2C2C2A, 1.8));
-  cv.drawOval(Rect.fromCenter(center: Offset(-r * 0.62, r * 0.28), width: r * 0.3, height: r * 0.18),
-      c.paintOf(0xED93B1, 0.8));
-  cv.drawOval(Rect.fromCenter(center: Offset(r * 0.62, r * 0.28), width: r * 0.3, height: r * 0.18),
-      c.paintOf(0xED93B1, 0.8));
+  cv.drawOval(
+    Rect.fromCenter(
+      center: Offset(-r * 0.62, r * 0.28),
+      width: r * 0.3,
+      height: r * 0.18,
+    ),
+    c.paintOf(0xED93B1, 0.8),
+  );
+  cv.drawOval(
+    Rect.fromCenter(
+      center: Offset(r * 0.62, r * 0.28),
+      width: r * 0.3,
+      height: r * 0.18,
+    ),
+    c.paintOf(0xED93B1, 0.8),
+  );
   cv.restore();
 
   // Inis tozu: kucuk yildizlar.
@@ -749,7 +922,13 @@ void _avokado(Canvas cv, CelebrationContext c) {
     for (var i = 0; i < 4; i++) {
       final s = i < 2 ? -1.0 : 1.0;
       final d = (8 + 22 * _E.easeOut(p)) * (0.7 + 0.3 * (i % 2));
-      c.star(cv, top + Offset(s * d, -3 - 12 * p * (1 + (i % 2))), 3 * (1 - p) + 1, 0xFFFFFF, 1 - p);
+      c.star(
+        cv,
+        top + Offset(s * d, -3 - 12 * p * (1 + (i % 2))),
+        3 * (1 - p) + 1,
+        0xFFFFFF,
+        1 - p,
+      );
     }
   }
   if (c.reduceMotion) {
@@ -779,13 +958,15 @@ void _dondurma(Canvas cv, CelebrationContext c) {
     final x = o.dx + (c.rand(i, 1) - 0.5) * cw * 1.5;
     final start = 0.03 + c.rand(i, 2) * 0.5;
     final spd = 150 + 120 * c.rand(i, 3);
-    final tau = c.reduceMotion ? 0.35 + 0.5 * c.rand(i, 9) : c.elapsed - start * _E.duration;
+    final tau = c.reduceMotion
+        ? 0.35 + 0.5 * c.rand(i, 9)
+        : c.elapsed - start * _E.duration;
     if (tau < 0) continue;
     final inScoop = (x - o.dx).abs() < hw * 0.92;
     // Topa konanlar yuzeyde kalir.
     final nx = ((x - o.dx) / hw).clamp(-1.0, 1.0);
-    final landY = top + (c.chubby ? 6 : 0) +
-        (1 - math.sqrt(1 - nx * nx)) * cw * 0.34 + 3;
+    final landY =
+        top + (c.chubby ? 6 : 0) + (1 - math.sqrt(1 - nx * nx)) * cw * 0.34 + 3;
     var y = 8 - 14 + spd * tau;
     var rot = c.rand(i, 4) * 3 + tau * (3 + 5 * c.rand(i, 5));
     var settled = false;
@@ -800,7 +981,14 @@ void _dondurma(Canvas cv, CelebrationContext c) {
         ? _sat(1 - (c.t - 0.8) / 0.18)
         : _sat((span + 10 - y) / 40);
     if (fade <= 0) continue;
-    _bar(cv, Offset(x, y), 9.5, 3.8, rot, c.paintOf(cols[i % cols.length], fade));
+    _bar(
+      cv,
+      Offset(x, y),
+      9.5,
+      3.8,
+      rot,
+      c.paintOf(cols[i % cols.length], fade),
+    );
   }
 
   // Suzulen damla (kapagin sag alt kenarindan).
@@ -810,7 +998,9 @@ void _dondurma(Canvas cv, CelebrationContext c) {
   if (dr > 0) {
     final grow = _E.easeInOut(_sat(dr / 0.62));
     final len = (c.chubby ? 86.0 : 92.0) * grow;
-    final drip = dr > 0.62 ? math.pow((dr - 0.62) / 0.38, 2.0).toDouble() * 110 : 0.0;
+    final drip = dr > 0.62
+        ? math.pow((dr - 0.62) / 0.38, 2.0).toDouble() * 110
+        : 0.0;
     final fade = _sat(1 - (dr - 0.9) * 10);
     final wd = (c.chubby ? 11.0 : 10.0) * (k + 0.28);
     final col = c.paintOf(0xF4A8C4, fade);
@@ -818,22 +1008,34 @@ void _dondurma(Canvas cv, CelebrationContext c) {
     final y0 = a.dy - 4;
     if (dr <= 0.62) {
       cv.drawRRect(
-          RRect.fromRectAndRadius(
-              Rect.fromLTWH(x - wd * 0.42, y0, wd * 0.84, len), Radius.circular(wd * 0.42)),
-          col);
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x - wd * 0.42, y0, wd * 0.84, len),
+          Radius.circular(wd * 0.42),
+        ),
+        col,
+      );
       cv.drawCircle(Offset(x, y0 + len), wd * 0.68, col);
-      cv.drawCircle(Offset(x - wd * 0.2, y0 + len - wd * 0.2), wd * 0.2,
-          c.paintOf(0xFFFFFF, 0.65 * fade));
+      cv.drawCircle(
+        Offset(x - wd * 0.2, y0 + len - wd * 0.2),
+        wd * 0.2,
+        c.paintOf(0xFFFFFF, 0.65 * fade),
+      );
     } else {
       // Kopan damla: serbest dusen top.
       final stub = len * (1 - 0.6 * _sat((dr - 0.62) / 0.15));
       cv.drawRRect(
-          RRect.fromRectAndRadius(
-              Rect.fromLTWH(x - wd * 0.42, y0, wd * 0.84, stub), Radius.circular(wd * 0.42)),
-          col);
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x - wd * 0.42, y0, wd * 0.84, stub),
+          Radius.circular(wd * 0.42),
+        ),
+        col,
+      );
       _drop(cv, Offset(x, y0 + len + drip), wd * 0.7, math.pi / 2, col);
-      cv.drawCircle(Offset(x - wd * 0.2, y0 + len + drip - wd * 0.1), wd * 0.2,
-          c.paintOf(0xFFFFFF, 0.65 * fade));
+      cv.drawCircle(
+        Offset(x - wd * 0.2, y0 + len + drip - wd * 0.1),
+        wd * 0.2,
+        c.paintOf(0xFFFFFF, 0.65 * fade),
+      );
     }
   }
 }
@@ -843,7 +1045,10 @@ void _dondurma(Canvas cv, CelebrationContext c) {
 CapPose _seftaliPose(CelebrationContext c) {
   final s = math.sin(c.t * _tau * 2.2);
   final env = _E.pulse(c.span(0.04, 0.9));
-  return CapPose(rotation: s * 0.04 * env, dy: -2.2 * math.sin(c.t * _tau * 2.2 + 1.2).abs() * env);
+  return CapPose(
+    rotation: s * 0.04 * env,
+    dy: -2.2 * math.sin(c.t * _tau * 2.2 + 1.2).abs() * env,
+  );
 }
 
 void _seftali(Canvas cv, CelebrationContext c) {
@@ -862,20 +1067,33 @@ void _seftali(Canvas cv, CelebrationContext c) {
     double fade;
     final sway = math.sin(el * (1.6 + c.rand(i, 4)) + i * 1.7);
     if (burst) {
-      final tau = c.reduceMotion ? 0.3 + 0.8 * c.rand(i, 9) : el - 0.18 - c.rand(i, 6) * 0.5;
+      final tau = c.reduceMotion
+          ? 0.3 + 0.8 * c.rand(i, 9)
+          : el - 0.18 - c.rand(i, 6) * 0.5;
       if (tau < 0) continue;
       final a = -math.pi / 2 + (c.rand(i, 1) - 0.5) * 2.6;
       final sp = 70 + 70 * c.rand(i, 2);
-      pos = o + Offset(math.cos(a) * sp * tau + sway * 12, math.sin(a) * sp * tau + 36 * tau * tau);
+      pos =
+          o +
+          Offset(
+            math.cos(a) * sp * tau + sway * 12,
+            math.sin(a) * sp * tau + 36 * tau * tau,
+          );
       fade = _sat(1 - (c.t - 0.75) / 0.23);
     } else {
       final span = rect.height + 40;
-      final y = rect.top - 20 + ((c.rand(i, 2) * span + el * (38 + 34 * c.rand(i, 3))) % span);
-      final x = rect.left + ((c.rand(i, 5) * rect.width + el * 24 + sway * 22) % rect.width);
+      final y =
+          rect.top -
+          20 +
+          ((c.rand(i, 2) * span + el * (38 + 34 * c.rand(i, 3))) % span);
+      final x =
+          rect.left +
+          ((c.rand(i, 5) * rect.width + el * 24 + sway * 22) % rect.width);
       pos = Offset(x, y);
       fade = _sat((y - rect.top) / 30) * _sat((rect.bottom - y) / 30);
     }
-    final rot = c.rand(i, 7) * 6 + el * (1 + c.rand(i, 8) * 2) * (i.isEven ? 1 : -1);
+    final rot =
+        c.rand(i, 7) * 6 + el * (1 + c.rand(i, 8) * 2) * (i.isEven ? 1 : -1);
     final r = 9 + 5.5 * c.rand(i, 10);
     final col = cols[i % cols.length];
     if (i % 6 == 0) {
@@ -886,43 +1104,71 @@ void _seftali(Canvas cv, CelebrationContext c) {
       cv.translate(pos.dx, pos.dy);
       cv.rotate(rot);
       cv.scale(1, f);
-      cv.drawPath(_dropPath(r * 0.55).transform(Matrix4.rotationZ(math.pi / 2).storage),
-          c.paintOf(col, fade));
+      cv.drawPath(
+        _dropPath(r * 0.55).transform(Matrix4.rotationZ(math.pi / 2).storage),
+        c.paintOf(col, fade),
+      );
       cv.restore();
     }
   }
 
   // Yanak kizarmasi (tombul kapakta yuz var; ince kapakta yok).
   final pulse = c.reduceMotion ? 0.8 : 0.5 + 0.5 * math.sin(c.elapsed * 7);
-  final amt = c.reduceMotion ? 1.0 : _sat(c.span(0.06, 0.2)) * _sat((1 - c.t) / 0.2 + 0.0);
+  final amt = c.reduceMotion
+      ? 1.0
+      : _sat(c.span(0.06, 0.2)) * _sat((1 - c.t) / 0.2 + 0.0);
   if (c.chubby) {
     for (final sx in const [282.0, 398.0]) {
       final p = c.capPt(sx, 154);
-      cv.drawOval(Rect.fromCenter(center: p, width: 46 * k + 8 * pulse, height: 26 * k + 5 * pulse),
-          c.paintOf(0xFF5E7E, (0.28 + 0.28 * pulse) * amt));
-      cv.drawOval(Rect.fromCenter(center: p, width: 30 * k, height: 17 * k),
-          c.paintOf(0xF24B6A, (0.55 + 0.35 * pulse) * amt));
+      cv.drawOval(
+        Rect.fromCenter(
+          center: p,
+          width: 46 * k + 8 * pulse,
+          height: 26 * k + 5 * pulse,
+        ),
+        c.paintOf(0xFF5E7E, (0.28 + 0.28 * pulse) * amt),
+      );
+      cv.drawOval(
+        Rect.fromCenter(center: p, width: 30 * k, height: 17 * k),
+        c.paintOf(0xF24B6A, (0.55 + 0.35 * pulse) * amt),
+      );
       for (var j = 0; j < 3; j++) {
         final lx = p.dx + (j - 1) * 6.5 * k;
-        cv.drawLine(Offset(lx - 1.6, p.dy + 3), Offset(lx + 1.6, p.dy - 3),
-            _stroke(c, 0xFFFFFF, 1.5, 0.75 * amt));
+        cv.drawLine(
+          Offset(lx - 1.6, p.dy + 3),
+          Offset(lx + 1.6, p.dy - 3),
+          _stroke(c, 0xFFFFFF, 1.5, 0.75 * amt),
+        );
       }
     }
     // Minik kalpler.
     for (var i = 0; i < 3; i++) {
-      final ph = c.reduceMotion ? 0.3 + 0.2 * i : ((c.elapsed * 0.9 + i * 0.37) % 1);
+      final ph = c.reduceMotion
+          ? 0.3 + 0.2 * i
+          : ((c.elapsed * 0.9 + i * 0.37) % 1);
       final base = c.capPt(i.isEven ? 398 : 282, 150);
-      _heart(cv, base + Offset(math.sin(ph * 6 + i) * 6, -ph * 40), 4.6 * (k + 0.3) * (1 - ph * 0.3),
-          c.paintOf(0xFF5E7E, 0.95 * math.sin(ph * math.pi) * amt));
+      _heart(
+        cv,
+        base + Offset(math.sin(ph * 6 + i) * 6, -ph * 40),
+        4.6 * (k + 0.3) * (1 - ph * 0.3),
+        c.paintOf(0xFF5E7E, 0.95 * math.sin(ph * math.pi) * amt),
+      );
     }
   } else {
     final p = c.capPt(340, 130);
-    cv.drawOval(Rect.fromCenter(center: p, width: cw * 1.25, height: cw * 1.05),
-        c.paintOf(0xFFB3C1, 0.1 + 0.12 * pulse));
+    cv.drawOval(
+      Rect.fromCenter(center: p, width: cw * 1.25, height: cw * 1.05),
+      c.paintOf(0xFFB3C1, 0.1 + 0.12 * pulse),
+    );
     for (var i = 0; i < 4; i++) {
       final a = -2.4 + i * 0.55;
-      c.star(cv, p + Offset(math.cos(a), math.sin(a)) * (cw * 0.62), 3.4, 0xFFFFFF,
-          0.6 + 0.4 * math.sin(c.elapsed * 5 + i));
+      c.star(
+        cv,
+        p + Offset(math.cos(a), math.sin(a)) * (cw * 0.62),
+        3.4,
+        0xFFFFFF,
+        0.6 + 0.4 * math.sin(c.elapsed * 5 + i),
+      );
     }
   }
 }
@@ -930,8 +1176,22 @@ void _seftali(Canvas cv, CelebrationContext c) {
 void _heart(Canvas cv, Offset o, double r, Paint p) {
   final path = Path()
     ..moveTo(o.dx, o.dy + r * 0.9)
-    ..cubicTo(o.dx - r * 1.6, o.dy - r * 0.1, o.dx - r * 0.7, o.dy - r * 1.3, o.dx, o.dy - r * 0.4)
-    ..cubicTo(o.dx + r * 0.7, o.dy - r * 1.3, o.dx + r * 1.6, o.dy - r * 0.1, o.dx, o.dy + r * 0.9)
+    ..cubicTo(
+      o.dx - r * 1.6,
+      o.dy - r * 0.1,
+      o.dx - r * 0.7,
+      o.dy - r * 1.3,
+      o.dx,
+      o.dy - r * 0.4,
+    )
+    ..cubicTo(
+      o.dx + r * 0.7,
+      o.dy - r * 1.3,
+      o.dx + r * 1.6,
+      o.dy - r * 0.1,
+      o.dx,
+      o.dy + r * 0.9,
+    )
     ..close();
   cv.drawPath(path, p);
 }

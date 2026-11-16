@@ -824,7 +824,11 @@ void _maymunBg(Art a) {
     [520, 160, 0x4E8A3E],
   ]) {
     final x = v[0], len = v[1], c = v[2];
-    a.s('M$x 8 Q${x + 14} ${len * 0.4} ${x - 6} ${len * 0.65} Q${x - 16} ${len * 0.85} $x $len', c, 4);
+    a.s(
+      'M$x 8 Q${x + 14} ${len * 0.4} ${x - 6} ${len * 0.65} Q${x - 16} ${len * 0.85} $x $len',
+      c,
+      4,
+    );
     a.o(x + 8, len * 0.35, 9, 4.5, c, rot: 40);
     a.o(x - 10, len * 0.62, 9, 4.5, c, rot: -40);
     a.o(x - 2, len, 8, 4, c, rot: 80);

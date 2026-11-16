@@ -104,11 +104,14 @@ class CelebrationPainter extends CustomPainter {
     final signature = signatureCelebrations[theme.id];
     if (signature != null) {
       // İmza kutlaması genel efektin yerine geçer; kapağın üstünde çizilir.
-      signature(canvas, CelebrationContext(
-        painter: this,
-        level: level,
-        pose: resolveCapPose(this),
-      ));
+      signature(
+        canvas,
+        CelebrationContext(
+          painter: this,
+          level: level,
+          pose: resolveCapPose(this),
+        ),
+      );
       canvas.restore();
       return;
     }
