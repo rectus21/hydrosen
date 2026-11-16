@@ -85,6 +85,20 @@ const Map<String, AppTypeface> themeTypefaces = {
   'sihirbaz': _fantasy,
   'gece': _fantasy,
   'korsan': _pirate,
+  'bulut': _calm,
+  'fil': _playful,
+  'rakun': _playful,
+  'kirpi': _playful,
+  'sincap': _playful,
+  'aslan': _playful,
+  'geyik': _playful,
+  'inek': _playful,
+  'koyun': _playful,
+  'maymun': _playful,
+  'boga': _playful,
+  'susamuru': _calm,
+  'fok': _calm,
+  'balina': _calm,
 };
 
 /// Bir temanın tüm uygulama görünümü: renk şeması, tam ekran arka plan ve
