@@ -5,6 +5,7 @@ import 'celebration_style.dart';
 import 'themes/pack_doga.dart';
 import 'themes/pack_fantastik.dart';
 import 'themes/pack_hayvanlar.dart';
+import 'themes/pack_yeni1.dart';
 import 'themes/pack_yiyecek.dart';
 
 /// Termos biçimi: tasarım taslaklarındaki "Tombul" ve "İnce".
@@ -189,6 +190,7 @@ class ThermosTheme {
     ...dogaThemes,
     ...yiyecekThemes,
     ...fantastikThemes,
+    ...yeni1Themes,
   ];
 }
 
