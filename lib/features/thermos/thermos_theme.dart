@@ -8,6 +8,7 @@ import 'themes/pack_hayvanlar.dart';
 import 'themes/pack_yeni1.dart';
 import 'themes/pack_yiyecek.dart';
 import 'themes/pack_yeni2.dart';
+import 'themes/pack_yeni3.dart';
 
 /// Termos biçimi: tasarım taslaklarındaki "Tombul" ve "İnce".
 enum ThermosShape {
@@ -193,6 +194,7 @@ class ThermosTheme {
     ...fantastikThemes,
     ...yeni1Themes,
     ...yeni2Themes,
+    ...yeni3Themes,
   ];
 }
 
