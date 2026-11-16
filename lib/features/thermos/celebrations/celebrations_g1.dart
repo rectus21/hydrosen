@@ -6,6 +6,8 @@ import '../svg_path.dart';
 import '../thermos_theme.dart';
 import 'celebration_context.dart';
 import 'celebrations_g1_kit.dart';
+import 'celebrations_g1_loops.dart';
+import 'celebrations_g1_loops_more.dart';
 import 'celebrations_g1_more.dart';
 
 // GRUP 1 imza kutlamalari (klasik, cilek, kaplan, tekboynuz, astronot, kamp);
@@ -825,7 +827,7 @@ void _kampFire(Canvas canvas, CelebrationContext ctx) {
 
 /// Döngü evresi (hedef aşıldığı sürece) için isteğe bağlı özel imzalar; boşsa
 /// giriş imzasının orta bölümü döngülenir. Bkz. celebration_registry.dart.
-const Map<String, SignatureCelebration> g1Loops = {};
+final Map<String, SignatureCelebration> g1Loops = {...g1LoopsA, ...g1LoopsB};
 
 /// Döngü evresi için isteğe bağlı kapak pozları (boşsa giriş pozu döngülenir).
-const Map<String, CapPoseFn> g1LoopPoses = {};
+final Map<String, CapPoseFn> g1LoopPoses = {...g1LoopPosesA, ...g1LoopPosesB};
