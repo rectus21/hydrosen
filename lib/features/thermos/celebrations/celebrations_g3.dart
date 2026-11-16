@@ -1,5 +1,7 @@
 import 'celebration_context.dart';
 import 'celebrations_g3_land.dart';
+import 'celebrations_g3_loops.dart';
+import 'celebrations_g3_loops_sea.dart';
 import 'celebrations_g3_sea.dart';
 
 // TEMA IMZA KUTLAMALARI - GRUP 3 (vahsi, orman ve deniz)
@@ -44,7 +46,13 @@ const Map<String, CapPoseFn> g3CapPoses = {
 
 /// Döngü evresi (hedef aşıldığı sürece) için isteğe bağlı özel imzalar; boşsa
 /// giriş imzasının orta bölümü döngülenir. Bkz. celebration_registry.dart.
-const Map<String, SignatureCelebration> g3Loops = {};
+final Map<String, SignatureCelebration> g3Loops = {
+  ...g3LandLoops,
+  ...g3SeaLoops,
+};
 
 /// Döngü evresi için isteğe bağlı kapak pozları (boşsa giriş pozu döngülenir).
-const Map<String, CapPoseFn> g3LoopPoses = {};
+final Map<String, CapPoseFn> g3LoopPoses = {
+  ...g3LandLoopPoses,
+  ...g3SeaLoopPoses,
+};

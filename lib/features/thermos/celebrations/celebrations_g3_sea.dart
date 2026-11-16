@@ -372,7 +372,7 @@ CapPose ahtapotPose(Ctx c) {
   return CapPose(rotation: math.sin(c.t * tau * 4) * 0.05 * env, dy: -2 * env);
 }
 
-void _tentacle(
+void tentacle(
   Ctx c,
   Canvas cv,
   Offset root,
@@ -428,7 +428,7 @@ void ahtapot(Canvas cv, Ctx c) {
     for (var j = 0; j < angs.length; j++) {
       final a = angs[j];
       final dir = Offset(side * math.cos(a), math.sin(a));
-      _tentacle(
+      tentacle(
         c,
         cv,
         root,
