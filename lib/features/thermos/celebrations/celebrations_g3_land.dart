@@ -174,7 +174,7 @@ void maymun(Canvas cv, Ctx c) {
 
 // --- Geyik: boynuzlar parlar, kelebekler -----------------------------------
 
-Path _antlerPath(Ctx c, int d, double x, double y, double s) {
+Path antlerPath(Ctx c, int d, double x, double y, double s) {
   Offset p(double dx, double dy) => c.capPt(x + d * dx * s, y + dy * s);
   void q(Path path, Offset a, Offset b, Offset e) {
     path.moveTo(a.dx, a.dy);
@@ -197,7 +197,7 @@ void geyik(Canvas cv, Ctx c) {
       ? const [(-1, 304.0, 76.0, 1.05), (1, 376.0, 76.0, 1.05)]
       : const [(-1, 292.0, 98.0, 0.78), (1, 388.0, 98.0, 0.78)];
   for (final (d, x, y, s) in ants) {
-    final path = _antlerPath(c, d, x, y, s);
+    final path = antlerPath(c, d, x, y, s);
     cv.drawPath(
       path,
       glowP(c, 0xFFE08A, 9 * k + 2, 0.85 * env * pulseV)
