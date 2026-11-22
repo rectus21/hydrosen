@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../app/frosted_panel.dart';
 import '../settings/settings_controller.dart';
-import 'quick_theme_strip.dart';
+import '../thermos/thermos_theme.dart';
+import 'theme_catalog.dart';
 import 'reminder_controller.dart';
 export 'records_section.dart';
 
@@ -204,32 +205,40 @@ class ThemeSection extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Tema seç', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 4),
-          Text(
-            'Termos biçimini ve karakterini anında değiştir.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 12),
-          FrostedPanel(child: QuickThemeStrip(settings: settings)),
-          const SizedBox(height: 12),
-          FrostedPanel(
+      child: ThemeCatalog(
+        settings: settings,
+        footer: ListenableBuilder(
+          listenable: settings,
+          builder: (context, _) => FrostedPanel(
             padding: const EdgeInsets.all(12),
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.palette_outlined),
-              title: Text(settings.theme.name),
-              subtitle: const Text(
-                'Kutlama, yazı tipi ve ayrıntılı görünüm ayarları',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: onOpenSettings,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SegmentedButton<ThermosShape>(
+                  key: const ValueKey('quick-shape'),
+                  segments: [
+                    for (final v in ThermosShape.values)
+                      ButtonSegment(value: v, label: Text(v.label)),
+                  ],
+                  selected: {settings.shape},
+                  showSelectedIcon: false,
+                  onSelectionChanged: (v) => settings.setShape(v.first),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.palette_outlined),
+                  title: Text(settings.theme.name),
+                  subtitle: const Text(
+                    'Kutlama, yazı tipi ve ayrıntılı görünüm ayarları',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: onOpenSettings,
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     ),
   );

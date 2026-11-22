@@ -12,6 +12,7 @@ import '../thermos/thermos_view.dart';
 import 'home_sections.dart';
 import 'quick_glass_buttons.dart';
 import 'reminder_controller.dart';
+import 'resin_button.dart';
 import 'water_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -248,7 +249,7 @@ class _DailyControlCard extends StatelessWidget {
         : (controller.totalMl / controller.goalMl * 100).round();
     return FrostedPanel(
       key: const ValueKey('daily-control-card'),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
       radius: 24,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -263,7 +264,7 @@ class _DailyControlCard extends StatelessWidget {
             'Günlük hedefin %$rawPercent’i',
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(99),
             child: LinearProgressIndicator(
@@ -274,14 +275,33 @@ class _DailyControlCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           QuickGlassButtons(glassMl: glassMl, onAdd: onAdd, onRemove: onRemove),
-          SizedBox(
-            height: 32,
-            child: TextButton.icon(
+          const SizedBox(height: 6),
+          Semantics(
+            label: 'Özel miktar',
+            excludeSemantics: true,
+            button: true,
+            onTap: onCustom,
+            child: ResinButton(
+              tone: ResinTone.glass,
+              width: 220,
+              height: 40,
               onPressed: onCustom,
-              icon: const Icon(Icons.edit_outlined, size: 17),
-              label: const Text('Özel miktar'),
+              builder: (context, color) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.edit_outlined, size: 18, color: color),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Özel miktar',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -483,10 +503,38 @@ class _ThermosSectionState extends State<_ThermosSection> {
         // kullanır. Tasarım oranı ressamın gerçek tuvaliyle aynı kalır.
         final naturalHeight =
             constraints.maxWidth * designRect.height / designRect.width;
-        final height = naturalHeight.clamp(0.0, 600.0);
+        final baseHeight = naturalHeight.clamp(0.0, 600.0);
+        // Termos büyütme katsayısı (Rectus, 2026-11-22): tuvalin kenar
+        // boşlukları büyük olduğu için görsel yakınlaştırılır; yerleşim
+        // yüksekliği de aynı oranda artar ki alttaki panel üstüne binmesin.
+        const zoom = kThermosZoom;
         return SizedBox(
-          height: height,
-          child: Stack(
+          height: baseHeight,
+          child: Center(
+            child: Transform.translate(
+              // Şişeyi biraz aşağı indir (Rectus, 2026-11-22).
+              offset: Offset(0, baseHeight * kThermosDrop),
+              child: Transform.scale(
+              scale: zoom,
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                height: baseHeight,
+                width: constraints.maxWidth,
+                child: _thermosStack(),
+              ),
+            ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _thermosStack() {
+    final controller = widget.controller;
+    final shape = widget.shape;
+    final theme = widget.theme;
+    return Stack(
             alignment: Alignment.center,
             children: [
               ThermosView(
@@ -514,9 +562,12 @@ class _ThermosSectionState extends State<_ThermosSection> {
                 ),
               ),
             ],
-          ),
-        );
-      },
-    );
+          );
   }
 }
+
+/// Ana ekrandaki termosun büyütme katsayısı (1.0 = ChatGPT sürümünün ilk hâli).
+const double kThermosZoom = 1.375;
+
+/// Şişenin aşağı kayma oranı (taban yüksekliğinin kesri).
+const double kThermosDrop = 0.16;

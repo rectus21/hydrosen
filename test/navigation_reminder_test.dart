@@ -49,9 +49,26 @@ void main() {
 
     await tester.tap(find.text('Tema'));
     await tester.pumpAndSettle();
-    expect(find.text('Tema seç'), findsOneWidget);
-    expect(find.byKey(const ValueKey('quick-theme-tekboynuz')), findsOneWidget);
-    expect(find.byKey(const ValueKey('quick-theme-balina')), findsOneWidget);
+    expect(find.byKey(const ValueKey('theme-hero')), findsOneWidget);
+    expect(find.text('Seçili tema'), findsOneWidget);
+    expect(find.byKey(const ValueKey('theme-chip-Tümü')), findsOneWidget);
+    expect(find.byKey(const ValueKey('theme-card-kaplan')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('theme-chip-Hayvanlar')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('theme-card-kaplan')));
+    await tester.pumpAndSettle();
+    expect(find.text('Mutlu hâli'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('theme-select-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Mutlu hâli'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('theme-hero')),
+        matching: find.text('Kaplan'),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();

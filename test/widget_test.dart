@@ -4,6 +4,7 @@ import 'package:hydrosen/app/app.dart';
 import 'package:hydrosen/data/settings_repository.dart';
 import 'package:hydrosen/data/water_repository.dart';
 import 'package:hydrosen/domain/app_settings.dart';
+import 'package:hydrosen/features/home/resin_button.dart';
 import 'package:hydrosen/features/thermos/celebration_overlay.dart';
 import 'package:hydrosen/features/thermos/celebration_painter.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
@@ -325,8 +326,8 @@ void quickGlassTests() {
     await boot(tester);
     expect(
       tester
-          .widget<OutlinedButton>(
-            find.descendant(of: rem1, matching: find.byType(OutlinedButton)),
+          .widget<ResinButton>(
+            find.descendant(of: rem1, matching: find.byType(ResinButton)),
           )
           .onPressed,
       isNull,
@@ -335,8 +336,8 @@ void quickGlassTests() {
     await tester.pumpAndSettle();
     expect(
       tester
-          .widget<OutlinedButton>(
-            find.descendant(of: rem1, matching: find.byType(OutlinedButton)),
+          .widget<ResinButton>(
+            find.descendant(of: rem1, matching: find.byType(ResinButton)),
           )
           .onPressed,
       isNotNull,
