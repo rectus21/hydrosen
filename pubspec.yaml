@@ -64,6 +64,7 @@ flutter:
   assets:
     - assets/caps/
     - assets/scenes/
+    - assets/fx/
     - google_fonts/
     - google_fonts/LICENSES/
 

@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 
 import 'art.dart';
 import 'celebrations/celebration_context.dart';
+import 'celebrations/fx_sprites.dart';
 import 'svg_path.dart';
 import 'thermos_theme.dart';
 import 'wolf_artwork.dart';
@@ -82,6 +83,9 @@ class ThermosPainter extends CustomPainter {
     this.headLift = 1,
     this.labelStyle,
     this.capPose = CapPose.identity,
+    this.lemonade = 0,
+    this.umbrellaOn = true,
+    this.umbrellaSway = 0,
   });
 
   final ThermosShape shape;
@@ -115,6 +119,15 @@ class ThermosPainter extends CustomPainter {
 
   /// Kutlama sırasında imza animasyonunun kapağa uyguladığı hareket.
   final CapPose capPose;
+
+  /// Limon: suyun limonataya dönüşme ilerlemesi (0..1, alttan yukarı).
+  final double lemonade;
+
+  /// Limon: kapaktaki duran şemsiye çizilsin mi (kutlamada hareketli çizilir).
+  final bool umbrellaOn;
+
+  /// Limon: şemsiyenin sallanma açısı (radyan).
+  final double umbrellaSway;
 
   static final _paths = <String, Path>{};
   static Path _p(String d) => _paths.putIfAbsent(d, () => svgPath(d));
@@ -202,6 +215,21 @@ class ThermosPainter extends CustomPainter {
         surf,
         fill..color = theme.waterSurface.withValues(alpha: 0.55),
       );
+      if (lemonade > 0) {
+        // Limonata: alttan yukarı yükselen sarı su.
+        final top = 520 - (520 - (lvl - 16)) * lemonade.clamp(0.0, 1.0);
+        canvas.save();
+        canvas.clipPath(water);
+        canvas.drawRect(
+          Rect.fromLTRB(200, top, 480, 520),
+          fill..color = const Color(0xF2F3D13A),
+        );
+        canvas.drawRect(
+          Rect.fromLTRB(200, top, 480, top + 22),
+          fill..color = const Color(0x99FFF3A0),
+        );
+        canvas.restore();
+      }
     }
     // Cam parlaması ve gölgesi.
     final h = geo.bottom - geo.top;
@@ -302,6 +330,7 @@ class ThermosPainter extends CustomPainter {
         rect,
         Paint()..filterQuality = FilterQuality.medium,
       );
+      if (theme.id == 'limon' && umbrellaOn) _limonUmbrella(canvas, rect);
       canvas.restore();
     } else if (shape == ThermosShape.chubby) {
       // Kapaklar geniş boyun için çizildi; ince termos boynuna uyması için
@@ -316,6 +345,25 @@ class ThermosPainter extends CustomPainter {
       cap(Art(canvas), happy);
     }
     if (posed) canvas.restore();
+    canvas.restore();
+  }
+
+  /// Limon kapağının sağ üstüne takılı kokteyl şemsiyesi (cap görseli
+  /// koordinatlarında: sap ucu ~ (0.68, 0.2), 20 derece sağa yatık).
+  void _limonUmbrella(Canvas canvas, ui.Rect cap) {
+    final img = FxSprites.get('limon_umbrella_side');
+    if (img == null) return;
+    final uw = cap.width * 0.42;
+    final uh = uw * img.height / img.width;
+    canvas.save();
+    canvas.translate(cap.left + cap.width * 0.66, cap.top + cap.height * 0.24);
+    canvas.rotate(0.5 + umbrellaSway);
+    canvas.drawImageRect(
+      img,
+      Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+      Rect.fromLTWH(-uw / 2, -uh * 0.97, uw, uh),
+      Paint()..filterQuality = FilterQuality.medium,
+    );
     canvas.restore();
   }
 
@@ -401,6 +449,9 @@ class ThermosPainter extends CustomPainter {
       old.happy != happy ||
       old.headLift != headLift ||
       old.capPose != capPose ||
+      old.lemonade != lemonade ||
+      old.umbrellaOn != umbrellaOn ||
+      old.umbrellaSway != umbrellaSway ||
       old.goalMl != goalMl ||
       old.labelStyle != labelStyle;
 }

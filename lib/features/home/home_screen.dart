@@ -6,6 +6,7 @@ import '../../data/water_repository.dart';
 import '../settings/settings_controller.dart';
 import '../settings/settings_screen.dart';
 import '../thermos/celebration_overlay.dart';
+import '../thermos/illustrated_artwork.dart';
 import '../thermos/thermos_painter.dart' show designRect;
 import '../thermos/thermos_theme.dart';
 import '../thermos/thermos_view.dart';
@@ -82,33 +83,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (value == null) return;
     _controller.add(value);
-    _notify('$value ml eklendi');
-  }
-
-  /// Her ekleme/çıkarma/silmeden sonra "Geri al" düğmeli bilgi çubuğu.
-  void _notify(String message) {
-    if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-          action: SnackBarAction(label: 'Geri al', onPressed: _controller.undo),
-        ),
-      );
   }
 
   void _addGlasses(int n) {
     _controller.add(widget.settings.glassMl * n);
-    _notify('$n bardak eklendi');
   }
 
   void _removeGlass() {
     _controller.removeAmount(widget.settings.glassMl);
-    _notify('1 bardak çıkarıldı');
+  }
+
+  /// Uygulama çubuğu başlık/ikon rengi: sahnenin üst bandı koyuysa açık, açıksa
+  /// koyu (+ zıt renkli yumuşak gölge). Sahnesiz temalarda tema rengi.
+  (Color, Color) _barForeground(BuildContext context) {
+    final luma = IllustratedArtwork.topLuma[widget.settings.theme.id];
+    if (luma == null) {
+      final c = Theme.of(context).colorScheme.onSurface;
+      return (c, Colors.transparent);
+    }
+    return luma < 0.45
+        ? (const Color(0xFFFFFFFF), const Color(0x99000000))
+        : (const Color(0xFF1B1B1F), const Color(0x88FFFFFF));
   }
 
   @override
@@ -119,12 +114,56 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('HydroSen'),
+          flexibleSpace: ListenableBuilder(
+            listenable: widget.settings,
+            builder: (context, _) {
+              final luma = IllustratedArtwork.topLuma[widget.settings.theme.id];
+              if (luma == null) return const SizedBox.shrink();
+              // Başlığın arkasına zıt renkli yumuşak perde: orta tonlu
+              // sahnelerde de okunur kalır.
+              final scrim = luma < 0.45 ? 0xFF000000 : 0xFFFFFFFF;
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(scrim).withValues(alpha: 0.5),
+                      Color(scrim).withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          title: ListenableBuilder(
+            listenable: widget.settings,
+            builder: (context, _) {
+              final fg = _barForeground(context);
+              return Text(
+                'HydroSen',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: fg.$1,
+                  shadows: [Shadow(color: fg.$2, blurRadius: 6)],
+                ),
+              );
+            },
+          ),
           actions: [
-            IconButton(
-              tooltip: 'Ayarlar',
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: _openSettings,
+            ListenableBuilder(
+              listenable: widget.settings,
+              builder: (context, _) {
+                final fg = _barForeground(context);
+                return IconButton(
+                  tooltip: 'Ayarlar',
+                  icon: Icon(
+                    Icons.settings_outlined,
+                    color: fg.$1,
+                    shadows: [Shadow(color: fg.$2, blurRadius: 6)],
+                  ),
+                  onPressed: _openSettings,
+                );
+              },
             ),
           ],
         ),
@@ -143,7 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _controller,
                     onDelete: (id) {
                       _controller.remove(id);
-                      _notify('Kayıt silindi');
                     },
                   )
                 : _selectedTab == 2
@@ -295,10 +333,8 @@ class _DailyControlCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Özel miktar',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.labelLarge
+                        ?.copyWith(color: color, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -515,14 +551,14 @@ class _ThermosSectionState extends State<_ThermosSection> {
               // Şişeyi biraz aşağı indir (Rectus, 2026-11-22).
               offset: Offset(0, baseHeight * kThermosDrop),
               child: Transform.scale(
-              scale: zoom,
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                height: baseHeight,
-                width: constraints.maxWidth,
-                child: _thermosStack(),
+                scale: zoom,
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  height: baseHeight,
+                  width: constraints.maxWidth,
+                  child: _thermosStack(),
+                ),
               ),
-            ),
             ),
           ),
         );
@@ -535,34 +571,35 @@ class _ThermosSectionState extends State<_ThermosSection> {
     final shape = widget.shape;
     final theme = widget.theme;
     return Stack(
-            alignment: Alignment.center,
-            children: [
-              ThermosView(
-                key: widget.thermosKey,
-                progress: controller.progress,
-                goalMl: controller.goalMl,
-                totalMl: controller.totalMl,
-                celebrations: controller.celebrations,
-                shape: shape,
-                theme: theme,
-                happy: controller.progress >= 1,
-                celebrationT: _celebrationT,
-                celebrationLoop: _celebrationLoop,
-                animatedCelebrations: widget.animatedCelebrations,
-              ),
-              Positioned.fill(
-                child: CelebrationOverlay(
-                  trigger: controller.celebrations,
-                  theme: theme,
-                  shape: shape,
-                  progress: _celebrationT,
-                  looping: controller.progress >= 1,
-                  loopProgress: _celebrationLoop,
-                  animated: widget.animatedCelebrations,
-                ),
-              ),
-            ],
-          );
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        ThermosView(
+          key: widget.thermosKey,
+          progress: controller.progress,
+          goalMl: controller.goalMl,
+          totalMl: controller.totalMl,
+          celebrations: controller.celebrations,
+          shape: shape,
+          theme: theme,
+          happy: controller.progress >= 1,
+          celebrationT: _celebrationT,
+          celebrationLoop: _celebrationLoop,
+          animatedCelebrations: widget.animatedCelebrations,
+        ),
+        Positioned.fill(
+          child: CelebrationOverlay(
+            trigger: controller.celebrations,
+            theme: theme,
+            shape: shape,
+            progress: _celebrationT,
+            looping: controller.progress >= 1,
+            loopProgress: _celebrationLoop,
+            animated: widget.animatedCelebrations,
+          ),
+        ),
+      ],
+    );
   }
 }
 

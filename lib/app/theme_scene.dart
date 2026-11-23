@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../features/thermos/art.dart';
+import '../features/thermos/scene_geometry.dart';
 import '../features/thermos/thermos_painter.dart' show designRect;
 import '../features/thermos/thermos_theme.dart';
 import '../features/thermos/wolf_artwork.dart';
@@ -95,6 +96,7 @@ class _ThemeSceneState extends State<ThemeScene>
 
   @override
   Widget build(BuildContext context) {
+    SceneGeometry.sceneKey = _sceneKey;
     return CustomPaint(
       key: _sceneKey,
       painter: _ScenePainter(

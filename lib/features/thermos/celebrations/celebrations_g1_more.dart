@@ -205,19 +205,21 @@ void _korsanTreasure(Canvas canvas, CelebrationContext ctx) {
   final e = ctx.reduceMotion ? 0.4 : ctx.elapsed;
 
   // Bayrak
+  // Direk şapkanın sağ omzuna saplı: şapka tepesinin üstünde ekranda yer
+  // yok (üst çubuk), bu yüzden bayrak başın sağında, ekranın içinde durur.
   final base = IllustratedArtwork.byId.containsKey('korsan')
-      ? ctx.capTop
+      ? ctx.capImagePt(0.84, 0.25)
       : ctx.capPt(340, ctx.chubby ? 54 : 90);
-  final len = 70 * sz;
-  final top = base + Offset(0, -len);
-  canvas.drawLine(base, top, strokeOf(ctx.paintOf(0x6B3E16), 3.2 * sz));
-  canvas.drawCircle(top + Offset(0, -2 * sz), 3.6 * sz, ctx.paintOf(0xFAC775));
+  final len = 40 * sz;
+  final top = base + Offset(2 * sz, -len);
+  canvas.drawLine(base, top, strokeOf(ctx.paintOf(0x6B3E16), 4.2 * sz));
+  canvas.drawCircle(top + Offset(0, -2 * sz), 5 * sz, ctx.paintOf(0xFAC775));
   const cols = 12;
-  final fw = 62 * sz, fh = 40 * sz;
+  final fw = 67 * sz, fh = 43 * sz;
   final topPts = <Offset>[], botPts = <Offset>[];
   for (var i = 0; i <= cols; i++) {
     final f = i / cols;
-    final dy = math.sin(f * 7 - e * 10) * 4.2 * sz * f;
+    final dy = math.sin(f * 7 - e * 10) * 6.5 * sz * f;
     final dx = f * fw * (1 - 0.04 * math.sin(f * 7 - e * 10) * f);
     topPts.add(top + Offset(2 + dx, 4 * sz + dy));
     botPts.add(top + Offset(2 + dx, 4 * sz + fh + dy));
@@ -244,7 +246,7 @@ void _korsanTreasure(Canvas canvas, CelebrationContext ctx) {
   canvas.save();
   canvas.translate(mid.dx, mid.dy);
   canvas.rotate(math.atan(slope));
-  canvas.scale(sz);
+  canvas.scale(sz * 1.36);
   final bone = strokeOf(ctx.paintOf(0xFFFFFF, 0.95), 2.4);
   canvas.drawLine(const Offset(-10, 8), const Offset(10, -4), bone);
   canvas.drawLine(const Offset(10, 8), const Offset(-10, -4), bone);
@@ -269,13 +271,14 @@ void _korsanTreasure(Canvas canvas, CelebrationContext ctx) {
   canvas.restore();
 
   // Altin paralar
-  final origin = ctx.capCenter + Offset(0, -ctx.capWidth * 0.2);
+  final origin = ctx.capCenter + Offset(0, -ctx.capWidth * 0.3);
   const n = 16;
   for (var i = 0; i < n; i++) {
     final em = emit(ctx, i, n, period: 1.15, start: 0.05, end: 0.84);
     if (!em.live) continue;
-    final a = -math.pi / 2 + (rr(ctx, i, em, 1) - 0.5) * 2.7;
-    final v = (190 + 130 * rr(ctx, i, em, 2)) * sz;
+    // Paralar yüze düşmesin: kenarlara doğru fırlar.
+    final a = -math.pi / 2 + (i.isEven ? 1 : -1) * (0.7 + 0.6 * rr(ctx, i, em, 1));
+    final v = (150 + 70 * rr(ctx, i, em, 2)) * sz;
     final g = 480 * sz;
     final s = em.p * 1.5;
     final pos =

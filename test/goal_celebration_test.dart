@@ -13,6 +13,7 @@ import 'package:hydrosen/features/home/goal_celebration.dart';
 import 'package:hydrosen/features/home/water_controller.dart';
 import 'package:hydrosen/features/thermos/celebration_painter.dart';
 import 'package:hydrosen/features/thermos/celebration_style.dart';
+import 'package:hydrosen/features/thermos/celebrations/celebration_registry.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
 
 void main() {
@@ -318,5 +319,12 @@ void main() {
     expect(ThermosTheme.all.any((t) => t.id == 'botanik'), isFalse);
     expect(ThermosTheme.byId('botanik').id, 'klasik');
     expect(ThermosTheme.byId('botanik'), same(ThermosTheme.classic));
+  });
+
+  test('kaldırılan Şeftali teması kayıtlı olsa da Klasik e düşer', () {
+    expect(ThermosTheme.all.any((t) => t.id == 'seftali'), isFalse);
+    expect(ThermosTheme.byId('seftali'), same(ThermosTheme.classic));
+    expect(signatureCelebrations.containsKey('seftali'), isFalse);
+    expect(signatureLoops.containsKey('seftali'), isFalse);
   });
 }

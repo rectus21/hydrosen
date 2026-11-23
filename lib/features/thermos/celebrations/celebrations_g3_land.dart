@@ -85,38 +85,60 @@ void aslan(Canvas cv, Ctx c) {
 CapPose filPose(Ctx c) {
   final env = Ctx.pulse(c.span(0.03, 0.9));
   return CapPose(
-    rotation: -0.07 * env + math.sin(c.t * tau * 5) * 0.012 * env,
+    rotation: math.sin(c.t * tau * 2.5) * 0.03 * env,
     dy: -2 * env,
   );
 }
 
+/// Hortum ağzı (resimli kapakta PNG'deki ağız: x 0.58, y 0.29).
+Offset filTrunkTip(Ctx c) =>
+    c.hasIllustratedCap ? c.capImagePt(0.58, 0.29) : at(c, 374, 174, 361, 148);
+
 void fil(Canvas cv, Ctx c) {
-  final tip = c.hasIllustratedCap
-      ? c.capTop + Offset(0, c.capWidth * 0.3)
-      : at(c, 374, 174, 361, 148);
+  // Su, resimdeki sıçramanın devamı: hortum ağzından kısa, kavisli bir
+  // fıskiye (en çok ~25 birim yükselir, ekranın üstüne taşmaz) ve kenarlara
+  // düşen damlalar. Parıltılar sıçramayla aynı yerde yanıp söner.
+  final tip = filTrunkTip(c);
   final k = capK(c);
-  const n = 48;
-  const g = 520.0;
+  const n = 40;
+  const g = 240.0;
   const cols = [0x4BA3E3, 0x9AD8F5, 0xFFFFFF, 0x2A93C9];
   for (var i = 0; i < n; i++) {
-    final sweep = i / n;
-    final t0 = 0.04 + sweep * 0.68;
-    const life = 0.5;
+    final t0 = 0.04 + (i / n) * 0.8;
+    const life = 0.34;
     final u = (c.t - t0) / life;
     if (u <= 0 || u >= 1) continue;
     final tt = u * life * Ctx.duration;
-    final vx = 190 * math.cos(sweep * math.pi) * (0.85 + 0.3 * c.rand(i, 1));
-    final vy = -(280 + 70 * c.rand(i, 2)) * (0.82 + 0.18 * k);
+    final vx = 95 + 55 * c.rand(i, 1);
+    final vy = -(30 + 30 * c.rand(i, 2));
     final p = tip + Offset(vx * tt, vy * tt + 0.5 * g * tt * tt);
     final ang = math.atan2(vy + g * tt, vx);
-    final op = (u < 0.08 ? u / 0.08 : 1.0) * (1 - clamp01((u - 0.75) / 0.25));
-    final r = (4.6 + 3.0 * c.rand(i, 5)) * (0.75 + 0.25 * k + 0.2);
+    final op = (u < 0.08 ? u / 0.08 : 1.0) * (1 - clamp01((u - 0.6) / 0.4));
+    final r = (3.2 + 2.2 * c.rand(i, 5)) * (0.9 + 0.2 * k);
     waterDrop(c, cv, p, r, ang, op, base: cols[i % 4]);
   }
-  // Hortum ucunda su topu ve halka.
-  final burst = c.reduceMotion ? 1.0 : win(c, 0.03, 0.85);
-  cv.drawCircle(tip, (5 + 5 * burst) * k, glowP(c, 0xBFE6FA, 3, 0.8 * burst));
-  cv.drawCircle(tip, (7 + 6 * burst) * k, lineP(c, 0xFFFFFF, 1.6, 0.7 * burst));
+  filJet(cv, c, tip, k, c.reduceMotion ? 1.0 : c.span(0.04, 0.16),
+      c.reduceMotion ? 0.0 : c.t * 3);
+  filShimmer(cv, c, tip, k, c.reduceMotion ? 0.5 : c.t * 6);
+}
+
+/// Hortum ağzında yumuşak su halkası ve sıçramanın çevresinde parıltılar.
+void filShimmer(Canvas cv, Ctx c, Offset tip, double k, double ph) {
+  final pulse = 0.6 + 0.4 * math.sin(ph * tau);
+  cv.drawCircle(tip, (4 + 4 * pulse) * k, glowP(c, 0xBFE6FA, 3, 0.75));
+  cv.drawCircle(tip, (6 + 5 * pulse) * k, lineP(c, 0xFFFFFF, 1.4, 0.6));
+  const spots = [(0.50, -22.0), (0.84, -16.0), (0.67, -30.0)];
+  for (var i = 0; i < spots.length; i++) {
+    final (_, dy) = spots[i];
+    final tw = math.max(0.0, math.sin(ph * tau + i * 2.1));
+    final dx = (i - 1) * 20.0;
+    sparkle(
+      cv,
+      tip + Offset(dx * k, dy * k),
+      (3 + 6 * tw) * k,
+      fillP(c, i == 1 ? 0xFFFFFF : 0xBFE6FA, 0.4 + 0.6 * tw),
+    );
+  }
 }
 
 // --- Maymun: muz firlatir, sallanir ----------------------------------------
@@ -569,5 +591,29 @@ void baykus(Canvas cv, Ctx c) {
       cols[i % 5],
       op,
     );
+  }
+}
+
+/// Hortum ağzından görünür su yayı: yukarı çıkıp sağa kıvrılan şeffaf mavi
+/// akış, üzerinde akan parlak boncuklar. [appear] 0..1 uzunluğu büyütür,
+/// [flow] boncukların akış fazı (döngüde tam sayı).
+void filJet(Canvas cv, Ctx c, Offset tip, double k, double appear, double flow) {
+  if (appear <= 0.01) return;
+  const vx = 140.0, vy = -50.0, g = 240.0;
+  final tEnd = appear;
+  Offset at(double tt) =>
+      tip + Offset(vx * tt * k, (vy * tt + 0.5 * g * tt * tt) * k);
+  final path = Path()..moveTo(tip.dx, tip.dy);
+  for (var i = 1; i <= 24; i++) {
+    final p = at(tEnd * i / 24);
+    path.lineTo(p.dx, p.dy);
+  }
+  cv.drawPath(path, lineP(c, 0x1F6FB5, 14 * k, 0.55));
+  cv.drawPath(path, lineP(c, 0x4BA3E3, 9.5 * k, 0.92));
+  cv.drawPath(path, lineP(c, 0xE8F8FF, 3.2 * k, 0.95));
+  for (var j = 0; j < 7; j++) {
+    final u = (flow + j / 7) - (flow + j / 7).floorToDouble();
+    final p = at(tEnd * u);
+    cv.drawCircle(p, 2.6 * k, fillP(c, 0xFFFFFF, 0.85 * math.sin(u * math.pi)));
   }
 }

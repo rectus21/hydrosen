@@ -7,6 +7,8 @@ import 'package:hydrosen/features/thermos/celebrations/celebrations_g1.dart';
 import 'package:hydrosen/features/thermos/celebrations/celebrations_g2.dart';
 import 'package:hydrosen/features/thermos/celebrations/celebrations_g3.dart';
 import 'package:hydrosen/features/thermos/celebrations/celebrations_g4.dart';
+import 'package:hydrosen/features/thermos/celebrations/celebrations_sports.dart';
+import 'package:hydrosen/features/thermos/celebrations/celebrations_cats.dart';
 import 'package:hydrosen/features/thermos/illustrated_artwork.dart';
 import 'package:hydrosen/features/thermos/thermos_painter.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
@@ -17,6 +19,8 @@ void main() {
     ...g2Celebrations,
     ...g3Celebrations,
     ...g4Celebrations,
+    ...sportsCelebrations,
+    ...catsCelebrations,
   };
 
   test('kayit tum grup haritalarini birlestirir ve temalar gecerli', () {

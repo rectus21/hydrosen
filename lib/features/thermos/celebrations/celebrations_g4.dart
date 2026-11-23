@@ -7,9 +7,10 @@ import '../art.dart';
 import '../illustrated_artwork.dart';
 import '../thermos_painter.dart';
 import 'celebration_context.dart';
+import 'celebrations_limon.dart';
 
 // Grup 4 - yiyecek ve doga: kaktus, kardanadam, bulut, karpuz,
-// limon, avokado, dondurma, seftali. Konumlar kapak cizimlerinin ham
+// limon, avokado, dondurma. Konumlar kapak cizimlerinin ham
 // koordinatlarindan ctx.capPt ile alinir (tombul kucultme + kapak pozu).
 
 const Map<String, SignatureCelebration> g4Celebrations = {
@@ -17,20 +18,18 @@ const Map<String, SignatureCelebration> g4Celebrations = {
   'kardanadam': _kardan,
   'bulut': _bulut,
   'karpuz': _karpuz,
-  'limon': _limon,
+  'limon': limonCelebration,
   'avokado': _avokado,
   'dondurma': _dondurma,
-  'seftali': _seftali,
 };
 
 const Map<String, CapPoseFn> g4CapPoses = {
   'kaktus': _kaktusPose,
   'bulut': _bulutPose,
   'karpuz': _karpuzPose,
-  'limon': _limonPose,
+  'limon': limonPose,
   'avokado': _avokadoPose,
   'dondurma': _dondurmaPose,
-  'seftali': _seftaliPose,
 };
 
 // --- Ortak yardimcilar -------------------------------------------------------
@@ -100,31 +99,6 @@ void _bar(Canvas cv, Offset o, double len, double w, double rot, Paint p) {
     p,
   );
   cv.restore();
-}
-
-/// Yaprak/cicek tomurcugu: 5 yapraklı cicek.
-void _blossom(
-  CelebrationContext c,
-  Canvas cv,
-  Offset o,
-  double r,
-  double rot,
-  int petal,
-  int center, [
-  double op = 1,
-]) {
-  for (var i = 0; i < 5; i++) {
-    final a = rot + i * _tau / 5;
-    _ell(
-      cv,
-      o + Offset(math.cos(a), math.sin(a)) * (r * 0.62),
-      r * 0.62,
-      r * 0.42,
-      a,
-      _pp(c, petal, op),
-    );
-  }
-  cv.drawCircle(o, r * 0.34, _pp(c, center, op));
 }
 
 double _sat(double x) => x.clamp(0.0, 1.0);
@@ -751,108 +725,6 @@ void _karpuz(Canvas cv, CelebrationContext c) {
   }
 }
 
-// --- Limon: sikilir, damlalar sicrar -------------------------------------------
-
-const _limonHits = [0.09, 0.3];
-
-CapPose _limonPose(CelebrationContext c) {
-  var sq = 0.0;
-  for (final h in _limonHits) {
-    sq += math.sin(_sat(c.span(h, h + 0.12)) * math.pi);
-  }
-  final rel = _E.pulse(c.span(0.5, 0.7));
-  return CapPose(
-    scale: 1 - 0.1 * sq + 0.04 * rel,
-    dy: 5 * sq,
-    rotation: math.sin(c.t * _tau * 6) * 0.03 * _E.pulse(c.span(0.05, 0.55)),
-  );
-}
-
-void _limon(Canvas cv, CelebrationContext c) {
-  final o = c.capCenter;
-  final cw = c.capWidth;
-  const per = 24;
-  final hits = c.reduceMotion ? [0.3] : _limonHits;
-  for (var e = 0; e < hits.length; e++) {
-    final hit = hits[e];
-    final tau0 = c.reduceMotion ? 0.0 : c.elapsed - (hit + 0.05) * _E.duration;
-    for (var i = 0; i < per; i++) {
-      final id = e * 40 + i;
-      final tau = c.reduceMotion
-          ? 0.12 + 0.5 * c.rand(id, 8)
-          : tau0 - c.rand(id, 6) * 0.06;
-      if (tau < 0) continue;
-      final side = (c.rand(id, 1) - 0.5) * 2;
-      final a = -math.pi / 2 + side * 1.35;
-      final sp = 170 + 150 * c.rand(id, 2);
-      final start = o + Offset(side * cw * 0.3, -cw * 0.1);
-      final v = Offset(math.cos(a) * sp, math.sin(a) * sp);
-      final p = start + v * tau + Offset(0, 0.5 * 540 * tau * tau);
-      final vel = v + Offset(0, 540 * tau);
-      final life = c.reduceMotion ? 1.0 : _sat(1 - (c.t - 0.72) / 0.22);
-      if (life <= 0) continue;
-      final r = 4.2 + 4.2 * c.rand(id, 3);
-      final ang = math.atan2(vel.dy, vel.dx);
-      _drop(cv, p, r, ang, _pp(c, i % 3 == 0 ? 0xFFE97A : 0xF5D400, life));
-      cv.drawCircle(
-        p + Offset(-r * 0.3, -r * 0.3),
-        r * 0.28,
-        _pp(c, 0xFFFFFF, 0.8 * life),
-      );
-    }
-    // Sikma halkasi.
-    final ring = c.reduceMotion ? 0.0 : c.span(hit, hit + 0.18);
-    if (ring > 0 && ring < 1) {
-      _ell(
-        cv,
-        o + Offset(0, cw * 0.05),
-        cw * (0.4 + 0.5 * _E.easeOut(ring)),
-        cw * (0.3 + 0.28 * _E.easeOut(ring)),
-        0,
-        _stroke(c, 0xFFF08A, 3, 0.9 * (1 - ring)),
-      );
-    }
-  }
-  // Sudaki halkalar ve damlama.
-  final g = c.glass;
-  for (var i = 0; i < 5; i++) {
-    final base = (c.reduceMotion ? 0.45 : 0.36) + i * 0.11;
-    final ph = c.reduceMotion ? 0.35 + 0.1 * i : _sat((c.t - base) / 0.2);
-    if (ph <= 0 || ph >= 1) continue;
-    final x = g.left + g.width * (0.2 + 0.6 * c.rand(i, 11));
-    _ell(
-      cv,
-      Offset(x, c.waterY + 1),
-      4 + 14 * ph,
-      1.6 + 4 * ph,
-      0,
-      _stroke(c, 0xFFFFFF, 2, 0.8 * (1 - ph)),
-    );
-  }
-  // Sag taraftan suzulen kalin damla.
-  final dr = c.reduceMotion ? 0.5 : c.span(0.34, 0.8);
-  if (dr > 0) {
-    final x = o.dx + cw * 0.36;
-    final y0 = o.dy + cw * 0.28;
-    final len = 30 * _E.easeInOut(dr * 1.4);
-    final fall = dr > 0.7 ? math.pow((dr - 0.7) / 0.3, 2) * 90 : 0.0;
-    final col = _pp(c, 0xF5D400, 1 - _sat((dr - 0.9) * 8));
-    cv.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(x - 3, y0 + fall, 6, len),
-        const Radius.circular(3),
-      ),
-      col,
-    );
-    cv.drawCircle(Offset(x, y0 + len + fall), 5.2, col);
-    cv.drawCircle(
-      Offset(x - 1.6, y0 + len + fall - 1.5),
-      1.5,
-      _pp(c, 0xFFFFFF, 0.8),
-    );
-  }
-}
-
 // --- Avokado: cekirdek ziplar --------------------------------------------------
 
 /// Bebek cekirdegin ziplama egrisi: (yukseklik 0..1, sikisma 0..1).
@@ -1072,163 +944,6 @@ void _dondurma(Canvas cv, CelebrationContext c) {
   }
 }
 
-// --- Seftali: cicek yapraklari savrulur, yanaklar kizarir ---------------------
-
-CapPose _seftaliPose(CelebrationContext c) {
-  final s = math.sin(c.t * _tau * 2.2);
-  final env = _E.pulse(c.span(0.04, 0.9));
-  return CapPose(
-    rotation: s * 0.04 * env,
-    dy: -2.2 * math.sin(c.t * _tau * 2.2 + 1.2).abs() * env,
-  );
-}
-
-void _seftali(Canvas cv, CelebrationContext c) {
-  final o = c.capCenter;
-  final cw = c.capWidth;
-  final k = _ck(c);
-  const cols = [0xFFB3C1, 0xF7B8A0, 0xFF9A62, 0xF8A0B5, 0xFFD2B3];
-  final rect = designRect;
-
-  // Kapaktan savrulan yapraklar + gokyuzunden suzulenler.
-  const n = 30;
-  for (var i = 0; i < n; i++) {
-    final burst = i < 12;
-    final el = c.elapsed;
-    Offset pos;
-    double fade;
-    final sway = math.sin(el * (1.6 + c.rand(i, 4)) + i * 1.7);
-    if (burst) {
-      final tau = c.reduceMotion
-          ? 0.3 + 0.8 * c.rand(i, 9)
-          : el - 0.18 - c.rand(i, 6) * 0.5;
-      if (tau < 0) continue;
-      final a = -math.pi / 2 + (c.rand(i, 1) - 0.5) * 2.6;
-      final sp = 70 + 70 * c.rand(i, 2);
-      pos =
-          o +
-          Offset(
-            math.cos(a) * sp * tau + sway * 12,
-            math.sin(a) * sp * tau + 36 * tau * tau,
-          );
-      fade = _sat(1 - (c.t - 0.75) / 0.23);
-    } else {
-      final span = rect.height + 40;
-      final y =
-          rect.top -
-          20 +
-          ((c.rand(i, 2) * span + el * (38 + 34 * c.rand(i, 3))) % span);
-      final x =
-          rect.left +
-          ((c.rand(i, 5) * rect.width + el * 24 + sway * 22) % rect.width);
-      pos = Offset(x, y);
-      fade = _sat((y - rect.top) / 30) * _sat((rect.bottom - y) / 30);
-    }
-    final rot =
-        c.rand(i, 7) * 6 + el * (1 + c.rand(i, 8) * 2) * (i.isEven ? 1 : -1);
-    final r = 9 + 5.5 * c.rand(i, 10);
-    final col = cols[i % cols.length];
-    if (i % 6 == 0) {
-      _blossom(c, cv, pos, r * 1.15, rot, col, 0xF26B6B, fade);
-    } else {
-      final f = 0.45 + 0.55 * math.cos(rot * 1.4).abs();
-      cv.save();
-      cv.translate(pos.dx, pos.dy);
-      cv.rotate(rot);
-      cv.scale(1, f);
-      cv.drawPath(
-        _dropPath(r * 0.55).transform(Matrix4.rotationZ(math.pi / 2).storage),
-        _pp(c, col, fade),
-      );
-      cv.restore();
-    }
-  }
-
-  // Yanak kizarmasi (tombul kapakta yuz var; ince kapakta yok).
-  final pulse = c.reduceMotion ? 0.8 : 0.5 + 0.5 * math.sin(c.elapsed * 7);
-  final amt = c.reduceMotion
-      ? 1.0
-      : _sat(c.span(0.06, 0.2)) * _sat((1 - c.t) / 0.2 + 0.0);
-  if (!c.hasIllustratedCap && c.chubby) {
-    for (final sx in const [282.0, 398.0]) {
-      final p = c.capPt(sx, 154);
-      cv.drawOval(
-        Rect.fromCenter(
-          center: p,
-          width: 46 * k + 8 * pulse,
-          height: 26 * k + 5 * pulse,
-        ),
-        _pp(c, 0xFF5E7E, (0.28 + 0.28 * pulse) * amt),
-      );
-      cv.drawOval(
-        Rect.fromCenter(center: p, width: 30 * k, height: 17 * k),
-        _pp(c, 0xF24B6A, (0.55 + 0.35 * pulse) * amt),
-      );
-      for (var j = 0; j < 3; j++) {
-        final lx = p.dx + (j - 1) * 6.5 * k;
-        cv.drawLine(
-          Offset(lx - 1.6, p.dy + 3),
-          Offset(lx + 1.6, p.dy - 3),
-          _stroke(c, 0xFFFFFF, 1.5, 0.75 * amt),
-        );
-      }
-    }
-    // Minik kalpler.
-    for (var i = 0; i < 3; i++) {
-      final ph = c.reduceMotion
-          ? 0.3 + 0.2 * i
-          : ((c.elapsed * 0.9 + i * 0.37) % 1);
-      final base = c.capPt(i.isEven ? 398 : 282, 150);
-      _heart(
-        cv,
-        base + Offset(math.sin(ph * 6 + i) * 6, -ph * 40),
-        4.6 * (k + 0.3) * (1 - ph * 0.3),
-        _pp(c, 0xFF5E7E, 0.95 * math.sin(ph * math.pi) * amt),
-      );
-    }
-  } else if (!c.hasIllustratedCap) {
-    final p = c.capPt(340, 130);
-    cv.drawOval(
-      Rect.fromCenter(center: p, width: cw * 1.25, height: cw * 1.05),
-      _pp(c, 0xFFB3C1, 0.1 + 0.12 * pulse),
-    );
-    for (var i = 0; i < 4; i++) {
-      final a = -2.4 + i * 0.55;
-      _star(
-        c,
-        cv,
-        p + Offset(math.cos(a), math.sin(a)) * (cw * 0.62),
-        3.4,
-        0xFFFFFF,
-        0.6 + 0.4 * math.sin(c.elapsed * 5 + i),
-      );
-    }
-  }
-}
-
-void _heart(Canvas cv, Offset o, double r, Paint p) {
-  final path = Path()
-    ..moveTo(o.dx, o.dy + r * 0.9)
-    ..cubicTo(
-      o.dx - r * 1.6,
-      o.dy - r * 0.1,
-      o.dx - r * 0.7,
-      o.dy - r * 1.3,
-      o.dx,
-      o.dy - r * 0.4,
-    )
-    ..cubicTo(
-      o.dx + r * 0.7,
-      o.dy - r * 1.3,
-      o.dx + r * 1.6,
-      o.dy - r * 0.1,
-      o.dx,
-      o.dy + r * 0.9,
-    )
-    ..close();
-  cv.drawPath(path, p);
-}
-
 // =============================================================================
 // DONGULER: hedefte surekli oynayan, sarmasiz (periyodik) kutlamalar. Her sey
 // c.loop (0..1, 3.2 sn) fonksiyonu; parcaciklarin evresi sarar, tur basinda
@@ -1242,10 +957,9 @@ const Map<String, SignatureCelebration> g4Loops = {
   'kardanadam': _kardanLoop,
   'bulut': _bulutLoop,
   'karpuz': _karpuzLoop,
-  'limon': _limonLoop,
+  'limon': limonLoop,
   'avokado': _avokadoLoop,
   'dondurma': _dondurmaLoop,
-  'seftali': _seftaliLoop,
 };
 
 /// Döngü evresi için kapak pozları.
@@ -1254,10 +968,9 @@ const Map<String, CapPoseFn> g4LoopPoses = {
   'kardanadam': _kardanLoopPose,
   'bulut': _bulutLoopPose,
   'karpuz': _karpuzLoopPose,
-  'limon': _limonLoopPose,
+  'limon': limonLoopPose,
   'avokado': _avokadoLoopPose,
   'dondurma': _dondurmaLoopPose,
-  'seftali': _seftaliLoopPose,
 };
 
 double _fr(double x) => x - x.floorToDouble();
@@ -1671,102 +1384,6 @@ void _karpuzLoop(Canvas cv, CelebrationContext c) {
   }
 }
 
-// --- Limon: sikilir, meyve suyu periyodik fiskirir ---------------------------
-
-CapPose _limonLoopPose(CelebrationContext c) {
-  final x = _fr(c.loop * 2);
-  final sq = _bell(x / 0.28);
-  final rel = _bell((x - 0.28) / 0.3);
-  return CapPose(
-    scale: 1 - 0.1 * sq + 0.04 * rel,
-    dy: 5 * sq,
-    rotation: 0.025 * _sn(c, 4),
-  );
-}
-
-void _limonLoop(Canvas cv, CelebrationContext c) {
-  final o = c.capCenter;
-  final cw = c.capWidth;
-  final x = _fr(c.loop * 2);
-  const g = 540.0;
-  for (var i = 0; i < 30; i++) {
-    final ph = _fr(c.loop * 2 - 0.12 - 0.06 * c.rand(i, 6));
-    final tau = ph * 1.6;
-    final side = (c.rand(i, 1) - 0.5) * 2;
-    final a = -math.pi / 2 + side * 1.35;
-    final sp = 170 + 150 * c.rand(i, 2);
-    final v = Offset(math.cos(a) * sp, math.sin(a) * sp);
-    final start = o + Offset(side * cw * 0.3, -cw * 0.1);
-    final p = start + v * tau + Offset(0, 0.5 * g * tau * tau);
-    final vel = v + Offset(0, g * tau);
-    final fade = _sat((0.95 - ph) / 0.2) * _sat(ph * 20);
-    if (fade <= 0.01) continue;
-    final r = 4.2 + 4.2 * c.rand(i, 3);
-    _drop(
-      cv,
-      p,
-      r,
-      math.atan2(vel.dy, vel.dx),
-      _pp(c, i % 3 == 0 ? 0xFFE97A : 0xF5D400, fade),
-    );
-    cv.drawCircle(
-      p + Offset(-r * 0.3, -r * 0.3),
-      r * 0.28,
-      _pp(c, 0xFFFFFF, 0.8 * fade),
-    );
-  }
-  final ring = (x - 0.1) / 0.3;
-  if (ring > 0 && ring < 1) {
-    _ell(
-      cv,
-      o + Offset(0, cw * 0.05),
-      cw * (0.4 + 0.5 * _E.easeOut(ring)),
-      cw * (0.3 + 0.28 * _E.easeOut(ring)),
-      0,
-      _stroke(c, 0xFFF08A, 3, 0.9 * (1 - ring)),
-    );
-  }
-  // Sudaki halkalar.
-  final gl = c.glass;
-  for (var i = 0; i < 3; i++) {
-    final ph = _fr(c.loop * 2 + i / 3);
-    _ell(
-      cv,
-      Offset(
-        gl.left + gl.width * (0.25 + 0.25 * i + 0.1 * c.rand(i, 11)),
-        c.waterY + 1,
-      ),
-      4 + 14 * ph,
-      1.6 + 4 * ph,
-      0,
-      _stroke(c, 0xFFFFFF, 2, 0.75 * (1 - ph) * _sat(ph * 10)),
-    );
-  }
-  // Suzulen kalin damla (turda bir).
-  final u = _fr(c.loop);
-  final fade = _sat(u * 10) * (1 - _sat((u - 0.9) * 10));
-  if (fade > 0.01) {
-    final px = o.dx + cw * 0.36;
-    final y0 = o.dy + cw * 0.28;
-    final len = 30 * _E.easeInOut(u / 0.6);
-    final fall = u > 0.6 ? math.pow((u - 0.6) / 0.4, 2) * 90 : 0.0;
-    final col = _pp(c, 0xF5D400, fade);
-    cv.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(px - 3, y0 + fall, 6, len),
-        const Radius.circular(3),
-      ),
-      col,
-    );
-    cv.drawCircle(Offset(px, y0 + len + fall), 5.2, col);
-    cv.drawCircle(
-      Offset(px - 1.6, y0 + len + fall - 1.5),
-      1.5,
-      _pp(c, 0xFFFFFF, 0.8 * fade),
-    );
-  }
-}
-
 // --- Avokado: cekirdek surekli ziplar -----------------------------------------
 
 /// Ziplama evresi 0..1 (inis x=0'da; tur sinirinda cekirdek havada).
@@ -1930,104 +1547,5 @@ void _dondurmaLoop(Canvas cv, CelebrationContext c) {
       wd * 0.2,
       _pp(c, 0xFFFFFF, 0.65 * fade),
     );
-  }
-}
-
-// --- Seftali: yapraklar suzulur, yanaklar nabiz gibi kizarir ------------------
-
-CapPose _seftaliLoopPose(CelebrationContext c) =>
-    CapPose(rotation: 0.045 * _sn(c, 2), dy: -2.4 * _breath(c, 2));
-
-void _seftaliLoop(Canvas cv, CelebrationContext c) {
-  final o = c.capCenter;
-  final cw = c.capWidth;
-  final k = _ck(c);
-  const cols = [0xFFB3C1, 0xF7B8A0, 0xFF9A62, 0xF8A0B5, 0xFFD2B3];
-  final rect = designRect;
-  for (var i = 0; i < 30; i++) {
-    final u = _ph(c, i, 1);
-    final n = 1 + i % 3;
-    final sway = math.sin(_tau * (u * n + c.rand(i, 4)));
-    Offset pos;
-    double fade;
-    if (i < 10) {
-      // Kapaktan savrulan yapraklar.
-      final a = -math.pi / 2 + (c.rand(i, 1) - 0.5) * 2.6;
-      final sp = 90 + 80 * c.rand(i, 2);
-      pos =
-          o +
-          Offset(
-            math.cos(a) * sp * u * 1.2 + sway * 12,
-            math.sin(a) * sp * u * 1.2 + 70 * u * u,
-          );
-      fade = _bell(u);
-    } else {
-      final y = rect.top - 10 + c.rand(i, 2) * (rect.height - 160) + u * 190;
-      final px = rect.left + c.rand(i, 5) * rect.width + sway * 22 + u * 30;
-      pos = Offset(rect.left + ((px - rect.left) % rect.width), y);
-      fade =
-          _bell(u) * _sat((y - rect.top) / 24) * _sat((rect.bottom - y) / 24);
-    }
-    final rot = c.rand(i, 7) * 6 + _tau * u * n * (i.isEven ? 1 : -1);
-    final r = 9 + 5.5 * c.rand(i, 10);
-    final col = cols[i % cols.length];
-    if (i % 6 == 0) {
-      _blossom(c, cv, pos, r * 1.15, rot, col, 0xF26B6B, fade);
-    } else {
-      _petal(cv, pos, r * 0.62, rot, rot * 1.4, _pp(c, col, fade));
-    }
-  }
-  final pulse = 0.5 + 0.5 * _sn(c, 2);
-  if (!c.hasIllustratedCap && c.chubby) {
-    for (final sx in const [282.0, 398.0]) {
-      final p = c.capPt(sx, 154);
-      cv.drawOval(
-        Rect.fromCenter(
-          center: p,
-          width: 46 * k + 8 * pulse,
-          height: 26 * k + 5 * pulse,
-        ),
-        _pp(c, 0xFF5E7E, 0.28 + 0.28 * pulse),
-      );
-      cv.drawOval(
-        Rect.fromCenter(center: p, width: 30 * k, height: 17 * k),
-        _pp(c, 0xF24B6A, 0.55 + 0.35 * pulse),
-      );
-      for (var j = 0; j < 3; j++) {
-        final lx = p.dx + (j - 1) * 6.5 * k;
-        cv.drawLine(
-          Offset(lx - 1.6, p.dy + 3),
-          Offset(lx + 1.6, p.dy - 3),
-          _stroke(c, 0xFFFFFF, 1.5, 0.75),
-        );
-      }
-    }
-    for (var i = 0; i < 4; i++) {
-      final ph = _fr(c.loop + i * 0.25);
-      final base = c.capPt(i.isEven ? 398 : 282, 150);
-      _heart(
-        cv,
-        base + Offset(math.sin(ph * 6 + i) * 6, -ph * 42),
-        4.8 * (k + 0.3) * (1 - ph * 0.3),
-        _pp(c, 0xFF5E7E, 0.95 * _bell(ph)),
-      );
-    }
-  } else if (!c.hasIllustratedCap) {
-    final p = c.capPt(340, 130);
-    cv.drawOval(
-      Rect.fromCenter(center: p, width: cw * 1.25, height: cw * 1.05),
-      _pp(c, 0xFFB3C1, 0.1 + 0.12 * pulse),
-    );
-    for (var i = 0; i < 4; i++) {
-      final a = -2.4 + i * 0.55;
-      _star(
-        c,
-        cv,
-        p + Offset(math.cos(a), math.sin(a)) * (cw * 0.62),
-        3.4,
-        0xFFFFFF,
-        0.6 + 0.4 * _sn(c, 2, i / 4),
-      );
-    }
   }
 }

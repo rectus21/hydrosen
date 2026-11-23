@@ -124,7 +124,7 @@ void main() {
         2000,
       );
       await capture('howl');
-      await tester.tap(find.text('Geri al'));
+      await tester.tap(find.byKey(const ValueKey('quick-remove-1')));
       await tester.pumpAndSettle();
       expect(
         tester.widget<ThermosView>(find.byType(ThermosView)).happy,

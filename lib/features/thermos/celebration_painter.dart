@@ -31,6 +31,7 @@ class CelebrationPainter extends CustomPainter {
     this.loop,
     this.loopCount = 0,
     this.intensity = 1.0,
+    this.sceneToLocal,
   });
 
   /// Hedef aşıldığı sürece oynayan döngü evresi için çizici. [loop] 0..1
@@ -45,6 +46,7 @@ class CelebrationPainter extends CustomPainter {
     bool reduceMotion = false,
     double level = 1.0,
     double intensity = loopIntensity,
+    Offset? Function(double u, double v)? sceneToLocal,
   }) {
     final l = loop - loop.floorToDouble();
     return CelebrationPainter(
@@ -56,6 +58,7 @@ class CelebrationPainter extends CustomPainter {
       loop: l,
       loopCount: loopCount,
       intensity: intensity,
+      sceneToLocal: sceneToLocal,
     );
   }
 
@@ -63,6 +66,26 @@ class CelebrationPainter extends CustomPainter {
   static const loopPeriod = 3.2;
   static const loopT0 = 0.18, loopT1 = 0.88;
   static const loopIntensity = 0.8;
+
+  /// Sahne görselindeki normalleştirilmiş noktayı (u, v) bu katmanın yerel
+  /// konumuna çeviren işlev (sahne yoksa null döner).
+  final Offset? Function(double u, double v)? sceneToLocal;
+
+  Size _size = Size.zero;
+
+  /// Sahne noktasını kart (tasarım) koordinatına çevirir.
+  Offset? sceneToDesign(double u, double v) {
+    final p = sceneToLocal?.call(u, v);
+    if (p == null || _size.isEmpty) return null;
+    final s = math.min(
+      _size.width / designRect.width,
+      _size.height / designRect.height,
+    );
+    return Offset(
+      (p.dx - (_size.width - designRect.width * s) / 2) / s + designRect.left,
+      (p.dy - (_size.height - designRect.height * s) / 2) / s + designRect.top,
+    );
+  }
 
   /// Döngü evresi 0..1 (giriş kutlamasında null).
   final double? loop;
@@ -136,6 +159,7 @@ class CelebrationPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    _size = size;
     final scale = math.min(
       size.width / designRect.width,
       size.height / designRect.height,
@@ -147,9 +171,12 @@ class CelebrationPainter extends CustomPainter {
     );
     canvas.scale(scale);
     canvas.translate(-designRect.left, -designRect.top);
-    canvas.clipRRect(
-      RRect.fromRectAndRadius(designRect, const Radius.circular(24)),
-    );
+    // Sprite tabanlı kutlamalar (fxThemeIds) kart kırpmasına tabi değildir.
+    if (!fxThemeIds.contains(theme.id)) {
+      canvas.clipRRect(
+        RRect.fromRectAndRadius(designRect, const Radius.circular(24)),
+      );
+    }
     final signature =
         (looping ? signatureLoops[theme.id] : null) ??
         signatureCelebrations[theme.id];

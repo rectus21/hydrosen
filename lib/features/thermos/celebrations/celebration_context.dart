@@ -133,6 +133,9 @@ class CelebrationContext {
   /// Başta hızlı belirip sonda sönen genel zarf (0..1).
   double get alpha => painter.alphaEnvelope;
 
+  /// Tema sahnesindeki normalleştirilmiş noktanın (u, v) kart koordinatı.
+  Offset? sceneUv(double u, double v) => painter.sceneToDesign(u, v);
+
   bool get hasIllustratedCap => IllustratedArtwork.byId.containsKey(theme.id);
 
   /// Resimli kapakların yüzü eski vektör kapaklardan daha büyük ve daha
@@ -181,6 +184,57 @@ class CelebrationContext {
   }
 
   double get _k => chubby ? chubbyCapScale : 1.0;
+
+  /// Resimli kapak görselinin (u, v) noktası (0..1; sol-üst = 0,0), tasarım
+  /// koordinatında (tombul ölçeği ve kapak pozu dahil). Resimli kapak yoksa
+  /// kapak merkezi.
+  Offset capImagePt(double u, double v) {
+    final art = IllustratedArtwork.byId[theme.id];
+    if (art == null) return capCenter;
+    final r = IllustratedArtwork.capDestinationRect(
+      shape,
+      id: theme.id,
+      happy: true,
+      image: art.happy,
+    );
+    return capPt(r.left + r.width * u, r.top + r.height * v);
+  }
+
+  /// Resimli kapağı, [ThermosPainter]'ın çizdiği gibi (kapak pozu ve tombul
+  /// ölçeği dahil) kutlama katmanının üstüne yeniden çizer. Kapağın ARKASINDA
+  /// kalması gereken efektler (gökkuşağı, bayrak direği...) için: efekti çiz,
+  /// sonra bunu çağır. Resimli kapak yoksa hiçbir şey yapmaz.
+  void drawCapOver(Canvas canvas) {
+    final art = IllustratedArtwork.byId[theme.id];
+    if (art == null) return;
+    final image = art.happy;
+    final rect = IllustratedArtwork.capDestinationRect(
+      shape,
+      id: theme.id,
+      happy: true,
+      image: image,
+    );
+    canvas.save();
+    if (!pose.isIdentity) {
+      final pivotY = chubby ? 208.0 : 178.0;
+      canvas.translate(340 + pose.dx, pivotY + pose.dy);
+      canvas.rotate(pose.rotation);
+      canvas.scale(pose.scale);
+      canvas.translate(-340, -pivotY);
+    }
+    if (chubby) {
+      canvas.translate(340, 208);
+      canvas.scale(chubbyCapScale);
+      canvas.translate(-340, -208);
+    }
+    canvas.drawImageRect(
+      image,
+      IllustratedArtwork.capSourceRect(theme.id, image, happy: true),
+      rect,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+    canvas.restore();
+  }
 
   Offset get capCenter => capPt(_raw.center.dx, _raw.center.dy);
   Offset get capTop => capPt(_raw.center.dx, _raw.top);

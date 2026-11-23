@@ -11,6 +11,32 @@ class IllustratedArtwork {
   final ui.Image? scene;
   static final byId = <String, IllustratedArtwork>{};
 
+  /// Sahnenin üst bandının (uygulama çubuğunun arkası) ortalama parlaklığı
+  /// 0..1; başlık/ikon rengini seçmek için. Sahnesiz temalarda yoktur.
+  static final topLuma = <String, double>{};
+
+  static Future<double> _sampleTopLuma(ui.Image scene) async {
+    const w = 16, h = 3;
+    final rec = ui.PictureRecorder();
+    ui.Canvas(rec).drawImageRect(
+      scene,
+      ui.Rect.fromLTWH(0, 0, scene.width.toDouble(), scene.height * 0.08),
+      ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+      ui.Paint()..filterQuality = ui.FilterQuality.medium,
+    );
+    final small = await rec.endRecording().toImage(w, h);
+    final data = await small.toByteData();
+    small.dispose();
+    if (data == null) return 0.5;
+    var sum = 0.0;
+    for (var i = 0; i < w * h; i++) {
+      sum += 0.2126 * data.getUint8(i * 4) +
+          0.7152 * data.getUint8(i * 4 + 1) +
+          0.0722 * data.getUint8(i * 4 + 2);
+    }
+    return sum / (w * h * 255);
+  }
+
   /// Some generated caps have much wider transparent margins than the others.
   /// Crop those margins while keeping the collar at the same bottle position.
   static ui.Rect capSourceRect(
@@ -40,6 +66,12 @@ class IllustratedArtwork {
         side,
       );
     }
+    if (id == 'astronot') {
+      // Kaskın PNG'sinde kenarlarda (x=0 sütunu, son satır) yarı saydam bir
+      // çerçeve izi ve çenenin altında boş pay var; yalnız kask gövdesini al.
+      final k = image.width / 512;
+      return ui.Rect.fromLTWH(6 * k, 0, 500 * k, 430 * k);
+    }
     return ui.Rect.fromLTWH(
       0,
       0,
@@ -47,6 +79,23 @@ class IllustratedArtwork {
       image.height.toDouble(),
     );
   }
+
+  /// Bazı kapak çizimleri ekrana sığması ya da termosa oranı için kare
+  /// hedefin içinde küçültülür/büyütülür (tutamak: boyun çizgisi, yani
+  /// görünür alt sınırın orta noktası; kapak boyunda sabit kalır).
+  static const capScaleOf = <String, double>{
+    // Boynuz/kulaklar ana ekranda üstten kırpılıyordu.
+    'tekboynuz': 0.78,
+    // Şapka ve bayrak üst çubuğun altında kalsın.
+    'korsan': 0.80,
+    // Kafa ve kulaklar termosa göre biraz daha iri (+%12).
+    'fil': 1.12,
+    // Cam damla kapağın halkası (422 px) boyun genişliğini aşıyordu; halka
+    // boyun genişliğine (slim: 320 kaynak px) denk gelsin.
+    'klasik': 0.78,
+    // Rectus: limon başı %20 büyüsün (0.78 × 1.2).
+    'limon': 0.94,
+  };
 
   /// Ham kapak dikdörtgeni. Tombul termosun çizicisi bu dikdörtgeni daha
   /// sonra [chubbyCapScale] ile küçültür. Her iki şeklin de görsel bileziği
@@ -64,6 +113,30 @@ class IllustratedArtwork {
     if (id == null || image == null || id == 'panda' || id == 'baykus') {
       return base;
     }
+    final scale = capScaleOf[id] ?? 1.0;
+    ui.Rect fit(ui.Rect r) {
+      if (scale == 1.0) return r;
+      // Boyun çizgisi: base.bottom (görünür alt sınır hep orada).
+      final ax = base.center.dx, ay = base.bottom;
+      return ui.Rect.fromLTRB(
+        ax + (r.left - ax) * scale,
+        ay + (r.top - ay) * scale,
+        ax + (r.right - ax) * scale,
+        ay + (r.bottom - ay) * scale,
+      );
+    }
+
+    if (id == 'astronot') {
+      // Kaynak: kask gövdesi (6..506 x 0..430); görünür alt sınır y=421.
+      final k = base.width / 512;
+      final r = ui.Rect.fromLTWH(
+        base.left + 6 * k,
+        base.bottom - 421 * k,
+        500 * k,
+        430 * k,
+      );
+      return fit(r);
+    }
 
     // Kapaksız görsellerin görünür alt sınırları farklı yüksekliklerde. Görseli
     // esnetmeden bu sınırı termos boynuna sabitle; tüm başlar Tilki ile aynı
@@ -75,7 +148,6 @@ class IllustratedArtwork {
       'balina': (456, 450),
       'ahtapot': (489, 489),
       'aslan': (487, 483),
-      'astronot': (510, 510),
       'avokado': (491, 485),
       'ayi': (421, 421),
       'boga': (478, 480),
@@ -84,13 +156,16 @@ class IllustratedArtwork {
       'civciv': (500, 512),
       'dondurma': (512, 512),
       'ejderha': (460, 475),
-      'fil': (485, 485),
+      // Görünür alt sınır gerçekte 438; eski 485 başı boyunun üstünde
+      // yüzdürüyordu.
+      'fil': (439, 438),
       'fok': (482, 484),
       'geyik': (491, 491),
       'gece': (475, 465),
       'inek': (471, 471),
       'kaktus': (442, 443),
-      'kamp': (499, 504),
+      'kamp': (491, 491),
+      'klasik': (401, 401),
       'kaplan': (477, 474),
       'kardanadam': (505, 504),
       'karpuz': (484, 484),
@@ -99,27 +174,35 @@ class IllustratedArtwork {
       'koala': (472, 466),
       'korsan': (486, 491),
       'koyun': (491, 489),
-      'limon': (468, 466),
+      'limon': (492, 492),
       'maviejderha': (478, 482),
       'maymun': (473, 474),
-      'okyanus': (480, 489),
+      'okyanus': (492, 492),
       'penguen': (475, 486),
       'rakun': (472, 472),
       'robot': (474, 480),
-      'seftali': (410, 410),
       'sihirbaz': (487, 483),
       'sincap': (485, 489),
       'susamuru': (488, 487),
       'tavsan': (512, 512),
       'tilki': (506, 508),
       'tekboynuz': (501, 502),
+      'yesilelma': (492, 492),
+      'futbol': (492, 492),
+      'basketbol': (492, 492),
+      'voleybol': (492, 492),
+      'eczaci': (492, 492),
+      'kedi': (492, 492),
+      'pofuduk': (492, 492),
+      'karaejderha': (492, 492),
+      'yarisarabasi': (492, 492),
     };
     final bottoms = opaqueBottom[id];
     if (bottoms == null) return base;
     final bottom = happy ? bottoms.$2 : bottoms.$1;
     final transparentBottom = image.height - image.height * (bottom / 512);
     final dy = base.height * transparentBottom / image.height;
-    return base.shift(ui.Offset(0, dy));
+    return fit(base.shift(ui.Offset(0, dy)));
   }
 
   static Future<void> load() async {
@@ -141,6 +224,7 @@ class IllustratedArtwork {
       'astronot',
       'kardanadam',
       'kopek',
+      'klasik',
       'cilek',
       'tekboynuz',
       'kamp',
@@ -166,7 +250,15 @@ class IllustratedArtwork {
       'limon',
       'avokado',
       'dondurma',
-      'seftali',
+      'yesilelma',
+      'futbol',
+      'basketbol',
+      'voleybol',
+      'eczaci',
+      'karaejderha',
+      'yarisarabasi',
+      'kedi',
+      'pofuduk',
     ]) {
       if (byId.containsKey(id)) continue;
       final images = <ui.Image>[];
@@ -198,6 +290,11 @@ class IllustratedArtwork {
         try {
           scene = await decode('assets/scenes/$id.png');
           images.add(scene);
+          try {
+            topLuma[id] = await _sampleTopLuma(scene);
+          } catch (_) {
+            // Parlaklık örneği alınamazsa tema varsayılan renkte kalır.
+          }
         } catch (_) {
           // New illustrated caps inherit the theme's existing vector scene.
         }

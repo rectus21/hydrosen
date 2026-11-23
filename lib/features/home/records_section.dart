@@ -282,11 +282,13 @@ class _WeeklyChart extends StatelessWidget {
                 color: scheme.onSurfaceVariant,
               ),
               const SizedBox(width: 5),
-              Text(
+              Flexible(child: Text(
                 'Ayrıntılar için bir güne dokun',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: scheme.onSurfaceVariant),
-              ),
+              )),
             ],
           ),
         ],

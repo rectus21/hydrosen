@@ -6,7 +6,7 @@ import '../celebration_painter.dart';
 import '../illustrated_artwork.dart';
 import 'celebration_context.dart';
 import 'celebrations_g3_kit.dart';
-import 'celebrations_g3_land.dart' show antlerPath;
+import 'celebrations_g3_land.dart' show antlerPath, filJet, filShimmer, filTrunkTip;
 
 // GRUP 3 - SUREKLI DONGULER (kara hayvanlari). Hepsi ctx.loop degerinin tam
 // sayi katlarinin periyodik fonksiyonlaridir; tur sonunda sicrama/solma olmaz.
@@ -98,15 +98,13 @@ void _aslan(Canvas cv, Ctx c, double l) {
 // --- Fil -----------------------------------------------------------------
 
 CapPose filLoopPose(Ctx c) =>
-    CapPose(rotation: -0.04 * sn(c.loop, 2), dy: -2 * hump(c.loop, 4));
+    CapPose(rotation: 0.03 * sn(c.loop, 2), dy: -2 * hump(c.loop, 4));
 
 void _fil(Canvas cv, Ctx c, double l) {
-  final tip = c.hasIllustratedCap
-      ? c.capTop + Offset(0, c.capWidth * 0.3)
-      : at(c, 374, 174, 361, 148);
+  final tip = filTrunkTip(c);
   final k = capK(c);
-  const n = 64;
-  const life = 0.3, g = 520.0;
+  const n = 48;
+  const life = 0.3, g = 240.0;
   const cols = [0x4BA3E3, 0x9AD8F5, 0xFFFFFF, 0x2A93C9];
   for (var i = 0; i < n; i++) {
     final te = i / n;
@@ -114,17 +112,16 @@ void _fil(Canvas cv, Ctx c, double l) {
     if (age >= life) continue;
     final u = age / life;
     final tt = age * 3.2;
-    final vx = (115 + 75 * cs(te, 1)) * (0.88 + 0.24 * c.rand(i, 1));
-    final vy = -(300 + 60 * sn(te, 2, 0.1) + 40 * c.rand(i, 2));
+    final vx = 95 + 55 * c.rand(i, 1);
+    final vy = -(30 + 30 * c.rand(i, 2));
     final p = tip + Offset(vx * tt, vy * tt + 0.5 * g * tt * tt);
     final ang = math.atan2(vy + g * tt, vx);
-    final op = clamp01(u / 0.08) * (1 - clamp01((u - 0.8) / 0.2));
-    final r = (6.2 + 3.6 * c.rand(i, 5)) * (0.95 + 0.25 * k);
+    final op = clamp01(u / 0.08) * (1 - clamp01((u - 0.6) / 0.4));
+    final r = (3.2 + 2.2 * c.rand(i, 5)) * (0.9 + 0.2 * k);
     waterDrop(c, cv, p, r, ang, op, base: cols[i % 4]);
   }
-  final burst = 0.6 + 0.4 * wv(l, 4);
-  cv.drawCircle(tip, (5 + 5 * burst) * k, glowP(c, 0xBFE6FA, 3, 0.8 * burst));
-  cv.drawCircle(tip, (7 + 7 * burst) * k, lineP(c, 0xFFFFFF, 1.6, 0.7 * burst));
+  filJet(cv, c, tip, k, 1.0, 2 * l);
+  filShimmer(cv, c, tip, k, 2 * l);
 }
 
 // --- Maymun --------------------------------------------------------------

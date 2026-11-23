@@ -756,15 +756,13 @@ void _inekLoop(Canvas canvas, CelebrationContext c) {
   final outP = ((q - 0.72) / 0.12).clamp(0.0, 1.0);
   final pop =
       inP *
-      (1 + 0.14 * math.sin(((q / 0.18).clamp(0.0, 1.0)) * math.pi)) *
+      (1 + 0.08 * math.sin(((q / 0.18).clamp(0.0, 1.0)) * math.pi)) *
       (1 - outP);
-  final top = c.capTop;
-  final ctr =
-      Offset(top.dx + (g.chubby ? 98 : 88), top.dy - (g.chubby ? 34 : 38)) +
-      Offset(0, g.w(2) * 2);
+  // Balon başın sağında, ekranın içinde (tasarım x 398..502, y 83..133).
+  final ctr = Offset(c.capCenter.dx + 110, 108) + Offset(0, g.w(2) * 2);
   if (pop > 0.02) {
     final r = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset.zero, width: 116, height: 56),
+      Rect.fromCenter(center: Offset.zero, width: 104, height: 50),
       const Radius.circular(28),
     );
     g.local(ctr, g.w(2) * 0.04, pop, () {
@@ -790,7 +788,7 @@ void _inekLoop(Canvas canvas, CelebrationContext c) {
         text: const TextSpan(
           text: 'Möö!',
           style: TextStyle(
-            fontSize: 30,
+            fontSize: 27,
             fontWeight: FontWeight.w900,
             color: Color(0xFF2C3A44),
             letterSpacing: 0.5,

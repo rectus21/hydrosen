@@ -216,8 +216,29 @@ class _ThermosViewState extends State<ThermosView>
                 );
               }
             }
+            // Limon: limonata rengi ve duran/hareketli şemsiye durumu.
+            var lemonade = 0.0, sway = 0.0;
+            var umbrella = true;
+            if (widget.theme.id == 'limon') {
+              double sp(double t, double a, double b) =>
+                  ((t - a) / (b - a)).clamp(0.0, 1.0);
+              if (poseOff) {
+                lemonade = (ct != null || lp != null || widget.happy) ? 1 : 0;
+              } else if (ct != null) {
+                lemonade =
+                    sp(ct, 0, 0.3) *
+                    (widget.happy ? 1 : 1 - sp(ct, 0.9, 1));
+                umbrella = !(ct > 0.35 && ct < 0.84);
+              } else if (lp != null || widget.happy) {
+                lemonade = 1;
+                if (lp != null) sway = 0.07 * math.sin(lp * 2 * math.pi);
+              }
+            }
             return CustomPaint(
               painter: ThermosPainter(
+                lemonade: lemonade,
+                umbrellaOn: umbrella,
+                umbrellaSway: sway,
                 shape: widget.shape,
                 theme: widget.theme,
                 level: _shown,

@@ -1,4 +1,8 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../settings/settings_controller.dart';
 import '../thermos/thermos_theme.dart';
@@ -9,6 +13,8 @@ const String kThemeOtherCategory = 'Diğer';
 const List<String> kThemeCategories = [
   'Hayvanlar',
   'Meyve ve tatlılar',
+  'Spor',
+  'Meslekler',
   'Fantastik ve uzay',
   'Doğa ve mevsim',
   kThemeOtherCategory,
@@ -18,6 +24,7 @@ const List<String> kThemeCategories = [
 const Map<String, String> kThemeCategoryOf = {
   // Hayvanlar
   'kedi': 'Hayvanlar',
+  'pofuduk': 'Hayvanlar',
   'kopek': 'Hayvanlar',
   'tavsan': 'Hayvanlar',
   'penguen': 'Hayvanlar',
@@ -50,12 +57,20 @@ const Map<String, String> kThemeCategoryOf = {
   'limon': 'Meyve ve tatlılar',
   'avokado': 'Meyve ve tatlılar',
   'dondurma': 'Meyve ve tatlılar',
-  'seftali': 'Meyve ve tatlılar',
+  'yesilelma': 'Meyve ve tatlılar',
+  // Spor
+  'futbol': 'Spor',
+  'basketbol': 'Spor',
+  'voleybol': 'Spor',
+  'yarisarabasi': 'Spor',
+  // Meslekler
+  'eczaci': 'Meslekler',
   // Fantastik ve uzay
   'tekboynuz': 'Fantastik ve uzay',
   'astronot': 'Fantastik ve uzay',
   'ejderha': 'Fantastik ve uzay',
   'maviejderha': 'Fantastik ve uzay',
+  'karaejderha': 'Fantastik ve uzay',
   'robot': 'Fantastik ve uzay',
   'korsan': 'Fantastik ve uzay',
   'sihirbaz': 'Fantastik ve uzay',
@@ -84,147 +99,99 @@ Map<String, List<ThermosTheme>> groupThemesByCategory([
   return out;
 }
 
-const _scrim = Color(0xB3101418);
-
-/// Yüklenirken sakin renk gösteren, çözümleme boyutu sınırlı varlık resmi.
-class _CatalogImage extends StatelessWidget {
-  const _CatalogImage(
-    this.path, {
-    required this.cacheWidth,
-    this.fit = BoxFit.cover,
-  });
-
-  final String path;
-  final int cacheWidth;
-  final BoxFit fit;
-
-  @override
-  Widget build(BuildContext context) => Image.asset(
-    path,
-    fit: fit,
-    cacheWidth: cacheWidth,
-    gaplessPlayback: true,
-    filterQuality: FilterQuality.medium,
-    errorBuilder: (_, _, _) => const SizedBox.shrink(),
-    frameBuilder: (context, child, frame, sync) => sync
-        ? child
-        : AnimatedOpacity(
-            opacity: frame == null ? 0 : 1,
-            duration: const Duration(milliseconds: 180),
-            child: child,
-          ),
-  );
+/// Kapak görseli ve opak sınırları (yalnız görünür kısım; avatarda ortalanır).
+class _CapImage {
+  const _CapImage(this.image, this.bounds);
+  final ui.Image image;
+  final Rect bounds;
 }
 
-String _scene(ThermosTheme t) => 'assets/scenes/${t.id}.png';
-String _cap(ThermosTheme t, {bool happy = false}) =>
-    'assets/caps/${t.id}_${happy ? 'happy' : 'normal'}.png';
+final _capCache = <String, Future<_CapImage?>>{};
 
-class _NameStrip extends StatelessWidget {
-  const _NameStrip(this.name);
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    constraints: const BoxConstraints(minHeight: 34),
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-    color: _scrim,
-    alignment: Alignment.center,
-    child: Text(
-      name,
-      maxLines: 2,
-      softWrap: true,
-      overflow: TextOverflow.clip,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 12.5,
-        height: 1.15,
-        fontWeight: FontWeight.w700,
-      ),
-    ),
-  );
-}
-
-/// Seçili temayı büyük gösteren üst kart.
-class _SelectedHero extends StatelessWidget {
-  const _SelectedHero({required this.theme});
-
-  final ThermosTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Semantics(
-      label: 'Seçili tema ${theme.name}',
-      child: Container(
-        key: const ValueKey('theme-hero'),
-        height: 150,
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: scheme.primary, width: 2),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            _CatalogImage(_scene(theme), cacheWidth: 900),
-            Positioned(
-              right: 12,
-              top: 8,
-              bottom: 8,
-              width: 120,
-              child: _CatalogImage(
-                _cap(theme),
-                cacheWidth: 400,
-                fit: BoxFit.contain,
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                color: _scrim,
-                padding: const EdgeInsets.fromLTRB(14, 8, 140, 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Seçili tema',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 11,
-                        height: 1.2,
-                      ),
-                    ),
-                    Text(
-                      theme.name,
-                      maxLines: 2,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        height: 1.15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+Future<_CapImage?> _loadCap(String id) => _capCache.putIfAbsent(id, () async {
+  try {
+    final data = await rootBundle.load('assets/caps/${id}_normal.png');
+    final codec = await ui.instantiateImageCodec(
+      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      targetWidth: 192,
+    );
+    final ui.Image img;
+    try {
+      img = (await codec.getNextFrame()).image;
+    } finally {
+      codec.dispose();
+    }
+    final bytes = await img.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (bytes == null) return _CapImage(img, Offset.zero & _sizeOf(img));
+    var minX = img.width, minY = img.height, maxX = -1, maxY = -1;
+    for (var y = 0; y < img.height; y++) {
+      for (var x = 0; x < img.width; x++) {
+        if (bytes.getUint8((y * img.width + x) * 4 + 3) > 24) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) return _CapImage(img, Offset.zero & _sizeOf(img));
+    return _CapImage(
+      img,
+      Rect.fromLTRB(
+        minX.toDouble(),
+        minY.toDouble(),
+        maxX + 1.0,
+        maxY + 1.0,
       ),
     );
+  } catch (_) {
+    return null;
   }
+});
+
+Size _sizeOf(ui.Image i) => Size(i.width.toDouble(), i.height.toDouble());
+
+class _CapPainter extends CustomPainter {
+  _CapPainter(this.cap);
+  final _CapImage cap;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final box = size.shortestSide * 0.84;
+    final b = cap.bounds;
+    final s = math.min(box / b.width, box / b.height);
+    final dst = Rect.fromCenter(
+      center: size.center(Offset.zero),
+      width: b.width * s,
+      height: b.height * s,
+    );
+    // Açık renkli kapaklar açık sahnede okunsun diye hafif gölge.
+    canvas.drawImageRect(
+      cap.image,
+      b,
+      dst.shift(const Offset(0, 2.5)),
+      Paint()
+        ..filterQuality = FilterQuality.medium
+        ..colorFilter = const ColorFilter.mode(Color(0x66000000), BlendMode.srcIn)
+        ..imageFilter = ui.ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+    );
+    canvas.drawImageRect(
+      cap.image,
+      b,
+      dst,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CapPainter old) => old.cap != cap;
 }
 
-class _ThemeCard extends StatelessWidget {
-  const _ThemeCard({
+/// Yalnız avatar: yarı saydam beyaz daire içinde kapak. Seçiliyse kalın halka.
+/// Dokununca tema hemen uygulanır; küçük "pop" animasyonu oynar.
+class _ThemeAvatar extends StatefulWidget {
+  const _ThemeAvatar({
+    super.key,
     required this.theme,
     required this.selected,
     required this.onTap,
@@ -235,59 +202,91 @@ class _ThemeCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_ThemeAvatar> createState() => _ThemeAvatarState();
+}
+
+class _ThemeAvatarState extends State<_ThemeAvatar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+  );
+  late final Animation<double> _scale = TweenSequence<double>([
+    TweenSequenceItem(
+      tween: Tween(begin: 1.0, end: 1.14).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 35,
+    ),
+    TweenSequenceItem(
+      tween: Tween(begin: 1.14, end: 1.0).chain(CurveTween(curve: Curves.easeOutBack)),
+      weight: 65,
+    ),
+  ]).animate(_pop);
+
+  @override
+  void dispose() {
+    _pop.dispose();
+    super.dispose();
+  }
+
+  void _tap() {
+    _pop.forward(from: 0);
+    widget.onTap();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final radius = BorderRadius.circular(16);
+    final t = widget.theme;
+    final initial = t.name.isEmpty ? '?' : t.name.substring(0, 1).toUpperCase();
     return Semantics(
       button: true,
-      selected: selected,
-      label: theme.name,
-      child: GestureDetector(
-        key: ValueKey('theme-card-${theme.id}'),
-        onTap: onTap,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: radius,
-            border: Border.all(
-              color: selected ? scheme.primary : scheme.outlineVariant,
-              width: selected ? 4 : 1,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _CatalogImage(_scene(theme), cacheWidth: 300),
-                Positioned(
-                  left: 8,
-                  right: 8,
-                  top: 8,
-                  bottom: 42,
-                  child: _CatalogImage(
-                    _cap(theme),
-                    cacheWidth: 300,
-                    fit: BoxFit.contain,
-                  ),
+      selected: widget.selected,
+      label: t.name,
+      excludeSemantics: true,
+      onTap: _tap,
+      child: Tooltip(
+        message: t.name,
+        child: GestureDetector(
+          key: ValueKey('theme-card-${t.id}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: _tap,
+          child: ScaleTransition(
+            scale: _scale,
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: widget.selected
+                      ? Border.all(color: const Color(0xFF1E88E5), width: 5)
+                      : null,
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: _NameStrip(theme.name),
+                child: FutureBuilder<_CapImage?>(
+                  future: _loadCap(t.id),
+                  builder: (context, snap) {
+                    final cap = snap.data;
+                    if (cap == null) {
+                      return Center(
+                        child: Text(
+                          initial,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 56,
+                            fontWeight: FontWeight.w900,
+                            shadows: const [
+                              Shadow(
+                                color: Color(0xAA000000),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return CustomPaint(painter: _CapPainter(cap));
+                  },
                 ),
-                if (selected)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: CircleAvatar(
-                      radius: 11,
-                      backgroundColor: scheme.primary,
-                      child: Icon(Icons.check, size: 15, color: scheme.onPrimary),
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
         ),
@@ -296,7 +295,7 @@ class _ThemeCard extends StatelessWidget {
   }
 }
 
-/// Kategorilere ayrılmış, kaydırmalı tema kataloğu.
+/// Kategori süzgeçli, kaydırmalı avatar ızgarası; dokununca tema uygulanır.
 class ThemeCatalog extends StatefulWidget {
   const ThemeCatalog({super.key, required this.settings, this.footer});
 
@@ -309,38 +308,12 @@ class ThemeCatalog extends StatefulWidget {
 
 class _ThemeCatalogState extends State<ThemeCatalog> {
   static const _all = 'Tümü';
-  final _scroll = ScrollController();
   late final Map<String, List<ThermosTheme>> _groups = groupThemesByCategory();
   String _filter = _all;
 
-  @override
-  void dispose() {
-    _scroll.dispose();
-    super.dispose();
+  void _select(ThermosTheme t) {
+    if (t != widget.settings.theme) widget.settings.setTheme(t);
   }
-
-  Future<void> _preview(ThermosTheme t) async {
-    final chosen = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) => _ThemePreviewSheet(theme: t, settings: widget.settings),
-    );
-    if (chosen == true && mounted && _scroll.hasClients) {
-      _scroll.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  Widget _card(ThermosTheme t) => _ThemeCard(
-    theme: t,
-    selected: t == widget.settings.theme,
-    onTap: () => _preview(t),
-  );
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -349,13 +322,19 @@ class _ThemeCatalogState extends State<ThemeCatalog> {
       final text = Theme.of(context).textTheme;
       final cats = _groups.keys.toList();
       final specific = _filter != _all && _groups.containsKey(_filter);
+      final themes = <ThermosTheme>[
+        for (final c in specific ? [_filter] : cats) ..._groups[c]!,
+      ];
+      final footer = widget.footer;
       return CustomScrollView(
-        controller: _scroll,
         slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            sliver: SliverToBoxAdapter(
-              child: _SelectedHero(theme: widget.settings.theme),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Text(
+                'Tema seç',
+                style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
             ),
           ),
           SliverToBoxAdapter(
@@ -383,155 +362,34 @@ class _ThemeCatalogState extends State<ThemeCatalog> {
               ),
             ),
           ),
-          if (specific)
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              sliver: SliverGrid.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 120 / 160,
-                ),
-                itemCount: _groups[_filter]!.length,
-                itemBuilder: (_, i) => _card(_groups[_filter]![i]),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            sliver: SliverGrid.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1,
               ),
-            )
-          else
-            SliverList.builder(
-              itemCount: cats.length,
-              itemBuilder: (context, i) {
-                final list = _groups[cats[i]]!;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              cats[i],
-                              style: text.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          Text('${list.length} tema', style: text.bodySmall),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: 160,
-                      child: ListView.separated(
-                        key: ValueKey('theme-row-${cats[i]}'),
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: list.length,
-                        separatorBuilder: (_, _) => const SizedBox(width: 10),
-                        itemBuilder: (_, j) =>
-                            SizedBox(width: 120, child: _card(list[j])),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+              itemCount: themes.length,
+              itemBuilder: (_, i) {
+                final t = themes[i];
+                return _ThemeAvatar(
+                  key: ValueKey('theme-avatar-${t.id}'),
+                  theme: t,
+                  selected: t == widget.settings.theme,
+                  onTap: () => _select(t),
                 );
               },
             ),
-          if (widget.footer != null)
+          ),
+          if (footer != null)
             SliverPadding(
               padding: const EdgeInsets.all(16),
-              sliver: SliverToBoxAdapter(child: widget.footer),
+              sliver: SliverToBoxAdapter(child: footer),
             ),
         ],
       );
     },
   );
-}
-
-class _ThemePreviewSheet extends StatefulWidget {
-  const _ThemePreviewSheet({required this.theme, required this.settings});
-
-  final ThermosTheme theme;
-  final SettingsController settings;
-
-  @override
-  State<_ThemePreviewSheet> createState() => _ThemePreviewSheetState();
-}
-
-class _ThemePreviewSheetState extends State<_ThemePreviewSheet> {
-  bool _happy = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = widget.theme;
-    final scheme = Theme.of(context).colorScheme;
-    final isSelected = widget.settings.theme == t;
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: GestureDetector(
-                key: const ValueKey('theme-preview-scene'),
-                onTap: () => setState(() => _happy = !_happy),
-                child: SizedBox(
-                  height: 260,
-                  width: double.infinity,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ColoredBox(color: scheme.surfaceContainerHighest),
-                      _CatalogImage(_scene(t), cacheWidth: 900),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: _CatalogImage(
-                          _cap(t, happy: _happy),
-                          cacheWidth: 900,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              t.name,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            SwitchListTile(
-              key: const ValueKey('theme-preview-happy'),
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Mutlu hâli'),
-              value: _happy,
-              onChanged: (v) => setState(() => _happy = v),
-            ),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                key: const ValueKey('theme-select-button'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                onPressed: () {
-                  if (!isSelected) widget.settings.setTheme(t);
-                  Navigator.of(context).pop(true);
-                },
-                child: Text(isSelected ? 'Seçili' : 'Bu temayı seç'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

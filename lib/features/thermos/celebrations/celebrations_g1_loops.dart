@@ -110,7 +110,7 @@ CapPose _klasikLoopPose(CelebrationContext ctx) {
 
 void _klasikLoop(Canvas canvas, CelebrationContext ctx) {
   final sz = szOf(ctx);
-  final o = ctx.capTop;
+  final o = ctx.capImagePt(0.5, 0.04);
   final th = lpTheta(ctx);
 
   final jetH = (56 + 10 * math.sin(th * 3)) * sz;
@@ -351,14 +351,11 @@ const _rbCols = [0xE24B4A, 0xEF9F27, 0xFAD36B, 0x97C459, 0x85B7EB, 0xAFA9EC];
 void _tekboynuzLoop(Canvas canvas, CelebrationContext ctx) {
   final sz = szOf(ctx);
   final th = lpTheta(ctx);
-  final tip = IllustratedArtwork.byId.containsKey('tekboynuz')
-      ? ctx.capPt(340, ctx.chubby ? -14 : 24)
-      : ctx.capPt(340, ctx.chubby ? 10 : 34);
-  final bw = ctx.chubby ? 6.5 : 4.4;
-  const rIn = 172.0;
-  final cy = tip.dy - 8 + rIn;
-  final center = Offset(340, cy);
-  final mid = rIn + bw * 3;
+  final rb = UnicornRainbow(ctx);
+  final tip = rb.tip;
+  final bw = rb.bw, rIn = rb.rIn;
+  final center = rb.center;
+  final mid = rb.mid;
 
   for (var j = 0; j < 6; j++) {
     final radius = rIn + bw * (6 - j - 0.5);
@@ -388,7 +385,7 @@ void _tekboynuzLoop(Canvas canvas, CelebrationContext ctx) {
   for (final side in const [-1, 1]) {
     final cx = 340 + side * (mid + 2);
     final bob = math.sin(th * 2 + side) * 2.5 * sz;
-    final cc = Offset(cx, cy + 2 + bob);
+    final cc = Offset(cx, center.dy + 2 + bob);
     for (final b in const [
       [-14.0, 4.0, 13.0],
       [0.0, -4.0, 17.0],
@@ -414,6 +411,9 @@ void _tekboynuzLoop(Canvas canvas, CelebrationContext ctx) {
       i.toDouble(),
     );
   }
+
+  // Gökkuşağı başın arkasında kalsın.
+  ctx.drawCapOver(canvas);
 
   // Boynuz isigi
   final pulse = 0.55 + 0.45 * math.sin(th * 3);
@@ -484,17 +484,26 @@ final Path _visorSlimL = svgPath(visorSlim);
 
 void _astronotLoop(Canvas canvas, CelebrationContext ctx) {
   final th = lpTheta(ctx);
-  lpDriftStars(canvas, ctx, 20, 3);
+  lpDriftStars(
+    canvas,
+    ctx,
+    20,
+    3,
+    xLeft: 168,
+    xRight: 400,
+    yTop: 100,
+    yH: 370,
+  );
 
   // Kayan yildiz (turda bir kez).
   final ss = ((ctx.loop - 0.12) / 0.3).clamp(0.0, 1.0);
   if (ss > 0 && ss < 1) {
     final head = Offset.lerp(
-      const Offset(548, 40),
-      const Offset(380, 118),
+      const Offset(512, 86),
+      const Offset(392, 134),
       ss,
     )!;
-    const dir = Offset(-168, 78);
+    const dir = Offset(-120, 48);
     final tail = head - dir / dir.distance * 74;
     final f = math.sin(ss * math.pi);
     canvas.drawLine(
@@ -514,7 +523,7 @@ void _astronotLoop(Canvas canvas, CelebrationContext ctx) {
   }
 
   // Havada asili duran roket: salinir, alevi titrer, duman birakir.
-  final rx = 190 + math.sin(th * 2) * 7;
+  final rx = 206 + math.sin(th * 2) * 7;
   final ry = 300 + math.sin(th * 2 + 1.2) * 12;
   final tilt = math.cos(th * 2) * 0.08;
   final flick = math.sin(th * 15);
@@ -585,10 +594,15 @@ void _astronotLoop(Canvas canvas, CelebrationContext ctx) {
   canvas.restore();
 
   // Anten: yanip soner isik + radyo dalgalari.
-  final ant = ctx.chubby ? const Offset(340, 22) : const Offset(368, 68);
-  final ar = ctx.chubby ? 7.0 : 5.0;
+  // Resimli kaskta anten ışığı kubbenin tepesine oturur (eski vektör kapakta
+  // ham koordinat).
+  final illus = IllustratedArtwork.byId['astronot'] != null;
+  final ant = illus
+      ? ctx.capImagePt(0.5, 0.175)
+      : (ctx.chubby ? const Offset(340, 22) : const Offset(368, 68));
+  final ar = illus ? 4.4 : (ctx.chubby ? 7.0 : 5.0);
   final on = (ctx.loop * 3) % 1.0 < 0.5;
-  inCap(canvas, ctx, () {
+  (illus ? inPlace : inCap)(canvas, ctx, () {
     if (on) {
       canvas.drawCircle(
         ant,

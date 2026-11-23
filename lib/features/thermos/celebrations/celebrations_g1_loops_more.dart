@@ -195,20 +195,22 @@ void _korsanLoop(Canvas canvas, CelebrationContext ctx) {
   final sz = szOf(ctx);
   final th = lpTheta(ctx);
 
+  // Direk şapkanın sağ omzuna saplı: şapka tepesinin üstünde ekranda yer
+  // yok (üst çubuk), bu yüzden bayrak başın sağında, ekranın içinde durur.
   final base = IllustratedArtwork.byId.containsKey('korsan')
-      ? ctx.capTop
+      ? ctx.capImagePt(0.84, 0.25)
       : ctx.capPt(340, ctx.chubby ? 54 : 90);
-  final len = 70 * sz;
-  final top = base + Offset(0, -len);
-  canvas.drawLine(base, top, strokeOf(lpPaint(ctx, 0x6B3E16), 3.2 * sz));
-  canvas.drawCircle(top + Offset(0, -2 * sz), 3.6 * sz, lpPaint(ctx, 0xFAC775));
+  final len = 40 * sz;
+  final top = base + Offset(2 * sz, -len);
+  canvas.drawLine(base, top, strokeOf(lpPaint(ctx, 0x6B3E16), 4.2 * sz));
+  canvas.drawCircle(top + Offset(0, -2 * sz), 5 * sz, lpPaint(ctx, 0xFAC775));
   const cols = 12;
-  final fw = 62 * sz, fh = 40 * sz;
+  final fw = 67 * sz, fh = 43 * sz;
   final topPts = <Offset>[], botPts = <Offset>[];
   for (var i = 0; i <= cols; i++) {
     final f = i / cols;
     final w = math.sin(f * 7 - th * 5);
-    final dy = w * 4.6 * sz * f;
+    final dy = w * 7 * sz * f;
     final dx = f * fw * (1 - 0.04 * w * f);
     topPts.add(top + Offset(2 + dx, 4 * sz + dy));
     botPts.add(top + Offset(2 + dx, 4 * sz + fh + dy));
@@ -234,7 +236,7 @@ void _korsanLoop(Canvas canvas, CelebrationContext ctx) {
   canvas.save();
   canvas.translate(mid.dx, mid.dy);
   canvas.rotate(math.atan(slope));
-  canvas.scale(sz);
+  canvas.scale(sz * 1.36);
   final bone = strokeOf(lpPaint(ctx, 0xFFFFFF, 0.95), 2.4);
   canvas.drawLine(const Offset(-10, 8), const Offset(10, -4), bone);
   canvas.drawLine(const Offset(10, 8), const Offset(-10, -4), bone);
@@ -259,13 +261,14 @@ void _korsanLoop(Canvas canvas, CelebrationContext ctx) {
   canvas.restore();
 
   // Altin paralar: surekli firlayip duser.
-  final origin = ctx.capCenter + Offset(0, -ctx.capWidth * 0.2);
+  final origin = ctx.capCenter + Offset(0, -ctx.capWidth * 0.3);
   const n = 12;
   for (var i = 0; i < n; i++) {
     final e = lpEmit(ctx, i, n, 2);
     final s = e.seed;
-    final a = -math.pi / 2 + (lpRand(ctx, s, 1) - 0.5) * 2.7;
-    final v = (190 + 130 * lpRand(ctx, s, 2)) * sz;
+    // Paralar yüze düşmesin: kenarlara doğru fırlar.
+    final a = -math.pi / 2 + (i.isEven ? 1 : -1) * (0.7 + 0.6 * lpRand(ctx, s, 1));
+    final v = (150 + 70 * lpRand(ctx, s, 2)) * sz;
     final g = 480 * sz;
     final tt = e.p * 1.5;
     final pos =

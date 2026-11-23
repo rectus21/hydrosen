@@ -52,7 +52,7 @@ void _klasikFountain(Canvas canvas, CelebrationContext ctx) {
   // Resimli su damlasının gerçek çıkış noktası tepedeki sivri uçtur.
   // Eski vektör kapakta çıkış daha aşağıdaydı; o değer raster görselde
   // suyun alnından fışkırmasına neden oluyordu.
-  final o = ctx.capTop;
+  final o = ctx.capImagePt(0.5, 0.04);
   final env = window(ctx, 0.03, 0.86);
   final e = ctx.reduceMotion ? 0.4 : ctx.elapsed;
 
@@ -334,13 +334,10 @@ const _rainbowCols = [
 
 void _tekboynuzRainbow(Canvas canvas, CelebrationContext ctx) {
   final sz = szOf(ctx);
-  final tip = IllustratedArtwork.byId.containsKey('tekboynuz')
-      ? ctx.capPt(340, ctx.chubby ? -14 : 24)
-      : ctx.capPt(340, ctx.chubby ? 10 : 34);
-  final bw = ctx.chubby ? 6.5 : 4.4;
-  const rIn = 172.0;
-  final cy = tip.dy - 8 + rIn;
-  final center = Offset(340, cy);
+  final rb = UnicornRainbow(ctx);
+  final tip = rb.tip;
+  final bw = rb.bw, rIn = rb.rIn;
+  final center = rb.center;
 
   final prog = ctx.reduceMotion
       ? 1.0
@@ -357,7 +354,7 @@ void _tekboynuzRainbow(Canvas canvas, CelebrationContext ctx) {
       );
     }
     final ang = math.pi + math.pi * prog;
-    final mid = rIn + bw * 3;
+    final mid = rb.mid;
     final head = center + Offset(math.cos(ang), math.sin(ang)) * mid;
     if (prog < 1) {
       sparkle(
@@ -374,7 +371,7 @@ void _tekboynuzRainbow(Canvas canvas, CelebrationContext ctx) {
       if (side > 0 && prog < 0.98) continue;
       final cx = 340 + side * (mid + 2);
       final pop = side < 0 ? CelebrationContext.easeOut(prog * 6) : 1.0;
-      final cc = Offset(cx, cy + 2);
+      final cc = Offset(cx, center.dy + 2);
       for (final b in const [
         [-14.0, 4.0, 13.0],
         [0.0, -4.0, 17.0],
@@ -404,6 +401,9 @@ void _tekboynuzRainbow(Canvas canvas, CelebrationContext ctx) {
       );
     }
   }
+
+  // Gökkuşağı başın arkasında kalsın.
+  ctx.drawCapOver(canvas);
 
   // Boynuz isigi
   final pulse = ctx.reduceMotion
@@ -470,8 +470,8 @@ void _astronotLaunch(Canvas canvas, CelebrationContext ctx) {
   // Yildizlar (kenarlarda).
   for (var i = 0; i < 18; i++) {
     final left = ctx.rand(i, 3) < 0.5;
-    final x = left ? 132 + ctx.rand(i, 4) * 112 : 436 + ctx.rand(i, 4) * 112;
-    final y = 22 + ctx.rand(i, 5) * 458;
+    final x = left ? 170 + ctx.rand(i, 4) * 84 : 430 + ctx.rand(i, 4) * 80;
+    final y = 82 + ctx.rand(i, 5) * 398;
     final tw = ctx.reduceMotion
         ? (i % 3 == 0 ? 0.3 : 0.9)
         : math.max(0.0, math.sin(ctx.elapsed * 4.4 + i * 1.7));
@@ -488,11 +488,11 @@ void _astronotLaunch(Canvas canvas, CelebrationContext ctx) {
   final ss = ctx.reduceMotion ? 0.5 : ctx.span(0.12, 0.42);
   if (ss > 0 && ss < 1) {
     final head = Offset.lerp(
-      const Offset(548, 40),
-      const Offset(380, 118),
+      const Offset(512, 86),
+      const Offset(392, 134),
       ss,
     )!;
-    const dir = Offset(-168, 78);
+    const dir = Offset(-120, 48);
     final tail = head - dir / dir.distance * 74;
     final f = math.sin(ss * math.pi);
     canvas.drawLine(
@@ -515,8 +515,9 @@ void _astronotLaunch(Canvas canvas, CelebrationContext ctx) {
   final rp = ctx.reduceMotion
       ? 0.5
       : CelebrationContext.easeInOut(ctx.span(0.06, 0.8));
-  final ry = 470 - rp * 430;
-  final rx = 190 + math.sin(rp * 9) * 9;
+  // Roket üst çubuğun altında (burnu y >= 84) durur.
+  final ry = 470 - rp * 352;
+  final rx = 206 + math.sin(rp * 9) * 8;
   final tilt = math.cos(rp * 9) * 0.1;
   final flick = ctx.reduceMotion ? 0.0 : math.sin(ctx.elapsed * 47);
   canvas.save();
@@ -587,11 +588,16 @@ void _astronotLaunch(Canvas canvas, CelebrationContext ctx) {
   canvas.restore();
 
   // Anten: yanip soner kirmizi isik + radyo dalgalari.
-  final ant = ctx.chubby ? const Offset(340, 22) : const Offset(368, 68);
-  final ar = ctx.chubby ? 7.0 : 5.0;
+  // Resimli kaskta anten ışığı kubbenin tepesine oturur (eski vektör kapakta
+  // ham koordinat).
+  final illus = IllustratedArtwork.byId['astronot'] != null;
+  final ant = illus
+      ? ctx.capImagePt(0.5, 0.175)
+      : (ctx.chubby ? const Offset(340, 22) : const Offset(368, 68));
+  final ar = illus ? 4.4 : (ctx.chubby ? 7.0 : 5.0);
   final beat = ctx.reduceMotion ? 0.0 : (ctx.elapsed * 2.6 % 1.0);
   final on = beat < 0.5;
-  inCap(canvas, ctx, () {
+  (illus ? inPlace : inCap)(canvas, ctx, () {
     if (on) {
       canvas.drawCircle(
         ant,

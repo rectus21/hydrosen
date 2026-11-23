@@ -6,6 +6,7 @@ import 'themes/pack_doga.dart';
 import 'themes/pack_fantastik.dart';
 import 'themes/pack_hayvanlar.dart';
 import 'themes/pack_yeni1.dart';
+import 'themes/pack_spor.dart';
 import 'themes/pack_yiyecek.dart';
 import 'themes/pack_yeni2.dart';
 import 'themes/pack_yeni3.dart';
@@ -71,8 +72,8 @@ class ThermosTheme {
     waterSurface: Color(0xFFB5D4F4),
     mark: Color(0xFF0C447C),
     label: Color(0xFF0C447C),
-    band: Color(0xFF888780),
-    bandLight: Color(0xFFB4B2A9),
+    band: Color(0xFF1E6FB8),
+    bandLight: Color(0xFF5CC8F0),
     background: _klasikBg,
     capChubby: _klasikA,
     capSlim: _klasikB,
@@ -166,15 +167,15 @@ class ThermosTheme {
   static const camp = ThermosTheme(
     id: 'kamp',
     name: 'Kamp',
-    glass: Color(0xFFD3D1C7),
-    edge: Color(0xFF444441),
-    water: Color(0xFF378ADD),
-    deepWater: Color(0xFF0C447C),
-    waterSurface: Color(0xFFB5D4F4),
-    mark: Color(0xFF2C2C2A),
-    label: Color(0xFF2C2C2A),
-    band: Color(0xFF27500A),
-    bandLight: Color(0xFF3B6D11),
+    glass: Color(0xFFD9D6EE),
+    edge: Color(0xFF2A2F5E),
+    water: Color(0xFF5560C8),
+    deepWater: Color(0xFF232A6E),
+    waterSurface: Color(0xFFC4C9FF),
+    mark: Color(0xFFFFE2A6),
+    label: Color(0xFFFFE2A6),
+    band: Color(0xFF2B3566),
+    bandLight: Color(0xFFE0A63C),
     background: _kampBg,
     capChubby: _kampA,
     capSlim: _kampB,
@@ -195,6 +196,7 @@ class ThermosTheme {
     ...yeni1Themes,
     ...yeni2Themes,
     ...yeni3Themes,
+    ...sporThemes,
   ];
 }
 

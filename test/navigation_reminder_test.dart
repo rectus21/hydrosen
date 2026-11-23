@@ -49,25 +49,30 @@ void main() {
 
     await tester.tap(find.text('Tema'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('theme-hero')), findsOneWidget);
-    expect(find.text('Seçili tema'), findsOneWidget);
+    expect(find.text('Tema seç'), findsOneWidget);
     expect(find.byKey(const ValueKey('theme-chip-Tümü')), findsOneWidget);
-    expect(find.byKey(const ValueKey('theme-card-kaplan')), findsOneWidget);
+    expect(find.byKey(const ValueKey('theme-card-kedi')), findsOneWidget);
+    expect(find.bySemanticsLabel('Kedi'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('theme-chip-Hayvanlar')));
     await tester.pumpAndSettle();
+    // Tek dokunuş temayı hemen uygular (önizleme/onay yok).
     await tester.tap(find.byKey(const ValueKey('theme-card-kaplan')));
-    await tester.pumpAndSettle();
-    expect(find.text('Mutlu hâli'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('theme-select-button')));
     await tester.pumpAndSettle();
     expect(find.text('Mutlu hâli'), findsNothing);
     expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('theme-hero')),
-        matching: find.text('Kaplan'),
-      ),
-      findsOneWidget,
+      tester
+          .getSemantics(find.byKey(const ValueKey('theme-card-kaplan')))
+          .label,
+      'Kaplan',
+    );
+    expect(
+      tester
+          .getSemantics(find.byKey(const ValueKey('theme-card-kaplan')))
+          .flagsCollection
+          .isSelected
+          .name,
+      'isTrue',
     );
 
     await tester.tap(find.text('Profil'));

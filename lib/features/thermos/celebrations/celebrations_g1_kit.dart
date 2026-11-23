@@ -65,6 +65,10 @@ void inCap(Canvas canvas, CelebrationContext ctx, void Function() draw) {
   canvas.restore();
 }
 
+/// [inCap] ile aynı imza, ama dönüşümsüz (tasarım koordinatında çizim).
+void inPlace(Canvas canvas, CelebrationContext ctx, void Function() draw) =>
+    draw();
+
 Paint strokeOf(Paint base, double w) => base
   ..style = PaintingStyle.stroke
   ..strokeWidth = w
@@ -238,4 +242,25 @@ double window(
   if (ctx.reduceMotion) return 1;
   final t = ctx.t;
   return (((t - a) / soft).clamp(0.0, 1.0) * ((b - t) / soft).clamp(0.0, 1.0));
+}
+
+/// Tekboynuz gökkuşağı yayı: merkez, iç yarıçap ve şerit kalınlığı. Yay ekranın
+/// üst çubuğunun altında (tasarım y >= 80) ve yanlardan (x 166..514) dışarı
+/// taşmadan, başın ARKASINDAN geçer (kapak sonradan üstüne çizilir).
+class UnicornRainbow {
+  UnicornRainbow(CelebrationContext ctx)
+    : tip = ctx.hasIllustratedCap
+          ? ctx.capTop + const Offset(0, 2)
+          : ctx.capPt(340, ctx.chubby ? 10 : 34) {
+    bw = ctx.chubby ? 4.6 : 4.0;
+    final outer = ctx.chubby ? 144.0 : 126.0;
+    final topY = math.max(tip.dy + 2, 80.0);
+    center = Offset(340, topY + outer);
+    rIn = outer - 6 * bw;
+  }
+
+  final Offset tip;
+  late final double bw, rIn;
+  late final Offset center;
+  double get mid => rIn + bw * 3;
 }

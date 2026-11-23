@@ -213,7 +213,6 @@ void main() {
       await tester.tap(quickRemoveOne);
       await tester.pumpAndSettle();
       expect(totalMlOf(tester), 200);
-      expect(find.text('1 bardak çıkarıldı'), findsOneWidget);
     });
 
     testWidgets('hedef dolduktan sonra ekleme ve çıkarma sürer', (
@@ -261,7 +260,7 @@ void main() {
       expect(totalMlOf(tester), 2300);
     });
 
-    testWidgets('geri al: ekleme ve çıkarma bilgi çubuğundan geri döner', (
+    testWidgets('ekleme ve çıkarma sonrası bilgi çubuğu çıkmaz', (
       tester,
     ) async {
       prepare(tester);
@@ -269,23 +268,15 @@ void main() {
 
       await tester.tap(quickAddOne);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 1200));
-      expect(find.text('1 bardak eklendi'), findsOneWidget);
-      await tester.tap(find.text('Geri al'));
-      await tester.pumpAndSettle();
-      expect(totalMlOf(tester), 0);
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(SnackBar), findsNothing);
+      expect(totalMlOf(tester), 200);
 
-      await tester.tap(quickAddOne);
-      await tester.pumpAndSettle();
       await tester.tap(quickRemoveOne);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 1200));
-      await tester.pump(const Duration(milliseconds: 1200));
-      expect(find.text('1 bardak çıkarıldı'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(SnackBar), findsNothing);
       expect(totalMlOf(tester), 0);
-      await tester.tap(find.text('Geri al'));
-      await tester.pumpAndSettle();
-      expect(totalMlOf(tester), 200);
     });
 
     testWidgets('dar ekranda hızlı kontroller taşmadan sığar', (tester) async {

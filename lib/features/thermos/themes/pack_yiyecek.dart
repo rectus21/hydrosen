@@ -72,9 +72,9 @@ const List<ThermosTheme> yiyecekThemes = [
     name: 'Limon',
     glass: Color(0xFFFFF7C2),
     edge: Color(0xFF8A6D00),
-    water: Color(0xFFF5C400),
-    deepWater: Color(0xFFB78600),
-    waterSurface: Color(0xFFFFE97A),
+    water: Color(0xFF2E86C8),
+    deepWater: Color(0xFF124E7C),
+    waterSurface: Color(0xFFBFE0F5),
     mark: Color(0xFF5C4600),
     label: Color(0xFF5C4600),
     band: Color(0xFF7FB32E),
@@ -129,27 +129,6 @@ const List<ThermosTheme> yiyecekThemes = [
       0x6EC3E8,
       0xFAC775,
       0xA6E3B5,
-    ]),
-  ),
-  ThermosTheme(
-    id: 'seftali',
-    name: 'Şeftali',
-    glass: Color(0xFFFFE3CF),
-    edge: Color(0xFFB2502C),
-    water: Color(0xFFFF9A62),
-    deepWater: Color(0xFFC4511F),
-    waterSurface: Color(0xFFFFD2B3),
-    mark: Color(0xFF7A2E14),
-    label: Color(0xFF7A2E14),
-    band: Color(0xFF6FA83A),
-    bandLight: Color(0xFFA3CF6A),
-    background: _seftaliBg,
-    capChubby: _seftaliA,
-    capSlim: _seftaliB,
-    celebration: CelebrationStyle(CelebrationKind.fallingFlowers, [
-      0xFF9A62,
-      0xF7B8A0,
-      0x6FA83A,
     ]),
   ),
 ];
@@ -596,103 +575,4 @@ void _dondurmaB(Art a, bool happy) {
   a.s('M342 90 Q350 72 364 66', 0x4F7A12, 3);
   a.c(340, 90, 12, 0xD62B4A);
   a.c(336, 86, 3.4, 0xFFFFFF, op: 0.8);
-}
-
-// --- Şeftali ---------------------------------------------------------------
-
-void _seftaliBg(Art a) {
-  a.p(_full, 0xFFF0E2);
-  for (final s in const [
-    [190, 70, 1.0],
-    [480, 130, 0.8],
-    [160, 218, 0.6],
-  ]) {
-    final x = s[0], y = s[1], q = s[2];
-    a.c(x, y, 22 * q, 0xFFFFFF, op: 0.85);
-    a.c(x + 24 * q, y + 6 * q, 18 * q, 0xFFFFFF, op: 0.85);
-    a.c(x - 24 * q, y + 8 * q, 16 * q, 0xFFFFFF, op: 0.85);
-  }
-  a.p(
-    'M120 380 Q210 340 300 372 Q400 406 480 366 Q526 346 560 360 V512 H120 Z',
-    0xCBE5A0,
-  );
-  a.p('M120 440 Q240 414 350 442 Q460 468 560 434 V512 H120 Z', 0x9CC965);
-  for (final s in const [
-    [175, 270, 1.0],
-    [505, 290, 0.9],
-    [490, 60, 0.7],
-  ]) {
-    final x = s[0], y = s[1], q = s[2];
-    a.c(x, y, 22 * q, 0xFF9A62);
-    a.c(x + 8 * q, y + 2 * q, 14 * q, 0xF26B6B, op: 0.5);
-    a.c(x - 8 * q, y - 8 * q, 5 * q, 0xFFD2B3, op: 0.8);
-    a.leaves(x, y - 20 * q, [(-16 * q, 0x6FA83A), (16 * q, 0x4F7A12)]);
-  }
-  // Kenardaki çiçekler; merkez büyük termos için sakin kalır.
-  for (final flower in const [
-    [144.0, 42.0],
-    [184.0, 176.0],
-    [150.0, 330.0],
-    [532.0, 52.0],
-    [508.0, 210.0],
-    [540.0, 338.0],
-  ]) {
-    final x = flower[0], y = flower[1];
-    for (var j = 0; j < 5; j++) {
-      final ang = j * 72 * math.pi / 180;
-      a.c(x + 4 * _cos(ang), y + 4 * _sin(ang), 2.6, 0xFFB8C6, op: 0.9);
-    }
-    a.c(x, y, 1.8, 0xFAC775);
-  }
-  _foodEdgeDepth(a, 0x86B85A, 0x5F913D);
-}
-
-void _seftaliLeaf(Art a, num x, num y, num s) {
-  a.s(
-    'M$x $y Q${x + 2 * s} ${y - 12 * s} ${x + 6 * s} ${y - 20 * s}',
-    0x6B4A2B,
-    3,
-  );
-  a.p(
-    'M${x + 4 * s} ${y - 14 * s} Q${x + 30 * s} ${y - 48 * s} ${x + 70 * s} ${y - 26 * s} '
-    'Q${x + 44 * s} ${y + 2 * s} ${x + 4 * s} ${y - 14 * s} Z',
-    0x6FA83A,
-  );
-  a.s(
-    'M${x + 8 * s} ${y - 15 * s} Q${x + 38 * s} ${y - 28 * s} ${x + 62 * s} ${y - 26 * s}',
-    0x4F7A12,
-    2,
-  );
-}
-
-void _seftaliA(Art a, bool happy) {
-  a.p(
-    'M340 70 Q312 46 270 66 Q238 90 244 140 Q252 204 340 210 '
-    'Q428 204 436 140 Q442 90 410 66 Q368 46 340 70 Z',
-    0xFFA877,
-  );
-  a.p(
-    'M360 72 Q404 52 424 92 Q444 140 418 182 Q396 206 346 208 Q408 180 412 130 '
-    'Q414 90 360 72 Z',
-    0xF26B6B,
-    op: 0.75,
-  );
-  a.p(
-    'M262 120 Q264 82 296 70 Q276 96 278 130 Q282 166 308 190 Q262 176 262 120 Z',
-    0xFFE0C6,
-    op: 0.7,
-  );
-  a.s('M340 72 Q326 110 338 150', 0xD9683C, 2.5);
-  a.eye(308, 130, 12);
-  a.eye(372, 130, 12);
-  a.cheeks(154, happy ? 1 : 0.7);
-  _mouth(a, happy, 152);
-  _seftaliLeaf(a, 340, 70, 1);
-}
-
-void _seftaliB(Art a, bool happy) {
-  a.box(0xFFA877, 0xFFE0C6, 0xF26B6B);
-  a.s('M340 92 Q328 120 338 150', 0xD9683C, 2.5);
-  a.o(380, 130, 10, 20, 0xF26B6B, op: 0.35);
-  _seftaliLeaf(a, 336, 92, 0.8);
 }

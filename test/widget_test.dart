@@ -311,15 +311,12 @@ void quickGlassTests() {
     await tester.tap(add1);
     await tester.pumpAndSettle();
     expect(totalMlOf(tester), 200);
-    expect(find.text('1 bardak eklendi'), findsOneWidget);
     await tester.tap(add2);
     await tester.pumpAndSettle();
     expect(totalMlOf(tester), 600);
-    expect(find.text('2 bardak eklendi'), findsOneWidget);
     await tester.tap(rem1);
     await tester.pumpAndSettle();
     expect(totalMlOf(tester), 400);
-    expect(find.text('1 bardak çıkarıldı'), findsOneWidget);
   });
 
   testWidgets('−1 bardak bugün su yokken pasif', (tester) async {
@@ -344,21 +341,15 @@ void quickGlassTests() {
     );
   });
 
-  testWidgets('hızlı düğmeler: Geri al işlemi geri alır', (tester) async {
+  testWidgets('hızlı düğmeler: bilgi çubuğu çıkmaz', (
+    tester,
+  ) async {
     await boot(tester);
     await tester.tap(add2);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
     expect(totalMlOf(tester), 400);
-    await tester.tap(find.text('Geri al'));
-    await tester.pumpAndSettle();
-    expect(totalMlOf(tester), 0);
-    await tester.tap(add2);
-    await tester.pumpAndSettle();
-    await tester.tap(rem1);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Geri al'));
-    await tester.pumpAndSettle();
-    expect(totalMlOf(tester), 400);
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('360 px ekranda hızlı kayıt kaydırarak erişilir', (tester) async {

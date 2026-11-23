@@ -77,7 +77,15 @@ class _HydroSenAppState extends State<HydroSenApp> {
             'limon',
             'avokado',
             'dondurma',
-            'seftali',
+            'yesilelma',
+            'futbol',
+            'basketbol',
+            'voleybol',
+            'eczaci',
+            'kedi',
+            'pofuduk',
+            'karaejderha',
+            'yarisarabasi',
           }.contains(requested)) {
         _settings.setTheme(ThermosTheme.byId(requested!));
       }

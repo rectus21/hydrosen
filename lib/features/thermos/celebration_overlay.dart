@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'celebration_painter.dart';
+import 'scene_geometry.dart';
 import 'thermos_theme.dart';
 
 /// Termosun üstüne yerleşen kutlama katmanı. [trigger] her değiştiğinde bir kez
@@ -14,7 +15,7 @@ class CelebrationOverlay extends StatefulWidget {
     required this.trigger,
     required this.theme,
     required this.shape,
-    this.duration = const Duration(milliseconds: 2600),
+    this.duration,
     this.progress,
     this.looping = false,
     this.loopProgress,
@@ -36,7 +37,11 @@ class CelebrationOverlay extends StatefulWidget {
   final int trigger;
   final ThermosTheme theme;
   final ThermosShape shape;
-  final Duration duration;
+  /// Verilmezse temaya göre (Okyanus 4 sn, diğerleri 2,6 sn).
+  final Duration? duration;
+
+  static Duration durationFor(ThermosTheme theme) =>
+      Duration(milliseconds: theme.id == 'okyanus' || theme.id == 'limon' ? 4000 : 2600);
 
   /// Verilirse kutlama süresince t (0..1), bitince null yazılır; ThermosView'ın
   /// celebrationT'si ile paylaşılarak kapak hareketi senkronlanır.
@@ -53,7 +58,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
   // preserve: "animasyonları azalt" süreyi kısaltmasın; yazı yine ~2,6 sn kalır.
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: widget.duration,
+    duration: widget.duration ?? CelebrationOverlay.durationFor(widget.theme),
     animationBehavior: AnimationBehavior.preserve,
   );
 
@@ -141,7 +146,10 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
   @override
   void didUpdateWidget(CelebrationOverlay old) {
     super.didUpdateWidget(old);
-    if (widget.duration != old.duration) _c.duration = widget.duration;
+    final d = widget.duration ?? CelebrationOverlay.durationFor(widget.theme);
+    if (d != (old.duration ?? CelebrationOverlay.durationFor(old.theme))) {
+      _c.duration = d;
+    }
     if (widget.trigger != old.trigger) _c.forward(from: 0);
     _syncLoop();
   }
@@ -153,6 +161,9 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
     _c.dispose();
     super.dispose();
   }
+
+  Offset? _sceneToLocal(double u, double v) =>
+      SceneGeometry.toLocal(context, widget.theme.id, u, v);
 
   @override
   Widget build(BuildContext context) {
@@ -172,6 +183,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                 shape: widget.shape,
                 loop: cy,
                 loopCount: cy.floor(),
+                sceneToLocal: _sceneToLocal,
               ),
             );
           }
@@ -187,6 +199,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                   shape: widget.shape,
                   t: reduceMotion ? 0.5 : t,
                   reduceMotion: reduceMotion,
+                  sceneToLocal: _sceneToLocal,
                 ),
               ),
               Align(
