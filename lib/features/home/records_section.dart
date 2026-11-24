@@ -252,31 +252,39 @@ class _WeeklyChart extends StatelessWidget {
     final maxValue = math.max(goalMl, values.fold(0, math.max));
     final scheme = Theme.of(context).colorScheme;
 
+    // Kenar boşluğu dar: günlük çubuklar en az 48 px genişliğinde dokunma
+    // hedefi olsun (390 px ekranda 7 x ~50 px). Başlık ve ipucu kendi
+    // boşluğunu taşır.
+    const edge = EdgeInsets.symmetric(horizontal: 8);
     return FrostedPanel(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Haftalık ilerleme',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Günlük hedef $goalMl ml',
-                      style: Theme.of(context).textTheme.bodySmall
-                          ?.copyWith(color: scheme.onSurfaceVariant),
-                    ),
-                  ],
+          Padding(
+            padding: edge,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Haftalık ilerleme',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Günlük hedef $goalMl ml',
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              _TotalBadge(label: '$weekTotal ml'),
-            ],
+                _TotalBadge(label: '$weekTotal ml'),
+              ],
+            ),
           ),
           const SizedBox(height: 18),
           SizedBox(
@@ -299,24 +307,27 @@ class _WeeklyChart extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(
-                Icons.touch_app_outlined,
-                size: 16,
-                color: scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 5),
-              Flexible(
-                child: Text(
-                  'Ayrıntılar için bir güne dokun',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+          Padding(
+            padding: edge,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.touch_app_outlined,
+                  size: 16,
+                  color: scheme.onSurfaceVariant,
                 ),
-              ),
-            ],
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    'Ayrıntılar için bir güne dokun',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -350,6 +361,7 @@ class _DayBar extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
+      excludeSemantics: true,
       label:
           '${_weekdayShort[day.weekday - 1]} ${day.day}, $amountMl ml'
           '${isProtected ? ', korundu' : ''}',
@@ -543,6 +555,7 @@ class _MonthDay extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
+      excludeSemantics: true,
       label:
           '${day.day} ${_monthNames[day.month - 1]}, $amountMl ml'
           '${isProtected ? ', korundu' : ''}',

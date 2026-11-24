@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/backup.dart' show ReminderSettings;
 import '../../domain/reminder_planner.dart';
 
 /// Hatırlatıcının dışarıdan bilmesi gereken bugünkü durum.
@@ -121,6 +122,26 @@ class ReminderController extends ChangeNotifier {
     _syncTimer();
     notifyListeners();
   }
+
+  /// Şu anki ayarlar (yedek için).
+  ReminderSettings get settings => ReminderSettings(
+    enabled: enabled,
+    startMinute: startMinute,
+    endMinute: endMinute,
+    intervalMinute: intervalMinute,
+    stopAtGoal: stopAtGoal,
+    dailyCap: dailyCap,
+  );
+
+  /// Yedekten gelen ayarları uygular; geçersizse false (hiçbir şey değişmez).
+  Future<bool> apply(ReminderSettings s) => configure(
+    active: s.enabled,
+    start: s.startMinute,
+    end: s.endMinute,
+    interval: s.intervalMinute,
+    stopAtGoalValue: s.stopAtGoal,
+    cap: s.dailyCap,
+  );
 
   /// Ayarları değiştirir. Geçersiz değerde (ör. bitiş başlangıçtan önce)
   /// hiçbir şeyi değiştirmeden false döner.

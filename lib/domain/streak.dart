@@ -19,9 +19,8 @@ import 'badges.dart';
 /// - Hedef gün içinde değişirse bugün güncel hedefle ölçülür; biten günler
 ///   o gün geçerli olan hedefle kaydedilir.
 ///
-/// NOT: Reklam izleyerek ek hak kazanma ve satın alınan seri koruma
-/// bilerek ertelendi (Rectus, 2026-11-24); burada ve arayüzde reklam/satış
-/// yoktur.
+/// NOT: Uygulama tamamen ücretsizdir (sahip kararı, 2026-11-25); seri için
+/// satın alma ya da ek hak yoktur.
 DateTime dayOf(DateTime t) => DateTime(t.year, t.month, t.day);
 DateTime nextDay(DateTime d) => DateTime(d.year, d.month, d.day + 1);
 DateTime prevDay(DateTime d) => DateTime(d.year, d.month, d.day - 1);

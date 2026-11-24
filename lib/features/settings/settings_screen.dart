@@ -146,52 +146,59 @@ class _ThemeChoice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: theme.name,
+      excludeSemantics: true,
       onTap: onTap,
-      child: Container(
-        key: ValueKey('theme-${theme.id}'),
-        width: width,
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: scheme.surface.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? scheme.primary : scheme.outlineVariant,
-            width: selected ? 3 : 1,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          key: ValueKey('theme-${theme.id}'),
+          width: width,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: scheme.surface.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? scheme.primary : scheme.outlineVariant,
+              width: selected ? 3 : 1,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: SizedBox(
-                height: 28,
-                // stretch: çocuksuz ColoredBox yoksa 0 yükseklik alır.
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final c in [
-                      theme.band,
-                      theme.glass,
-                      theme.water,
-                      theme.deepWater,
-                    ])
-                      Expanded(child: ColoredBox(color: c)),
-                  ],
+          child: Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  height: 28,
+                  // stretch: çocuksuz ColoredBox yoksa 0 yükseklik alır.
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final c in [
+                        theme.band,
+                        theme.glass,
+                        theme.water,
+                        theme.deepWater,
+                      ])
+                        Expanded(child: ColoredBox(color: c)),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              theme.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              // Ad, temanın kendi başlık yazı tipiyle: seçmeden önce görülsün.
-              style: AppLook.of(theme).typeface.headline
-                  .style(Theme.of(context).textTheme.labelLarge),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                theme.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                // Ad, temanın kendi başlık yazı tipiyle: seçmeden önce görülsün.
+                style: AppLook.of(theme).typeface.headline
+                    .style(Theme.of(context).textTheme.labelLarge),
+              ),
+            ],
+          ),
         ),
       ),
     );

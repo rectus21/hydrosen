@@ -182,14 +182,16 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
           if (!_c.isAnimating) {
             if (!_loopOn) return const SizedBox.shrink();
             final cy = _cycles.value;
-            return CustomPaint(
-              size: Size.infinite,
-              painter: CelebrationPainter.looping(
-                theme: widget.theme,
-                shape: widget.shape,
-                loop: cy,
-                loopCount: cy.floor(),
-                sceneToLocal: _sceneToLocal,
+            return ExcludeSemantics(
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: CelebrationPainter.looping(
+                  theme: widget.theme,
+                  shape: widget.shape,
+                  loop: cy,
+                  loopCount: cy.floor(),
+                  sceneToLocal: _sceneToLocal,
+                ),
               ),
             );
           }
@@ -199,13 +201,15 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
             children: [
               // Animasyonları azalt açıkken hareket yok: kutlamanın ortasından
               // tek, sabit bir kare gösterilir (parıltılar, yazı).
-              CustomPaint(
-                painter: CelebrationPainter(
-                  theme: widget.theme,
-                  shape: widget.shape,
-                  t: reduceMotion ? 0.5 : t,
-                  reduceMotion: reduceMotion,
-                  sceneToLocal: _sceneToLocal,
+              ExcludeSemantics(
+                child: CustomPaint(
+                  painter: CelebrationPainter(
+                    theme: widget.theme,
+                    shape: widget.shape,
+                    t: reduceMotion ? 0.5 : t,
+                    reduceMotion: reduceMotion,
+                    sceneToLocal: _sceneToLocal,
+                  ),
                 ),
               ),
               Align(

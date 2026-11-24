@@ -41,7 +41,7 @@ class WaterController extends ChangeNotifier {
     notifyListeners();
   }
 
-  final _goalTracker = GoalCelebrationTracker();
+  var _goalTracker = GoalCelebrationTracker();
   int _celebrations = 0;
 
   /// Bugün hedefin kaç kez aşağıdan yukarı geçildiği (bu oturumda). Değeri
@@ -92,6 +92,50 @@ class WaterController extends ChangeNotifier {
     _currentStreakJson = jsonEncode(_streakData!.toJson());
     notifyListeners();
     await _flushStreak();
+  }
+
+  /// Kalıcı seri verisi (yedek için); henüz yüklenmediyse null.
+  StreakData? get streakData => _streakData;
+
+  /// Tüm kayıtları ve seriyi [entries] / [streak] ile DEĞİŞTİRİR (yedekten geri
+  /// yükleme). Önce kalıcı depoya yazılır; yazım başarısız olursa hiçbir şey
+  /// değişmez (bellek ve depo eski hâlinde kalır) ve hata yeniden fırlatılır.
+  /// [streak] null ise seri kayıtlardan yeniden kurulur. Kutlama oynamaz.
+  Future<void> replaceAll(
+    List<WaterEntry> entries, {
+    StreakData? streak,
+    int? goalMl,
+  }) async {
+    final oldEntries = _entries;
+    final oldStreak = _streakData;
+    final oldGoal = _goalMl;
+    await _repository.save(entries);
+    _entries = [...entries];
+    if (goalMl != null) _goalMl = goalMl;
+    _streakData = streak;
+    _undoSnapshot = null;
+    _goalTracker = GoalCelebrationTracker();
+    _loaded = true;
+    _syncStreak();
+    final data = _streakData;
+    if (data != null) {
+      try {
+        await _streakRepository.save(data);
+        _savedStreakJson = _currentStreakJson;
+      } catch (_) {
+        // Seri yazılamadı: kayıtları da eski hâline döndür (kısmi geri yükleme yok).
+        _entries = oldEntries;
+        await _repository.save(oldEntries);
+        _streakData = oldStreak;
+        _goalMl = oldGoal;
+        _syncStreak();
+        notifyListeners();
+        rethrow;
+      }
+    }
+    _saveFailed = false;
+    _observeGoal();
+    notifyListeners();
   }
 
   /// Gün değişmiş olabilir (uygulama öne geldi): seriyi bugüne getirir.

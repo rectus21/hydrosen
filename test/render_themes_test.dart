@@ -16,6 +16,8 @@ import 'package:hydrosen/data/streak_repository.dart';
 import 'package:hydrosen/domain/app_settings.dart';
 import 'package:hydrosen/domain/badges.dart';
 import 'package:hydrosen/domain/streak.dart';
+import 'package:hydrosen/domain/backup.dart';
+import 'package:hydrosen/features/backup/backup_io_base.dart';
 import 'package:hydrosen/domain/drink_type.dart';
 import 'package:hydrosen/domain/water_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,147 +47,110 @@ void main() {
   _faz1Tests();
   _faz2Tests();
   _faz3Tests();
-  testWidgets(
-    'karaejderha kareleri',
-    (tester) async {
-      await _run(tester, 'karaejderha', const [
-        ('intro_015', 390),
-        ('intro_035', 520),
-        ('intro_055', 520),
-        ('intro_080', 650),
-      ], loopAfter: 'loop');
-    },
-    skip: !_enabled,
-  );
+  _faz4Tests();
+  testWidgets('karaejderha kareleri', (tester) async {
+    await _run(tester, 'karaejderha', const [
+      ('intro_015', 390),
+      ('intro_035', 520),
+      ('intro_055', 520),
+      ('intro_080', 650),
+    ], loopAfter: 'loop');
+  }, skip: !_enabled);
 
-  testWidgets(
-    'tema ekrani',
-    (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      await tester.runAsync(() async {
-        await _loadFonts();
-        await IllustratedArtwork.load();
-        await FxSprites.load();
-      });
-      tester.view.physicalSize = const Size(780, 1688);
-      tester.view.devicePixelRatio = 2;
-      addTearDown(tester.view.reset);
-      Directory(_outDir).createSync(recursive: true);
-      final shot = GlobalKey();
-      final settings = SettingsController(
-        repository: InMemorySettingsRepository(),
-      );
-      await settings.load();
-      settings.setTheme(ThermosTheme.byId('panda'));
-      await tester.pumpWidget(
-        RepaintBoundary(
-          key: shot,
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Scaffold(
-              body: ThemeScene(
-                theme: settings.theme,
-                child: SafeArea(
-                  child: ThemeSection(
-                    settings: settings,
-                    onOpenSettings: () {},
-                  ),
-                ),
+  testWidgets('tema ekrani', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(() async {
+      await _loadFonts();
+      await IllustratedArtwork.load();
+      await FxSprites.load();
+    });
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    Directory(_outDir).createSync(recursive: true);
+    final shot = GlobalKey();
+    final settings = SettingsController(
+      repository: InMemorySettingsRepository(),
+    );
+    await settings.load();
+    settings.setTheme(ThermosTheme.byId('panda'));
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: shot,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: ThemeScene(
+              theme: settings.theme,
+              child: SafeArea(
+                child: ThemeSection(settings: settings, onOpenSettings: () {}),
               ),
             ),
           ),
         ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    // Kapak PNG'lerinin gerçek zamanlı çözülmesi için bekle.
+    for (var i = 0; i < 6; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 400)),
       );
-      await tester.pump(const Duration(milliseconds: 300));
-      // Kapak PNG'lerinin gerçek zamanlı çözülmesi için bekle.
-      for (var i = 0; i < 6; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 400)),
-        );
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      await tester.runAsync(() async {
-        final boundary =
-            shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
-        final image = await boundary.toImage(pixelRatio: 1);
-        final data = await image.toByteData(format: ui.ImageByteFormat.png);
-        File('$_outDir/tema_ekrani.png').writeAsBytesSync(
-          data!.buffer.asUint8List(),
-        );
-      });
-    },
-    skip: !_enabled,
-  );
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.runAsync(() async {
+      final boundary =
+          shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 1);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      File('$_outDir/tema_ekrani.png')
+          .writeAsBytesSync(data!.buffer.asUint8List());
+    });
+  }, skip: !_enabled);
 
-  testWidgets(
-    'kedi kareleri',
-    (tester) async {
-      await _run(tester, 'kedi', const [], rest: true);
-      await _run(tester, 'kedi', const [
-        ('intro_030', 780),
-        ('intro_060', 780),
-      ], loopAfter: 'loop');
-    },
-    skip: !_enabled,
-  );
+  testWidgets('kedi kareleri', (tester) async {
+    await _run(tester, 'kedi', const [], rest: true);
+    await _run(tester, 'kedi', const [
+      ('intro_030', 780),
+      ('intro_060', 780),
+    ], loopAfter: 'loop');
+  }, skip: !_enabled);
 
-  testWidgets(
-    'pofuduk kareleri',
-    (tester) async {
-      await _run(tester, 'pofuduk', const [], rest: true);
-      await _run(tester, 'pofuduk', const [
-        ('intro_030', 780),
-        ('intro_060', 780),
-      ], loopAfter: 'loop');
-    },
-    skip: !_enabled,
-  );
+  testWidgets('pofuduk kareleri', (tester) async {
+    await _run(tester, 'pofuduk', const [], rest: true);
+    await _run(tester, 'pofuduk', const [
+      ('intro_030', 780),
+      ('intro_060', 780),
+    ], loopAfter: 'loop');
+  }, skip: !_enabled);
 
-  testWidgets(
-    'limon kareleri',
-    (tester) async {
-      await _run(tester, 'limon', const [], rest: true);
-    },
-    skip: !_enabled,
-  );
+  testWidgets('limon kareleri', (tester) async {
+    await _run(tester, 'limon', const [], rest: true);
+  }, skip: !_enabled);
 
-  testWidgets(
-    'limon intro',
-    (tester) async {
-      await _run(tester, 'limon', const [
-        ('intro_015', 600),
-        ('intro_030', 600),
-        ('intro_050', 800),
-        ('intro_065', 600),
-        ('intro_090', 1000),
-      ], loopAfter: 'loop');
-    },
-    skip: !_enabled,
-  );
+  testWidgets('limon intro', (tester) async {
+    await _run(tester, 'limon', const [
+      ('intro_015', 600),
+      ('intro_030', 600),
+      ('intro_050', 800),
+      ('intro_065', 600),
+      ('intro_090', 1000),
+    ], loopAfter: 'loop');
+  }, skip: !_enabled);
 
-  testWidgets(
-    'okyanus kareleri',
-    (tester) async {
-      await _run(tester, 'okyanus', const [
-        ('intro_010', 400),
-        ('intro_030', 800),
-        ('intro_045', 600),
-        ('intro_065', 800),
-        ('intro_080', 600),
-      ], loopAfter: 'loop');
-    },
-    skip: !_enabled,
-  );
+  testWidgets('okyanus kareleri', (tester) async {
+    await _run(tester, 'okyanus', const [
+      ('intro_010', 400),
+      ('intro_030', 800),
+      ('intro_045', 600),
+      ('intro_065', 800),
+      ('intro_080', 600),
+    ], loopAfter: 'loop');
+  }, skip: !_enabled);
 
-  testWidgets(
-    'yarisarabasi kareleri',
-    (tester) async {
-      await _run(tester, 'yarisarabasi', const [
-        ('intro_050', 1300),
-      ]);
-    },
-    skip: !_enabled,
-  );
+  testWidgets('yarisarabasi kareleri', (tester) async {
+    await _run(tester, 'yarisarabasi', const [('intro_050', 1300)]);
+  }, skip: !_enabled);
 }
 
 // ---- Faz 1 – Kayıt kolaylığı (390x844, 2x) -------------------------------
@@ -562,9 +527,11 @@ void _faz3Tests() {
 
   List<WaterEntry> entriesFor(Iterable<int> daysAgo, {int ml = 2000}) => [
     for (final n in daysAgo)
-      WaterEntry(id: 100 + n, amountMl: ml, time: ago(n).add(
-        const Duration(hours: 12),
-      )),
+      WaterEntry(
+        id: 100 + n,
+        amountMl: ml,
+        time: ago(n).add(const Duration(hours: 12)),
+      ),
   ];
 
   const allCelebrated = {
@@ -922,9 +889,8 @@ Future<void> _run(
           shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
       final image = await boundary.toImage(pixelRatio: 1);
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
-      File('$_outDir\\${id}_$name.png').writeAsBytesSync(
-        data!.buffer.asUint8List(),
-      );
+      File('$_outDir\\${id}_$name.png')
+          .writeAsBytesSync(data!.buffer.asUint8List());
     });
   }
 
@@ -943,4 +909,200 @@ Future<void> _run(
     await tester.pump(const Duration(milliseconds: 1500));
     await snap(loopAfter);
   }
+}
+
+// ---- Faz 4 - Yedek, tema ızgarası, widget (390x844, 2x) --------
+
+const _faz4Dir =
+    r'C:\Users\PC\Documents\Obsidian Vault\HydroSen\02-Design\faz4';
+
+class _RenderIO implements BackupFileIO {
+  _RenderIO(this.text);
+  final String? text;
+
+  @override
+  bool get canSave => true;
+  @override
+  bool get canPick => true;
+  @override
+  Future<bool> saveFile({
+    required String fileName,
+    required String content,
+  }) async => true;
+  @override
+  Future<String?> pickFileText() async => text;
+}
+
+void _faz4Tests() {
+  final today = DateTime.now();
+  final d0 = DateTime(today.year, today.month, today.day);
+
+  Future<GlobalKey> setUpApp(
+    WidgetTester tester,
+    String themeId, {
+    BackupFileIO? io,
+  }) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(() async {
+      await _loadFazFonts();
+      await IllustratedArtwork.load();
+      await FxSprites.load();
+    });
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(() {
+      tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+      tester.view.reset();
+    });
+    Directory(_faz4Dir).createSync(recursive: true);
+    final shot = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: shot,
+        child: HydroSenApp(
+          repository: InMemoryWaterRepository([
+            WaterEntry(
+              id: 1,
+              amountMl: 600,
+              time: d0.add(const Duration(hours: 8)),
+            ),
+            WaterEntry(
+              id: 2,
+              amountMl: 600,
+              time: d0.add(const Duration(hours: 10)),
+            ),
+          ]),
+          settingsRepository: InMemorySettingsRepository(
+            AppSettings(
+              theme: ThermosTheme.byId(themeId),
+              animatedCelebrations: false,
+            ),
+          ),
+          streakRepository: InMemoryStreakRepository(
+            StreakData(
+              start: DateTime(d0.year, d0.month, d0.day - 12),
+              through: DateTime(d0.year, d0.month, d0.day - 1),
+              goalDays: {
+                for (var i = 1; i <= 12; i++)
+                  DateTime(d0.year, d0.month, d0.day - i),
+              },
+              throughGoalMl: 2000,
+              lastGoalMl: 2000,
+              best: 12,
+              badges: {'ilk_kayit': d0, 'ilk_hedef': d0, 's3': d0, 's7': d0},
+              celebrated: {'ilk_kayit', 'ilk_hedef', 's3', 's7'},
+            ),
+          ),
+          backupIo: io,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return shot;
+  }
+
+  /// Kapak resimleri gerçek zamanlı çözülür; bekle, sonra çek.
+  Future<void> snap(WidgetTester tester, GlobalKey shot, String name) async {
+    for (var i = 0; i < 12; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.runAsync(() async {
+      final boundary =
+          shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 2);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      File('$_faz4Dir\\$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+    });
+    // Başlamış kapak yüklemeleri test bitmeden tamamlansın (önbellekte asılı kalmasın).
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 1500)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+
+  String bigBackup() {
+    final entries = [
+      for (var i = 0; i < 142; i++)
+        WaterEntry(
+          id: i + 1,
+          amountMl: 200,
+          time: DateTime(2026, 11, i < 71 ? 23 : 24, 7 + i % 14),
+        ),
+    ];
+    return BackupCodec.encode(
+      BackupData(
+        entries: entries,
+        settings: const AppSettings(),
+        streak: StreakData(
+          start: DateTime(2026, 11, 16),
+          through: DateTime(2026, 11, 23),
+          goalDays: {DateTime(2026, 11, 22), DateTime(2026, 11, 23)},
+          best: 7,
+          badges: {
+            for (final id in [
+              'ilk_kayit',
+              'ilk_hedef',
+              's3',
+              's7',
+              's15',
+              's30',
+              's60',
+              's100',
+            ])
+              id: DateTime(2026, 11, 20),
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> scrollProfileTo(WidgetTester tester, Finder target) async {
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      target,
+      150,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('faz4: yedek bölümü ve geri yükleme onayı', (tester) async {
+    final shot = await setUpApp(tester, 'kedi', io: _RenderIO(bigBackup()));
+    await scrollProfileTo(tester, find.byKey(const ValueKey('backup-section')));
+    await snap(tester, shot, 'profil_yedek');
+    await tester.tap(find.byKey(const ValueKey('backup-restore')));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'yedek_onay');
+  }, skip: !_enabled);
+
+  testWidgets('faz4: bozuk yedek dosyası', (tester) async {
+    final shot = await setUpApp(tester, 'kedi', io: _RenderIO('{ bozuk'));
+    await scrollProfileTo(tester, find.byKey(const ValueKey('backup-section')));
+    await tester.tap(find.byKey(const ValueKey('backup-restore')));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'yedek_hata');
+  }, skip: !_enabled);
+
+  testWidgets('faz4: widget önizlemeleri (Profil)', (tester) async {
+    final shot = await setUpApp(tester, 'kedi');
+    await scrollProfileTo(tester, find.byKey(const ValueKey('widget-soon')));
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -600));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'widget_onizleme');
+  }, skip: !_enabled);
+
+  testWidgets('faz4: tema ızgarası', (tester) async {
+    final shot = await setUpApp(tester, 'panda');
+    await tester.tap(find.text('Tema'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('theme-chip-Hayvanlar')));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'tema_izgara');
+  }, skip: !_enabled);
 }

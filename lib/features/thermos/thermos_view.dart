@@ -180,6 +180,19 @@ class _ThermosViewState extends State<ThermosView>
 
   @override
   Widget build(BuildContext context) {
+    // Ekran okuyucu için tek ifade: "Termos, 1200 / 2000 ml, yüzde 60".
+    final total = widget.totalMl ?? (widget.progress * widget.goalMl).round();
+    final percent = widget.goalMl <= 0
+        ? 0
+        : (total * 100 / widget.goalMl).round();
+    return Semantics(
+      label: 'Termos, $total / ${widget.goalMl} ml, yüzde $percent',
+      image: true,
+      child: _bottle(context),
+    );
+  }
+
+  Widget _bottle(BuildContext context) {
     return AspectRatio(
       aspectRatio: designRect.width / designRect.height,
       child: GestureDetector(

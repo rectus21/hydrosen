@@ -117,8 +117,8 @@ class _GlassCell extends StatelessWidget {
         onTap: onTap,
         child: SizedBox(
           width: size,
-          // Dokunma alanı bardaktan yüksek olabilir (en az 44 px).
-          height: math.max(size * 1.2, 44.0),
+          // Dokunma alanı bardaktan yüksek olabilir (en az 48 px).
+          height: math.max(size * 1.2, 48.0),
           child: Center(
             child: TweenAnimationBuilder<double>(
               tween: Tween(end: fill),

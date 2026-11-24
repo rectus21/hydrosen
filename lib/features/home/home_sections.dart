@@ -7,6 +7,11 @@ import 'water_controller.dart';
 import '../thermos/thermos_theme.dart';
 import 'theme_catalog.dart';
 import '../settings/bottle_name_card.dart';
+import '../../domain/widget_snapshot.dart';
+import '../backup/backup_io.dart';
+import '../backup/backup_section.dart';
+import '../backup/backup_service.dart';
+import '../widget/widget_preview.dart';
 export '../reminder/reminder_section.dart';
 export 'records_section.dart';
 
@@ -16,9 +21,17 @@ class ProfileSection extends StatelessWidget {
     required this.settings,
     required this.onOpenSettings,
     this.controller,
+    this.backup,
+    this.backupIo,
   });
 
   final SettingsController settings;
+
+  /// Verilirse "Yedekle ve geri yükle" bölümü gösterilir.
+  final BackupService? backup;
+
+  /// Yedek dosya kanalı (verilmezse platformunki).
+  final BackupFileIO? backupIo;
 
   /// Seri ve rozetler için; verilmezse "Rozetlerim" bölümü gösterilmez.
   final WaterController? controller;
@@ -88,6 +101,22 @@ class ProfileSection extends StatelessWidget {
             const SizedBox(height: 12),
             BadgesSection(controller: controller!),
           ],
+          if (backup != null) ...[
+            const SizedBox(height: 12),
+            BackupSection(service: backup!, io: backupIo),
+          ],
+          if (controller != null) ...[
+            const SizedBox(height: 12),
+            _WidgetSoonPanel(
+              snapshot: WidgetSnapshot(
+                todayMl: controller!.totalMl,
+                goalMl: controller!.goalMl,
+                streakDay: controller!.streak.current,
+                themeId: settings.theme.id,
+                characterName: settings.bottleName,
+              ),
+            ),
+          ],
         ],
       ),
     ),
@@ -145,4 +174,45 @@ class ThemeSection extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Profil'deki "Ana ekran widget'ı (yakında)" bölümü: widget'ın 2x2 ve 4x2
+/// önizlemesi ve kısa not.
+class _WidgetSoonPanel extends StatelessWidget {
+  const _WidgetSoonPanel({required this.snapshot});
+
+  final WidgetSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return FrostedPanel(
+      key: const ValueKey('widget-soon'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            header: true,
+            child: Text("Ana ekran widget'ı (yakında)", style: text.titleLarge),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Karakterin ve bugünkü suyun telefonun ana ekranında görünecek. '
+            'Widget telefon sürümüyle gelecek.',
+            style: text.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: [
+              for (final s in WidgetPreviewSize.values)
+                WidgetPreview(snapshot: snapshot, size: s),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

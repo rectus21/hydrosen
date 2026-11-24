@@ -49,6 +49,16 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Tüm ayarları [next] ile DEĞİŞTİRİR (yedekten geri yükleme). Önce depoya
+  /// yazılır; yazım başarısız olursa bellekteki ayar değişmez ve hata
+  /// yeniden fırlatılır.
+  Future<void> restore(AppSettings next) async {
+    await _repository.save(next);
+    _settings = next;
+    _saveFailed = false;
+    notifyListeners();
+  }
+
   Future<void> setShape(ThermosShape shape) =>
       _update(_settings.copyWith(shape: shape));
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../data/settings_repository.dart';
 import '../data/streak_repository.dart';
 import '../data/water_repository.dart';
+import '../features/backup/backup_io_base.dart';
+import '../services/widget_bridge.dart';
 import '../features/home/home_screen.dart';
 import '../features/thermos/thermos_theme.dart';
 import '../features/settings/settings_controller.dart';
@@ -14,6 +16,8 @@ class HydroSenApp extends StatefulWidget {
     this.repository,
     this.settingsRepository,
     this.streakRepository,
+    this.widgetBridge,
+    this.backupIo,
   });
 
   /// Verilmezse cihazda kalıcı depolama kullanılır; testler sahte bir depo verir.
@@ -22,6 +26,12 @@ class HydroSenApp extends StatefulWidget {
 
   /// Verilmezse: depo de varsayılansa cihazda, değilse (test) bellekte tutulur.
   final StreakRepository? streakRepository;
+
+  /// Ana ekran widget köprüsü; verilmezse boş (şimdilik hiçbir şey yapmaz).
+  final WidgetBridge? widgetBridge;
+
+  /// Yedek dosya kanalı (testler için); verilmezse platformunki.
+  final BackupFileIO? backupIo;
 
   @override
   State<HydroSenApp> createState() => _HydroSenAppState();
@@ -37,6 +47,7 @@ class _HydroSenAppState extends State<HydroSenApp> {
     super.initState();
     _repository = widget.repository ?? SharedPrefsWaterRepository();
     _streakRepository =
+        widget.streakRepository ??
         widget.streakRepository ??
         (widget.repository == null
             ? SharedPrefsStreakRepository()
@@ -128,6 +139,8 @@ class _HydroSenAppState extends State<HydroSenApp> {
         repository: _repository,
         streakRepository: _streakRepository,
         settings: _settings,
+        widgetBridge: widget.widgetBridge,
+        backupIo: widget.backupIo,
       ),
     );
   }

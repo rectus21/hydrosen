@@ -5,96 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../settings/settings_controller.dart';
+import '../../domain/theme_categories.dart';
 import '../thermos/thermos_theme.dart';
 
-/// Tema kataloğunun kategorileri (görünme sırasıyla). Eşlenmeyen temalar
-/// [kThemeOtherCategory] altında toplanır.
-const String kThemeOtherCategory = 'Diğer';
-const List<String> kThemeCategories = [
-  'Hayvanlar',
-  'Meyve ve tatlılar',
-  'Spor',
-  'Fantastik ve uzay',
-  'Doğa ve mevsim',
-  kThemeOtherCategory,
-];
-
-/// Tema id -> kategori. Yeni temayı eklemek/taşımak için yalnız burayı düzenle.
-const Map<String, String> kThemeCategoryOf = {
-  // Hayvanlar
-  'kedi': 'Hayvanlar',
-  'pofuduk': 'Hayvanlar',
-  'kopek': 'Hayvanlar',
-  'tavsan': 'Hayvanlar',
-  'penguen': 'Hayvanlar',
-  'koala': 'Hayvanlar',
-  'baykus': 'Hayvanlar',
-  'tilki': 'Hayvanlar',
-  'kurt': 'Hayvanlar',
-  'civciv': 'Hayvanlar',
-  'aslan': 'Hayvanlar',
-  'geyik': 'Hayvanlar',
-  'inek': 'Hayvanlar',
-  'koyun': 'Hayvanlar',
-  'maymun': 'Hayvanlar',
-  'boga': 'Hayvanlar',
-  'susamuru': 'Hayvanlar',
-  'fok': 'Hayvanlar',
-  'balina': 'Hayvanlar',
-  'fil': 'Hayvanlar',
-  'rakun': 'Hayvanlar',
-  'kirpi': 'Hayvanlar',
-  'sincap': 'Hayvanlar',
-  'kaplan': 'Hayvanlar',
-  'panda': 'Hayvanlar',
-  'ayi': 'Hayvanlar',
-  'ahtapot': 'Hayvanlar',
-  'kurbaga': 'Hayvanlar',
-  // Meyve ve tatlılar
-  'cilek': 'Meyve ve tatlılar',
-  'karpuz': 'Meyve ve tatlılar',
-  'limon': 'Meyve ve tatlılar',
-  'avokado': 'Meyve ve tatlılar',
-  'dondurma': 'Meyve ve tatlılar',
-  'yesilelma': 'Meyve ve tatlılar',
-  // Spor
-  'futbol': 'Spor',
-  'basketbol': 'Spor',
-  'voleybol': 'Spor',
-  'yarisarabasi': 'Spor',
-  // Fantastik ve uzay
-  'tekboynuz': 'Fantastik ve uzay',
-  'astronot': 'Fantastik ve uzay',
-  'ejderha': 'Fantastik ve uzay',
-  'maviejderha': 'Fantastik ve uzay',
-  'karaejderha': 'Fantastik ve uzay',
-  'robot': 'Fantastik ve uzay',
-  'korsan': 'Fantastik ve uzay',
-  'sihirbaz': 'Fantastik ve uzay',
-  'gece': 'Fantastik ve uzay',
-  // Doğa ve mevsim
-  'okyanus': 'Doğa ve mevsim',
-  'kaktus': 'Doğa ve mevsim',
-  'kardanadam': 'Doğa ve mevsim',
-  'bulut': 'Doğa ve mevsim',
-  'kamp': 'Doğa ve mevsim',
-  'sonbahar': 'Doğa ve mevsim',
-};
-
-String themeCategoryOf(ThermosTheme t) =>
-    kThemeCategoryOf[t.id] ?? kThemeOtherCategory;
-
-/// Kategori -> temalar ([ThermosTheme.all] sırasıyla); boş kategoriler atlanır.
-Map<String, List<ThermosTheme>> groupThemesByCategory([
-  Iterable<ThermosTheme>? themes,
-]) {
-  final out = {for (final c in kThemeCategories) c: <ThermosTheme>[]};
-  for (final t in themes ?? ThermosTheme.all) {
-    out[themeCategoryOf(t)]!.add(t);
-  }
-  out.removeWhere((_, v) => v.isEmpty);
-  return out;
-}
+export '../../domain/theme_categories.dart';
 
 /// Kapak görseli ve opak sınırları (yalnız görünür kısım; avatarda ortalanır).
 class _CapImage {
@@ -105,7 +19,16 @@ class _CapImage {
 
 final _capCache = <String, Future<_CapImage?>>{};
 
-Future<_CapImage?> _loadCap(String id) => _capCache.putIfAbsent(id, () async {
+/// Yüklenemeyen kapak (null) önbellekte kalmaz; bir sonraki istekte yeniden denenir.
+Future<_CapImage?> _loadCap(String id) {
+  final f = _capCache.putIfAbsent(id, () => _loadCapUncached(id));
+  f.then((v) {
+    if (v == null) _capCache.remove(id);
+  });
+  return f;
+}
+
+Future<_CapImage?> _loadCapUncached(String id) async {
   try {
     final data = await rootBundle.load('assets/caps/${id}_normal.png');
     final codec = await ui.instantiateImageCodec(
@@ -139,7 +62,7 @@ Future<_CapImage?> _loadCap(String id) => _capCache.putIfAbsent(id, () async {
   } catch (_) {
     return null;
   }
-});
+}
 
 Size _sizeOf(ui.Image i) => Size(i.width.toDouble(), i.height.toDouble());
 
@@ -182,8 +105,54 @@ class _CapPainter extends CustomPainter {
   bool shouldRepaint(_CapPainter old) => old.cap != cap;
 }
 
+/// Temanın kapağı (kapak resmi ya da baş harf). Avatarda kullanılır;
+/// anlamsal içeriği yoktur (süs).
+class ThemeCap extends StatelessWidget {
+  const ThemeCap({super.key, required this.theme, this.initialSize = 56});
+
+  final ThermosTheme theme;
+  final double initialSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = theme.name.isEmpty
+        ? '?'
+        : theme.name.substring(0, 1).toUpperCase();
+    return ExcludeSemantics(
+      child: FutureBuilder<_CapImage?>(
+        future: _loadCap(theme.id),
+        builder: (context, snap) {
+          final cap = snap.data;
+          if (cap == null) {
+            return Center(
+              child: Text(
+                initial,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: initialSize,
+                  fontWeight: FontWeight.w900,
+                  shadows: const [
+                    Shadow(
+                      color: Color(0xAA000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          return CustomPaint(painter: _CapPainter(cap));
+        },
+      ),
+    );
+  }
+}
+
 /// Yalnız avatar: yarı saydam beyaz daire içinde kapak. Seçiliyse kalın halka.
 /// Dokununca tema hemen uygulanır; küçük "pop" animasyonu oynar.
+///
+/// Not (2026-11-25): uygulama tamamen ücretsizdir; tüm temalar herkese açık.
 class _ThemeAvatar extends StatefulWidget {
   const _ThemeAvatar({
     super.key,
@@ -237,7 +206,6 @@ class _ThemeAvatarState extends State<_ThemeAvatar>
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
-    final initial = t.name.isEmpty ? '?' : t.name.substring(0, 1).toUpperCase();
     return Semantics(
       button: true,
       selected: widget.selected,
@@ -246,6 +214,7 @@ class _ThemeAvatarState extends State<_ThemeAvatar>
       onTap: _tap,
       child: Tooltip(
         message: t.name,
+        excludeFromSemantics: true,
         child: GestureDetector(
           key: ValueKey('theme-card-${t.id}'),
           behavior: HitTestBehavior.opaque,
@@ -261,32 +230,7 @@ class _ThemeAvatarState extends State<_ThemeAvatar>
                       ? Border.all(color: const Color(0xFF1E88E5), width: 5)
                       : null,
                 ),
-                child: FutureBuilder<_CapImage?>(
-                  future: _loadCap(t.id),
-                  builder: (context, snap) {
-                    final cap = snap.data;
-                    if (cap == null) {
-                      return Center(
-                        child: Text(
-                          initial,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 56,
-                            fontWeight: FontWeight.w900,
-                            shadows: const [
-                              Shadow(
-                                color: Color(0xAA000000),
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return CustomPaint(painter: _CapPainter(cap));
-                  },
-                ),
+                child: ThemeCap(theme: t),
               ),
             ),
           ),
@@ -340,7 +284,8 @@ class _ThemeCatalogState extends State<ThemeCatalog> {
           ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 52,
+              // 48 px'lik dokunma hedefi için chip'e 48 px yer kalır.
+              height: 64,
               child: ListView(
                 key: const ValueKey('theme-chips'),
                 scrollDirection: Axis.horizontal,

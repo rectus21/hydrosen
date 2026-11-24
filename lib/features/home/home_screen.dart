@@ -27,6 +27,9 @@ import '../reminder/web_notifier.dart';
 import 'reminder_controller.dart';
 import 'resin_button.dart';
 import 'water_controller.dart';
+import '../../services/widget_bridge.dart';
+import '../backup/backup_io_base.dart';
+import '../backup/backup_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -34,11 +37,17 @@ class HomeScreen extends StatefulWidget {
     required this.repository,
     required this.settings,
     this.streakRepository,
+    this.widgetBridge,
+    this.backupIo,
   });
 
   final WaterRepository repository;
   final StreakRepository? streakRepository;
   final SettingsController settings;
+
+  /// Ana ekran widget köprüsü (varsayılan: boş).
+  final WidgetBridge? widgetBridge;
+  final BackupFileIO? backupIo;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -49,6 +58,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final ReminderController _reminder;
   late final ReminderNotifier _webNotifier = createWebNotifier();
   late final ReminderDelivery _delivery;
+  late final WidgetSnapshotPublisher _widgetPublisher;
+  late final BackupService _backup;
   final _scroll = ScrollController();
   final _thermosKey = GlobalKey();
   int _selectedTab = 0;
@@ -71,6 +82,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       contextProvider: _reminderContext,
     )..load();
     widget.settings.addListener(_syncGoal);
+    _widgetPublisher = WidgetSnapshotPublisher(
+      water: _controller,
+      settings: widget.settings,
+      bridge: widget.widgetBridge ?? const NoopWidgetBridge(),
+    );
+    _backup = BackupService(
+      water: _controller,
+      settings: widget.settings,
+      reminder: _reminder,
+    );
   }
 
   /// Hatırlatıcının bilmesi gereken bugünkü durum: son kayıt ve hedef.
@@ -118,7 +139,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _openSettings() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => SettingsScreen(controller: widget.settings),
+        builder: (_) =>
+            SettingsScreen(controller: widget.settings),
       ),
     );
   }
@@ -127,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     widget.settings.removeListener(_syncGoal);
+    _widgetPublisher.dispose();
     _controller.dispose();
     _reminder.dispose();
     _scroll.dispose();
@@ -264,6 +287,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               settings: widget.settings,
                               controller: _controller,
                               onOpenSettings: _openSettings,
+                              backup: _backup,
+                              backupIo: widget.backupIo,
                             )
                           : Center(
                               child: ConstrainedBox(
@@ -454,7 +479,7 @@ class _DailyControlCard extends StatelessWidget {
             child: ResinButton(
               tone: ResinTone.glass,
               width: 220,
-              height: 40,
+              height: 48,
               onPressed: onCustom,
               builder: (context, color) => Row(
                 mainAxisSize: MainAxisSize.min,
