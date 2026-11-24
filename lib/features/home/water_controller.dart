@@ -127,15 +127,47 @@ class WaterController extends ChangeNotifier {
     _currentStreakJson = jsonEncode(result.data.toJson());
   }
 
-  Future<void> _flushStreak() async {
-    final data = _streakData;
-    final json = _currentStreakJson;
-    if (data == null || json == null || json == _savedStreakJson) return;
+  bool _disposed = false;
+  bool _drainingEntries = false;
+  Future<void>? _entrySaveLoop;
+  List<WaterEntry>? _pendingEntries;
+  bool _drainingStreak = false;
+  Future<void>? _streakFlushLoop;
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  Future<void> _flushStreak() {
+    if (_drainingStreak) return _streakFlushLoop!;
+    if (_streakData == null ||
+        _currentStreakJson == null ||
+        _currentStreakJson == _savedStreakJson) {
+      return Future<void>.value();
+    }
+    _drainingStreak = true;
+    final loop = _drainStreakFlush();
+    if (_drainingStreak) _streakFlushLoop = loop;
+    return loop;
+  }
+
+  Future<void> _drainStreakFlush() async {
     try {
-      await _streakRepository.save(data);
-      _savedStreakJson = json;
-    } catch (_) {
-      // Seri kaydedilemese de kayıtlar etkilenmez; sonraki değişimde denenir.
+      while (true) {
+        final data = _streakData;
+        final json = _currentStreakJson;
+        if (data == null || json == null || json == _savedStreakJson) break;
+        try {
+          await _streakRepository.save(data);
+          _savedStreakJson = json;
+        } catch (_) {
+          // Seri kaydedilemese de kayıtlar etkilenmez; sonraki değişimde denenir.
+          break;
+        }
+      }
+    } finally {
+      _drainingStreak = false;
+      _streakFlushLoop = null;
     }
   }
 
@@ -166,9 +198,10 @@ class WaterController extends ChangeNotifier {
     } catch (_) {
       _streakData = null; // Bozuk veri: seri kayıtlardan yeniden kurulur.
     }
+    if (_disposed) return;
     _loaded = true;
     _observeGoal(); // Başlangıç durumu: açılışta kutlama oynamaz.
-    notifyListeners();
+    _notify();
     await _flushStreak();
   }
 
@@ -305,13 +338,41 @@ class WaterController extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
-    try {
-      await _repository.save(_entries);
-      _saveFailed = false;
-    } catch (_) {
-      _saveFailed = true;
+    _pendingEntries = List<WaterEntry>.unmodifiable(_entries);
+    Future<void> loop;
+    if (_drainingEntries) {
+      loop = _entrySaveLoop!;
+    } else {
+      _drainingEntries = true;
+      loop = _drainEntrySaves();
+      if (_drainingEntries) _entrySaveLoop = loop;
     }
-    notifyListeners();
+    await loop;
     await _flushStreak();
+  }
+
+  Future<void> _drainEntrySaves() async {
+    try {
+      while (_pendingEntries != null) {
+        final snapshot = _pendingEntries!;
+        _pendingEntries = null;
+        try {
+          await _repository.save(snapshot);
+          _saveFailed = false;
+        } catch (_) {
+          _saveFailed = true;
+        }
+        _notify();
+      }
+    } finally {
+      _drainingEntries = false;
+      _entrySaveLoop = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

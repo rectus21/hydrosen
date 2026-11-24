@@ -17,8 +17,8 @@ class SharedPrefsWaterRepository implements WaterRepository {
   @override
   Future<List<WaterEntry>> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(key);
-    if (raw == null) return [];
+    final raw = prefs.get(key);
+    if (raw is! String) return [];
     final Object? decoded;
     try {
       decoded = jsonDecode(raw);

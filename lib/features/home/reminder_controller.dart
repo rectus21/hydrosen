@@ -86,9 +86,12 @@ class ReminderController extends ChangeNotifier {
     );
   }
 
+  bool _disposed = false;
+
   Future<void> load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      if (_disposed) return;
       enabled = prefs.getBool(_enabledKey) ?? false;
       startMinute = prefs.getInt(_startKey) ?? startMinute;
       endMinute = prefs.getInt(_endKey) ?? endMinute;
@@ -104,9 +107,14 @@ class ReminderController extends ChangeNotifier {
       if (!ReminderPlanner.intervals.contains(intervalMinute)) {
         intervalMinute = 60;
       }
-      final raw = prefs.getString(_stateKey);
-      if (raw != null) {
-        _state = ReminderDayState.tryFromJson(jsonDecode(raw)) ?? _state;
+      // Günlük sayaç verisi bozuksa yalnız sayaç sıfırlansın; geçerli ayarlar korunsun.
+      try {
+        final raw = prefs.get(_stateKey);
+        if (raw is String) {
+          _state = ReminderDayState.tryFromJson(jsonDecode(raw)) ?? _state;
+        }
+      } catch (_) {
+        _state = _emptyState();
       }
     } catch (_) {
       // Kısmen okunmuş/bozuk veri hatırlatıcıyı yanlışlıkla açmasın.
@@ -117,6 +125,7 @@ class ReminderController extends ChangeNotifier {
       stopAtGoal = true;
       dailyCap = ReminderPlanner.defaultDailyCap;
     }
+    if (_disposed) return;
     loaded = true;
     _syncTimer();
     notifyListeners();
@@ -165,7 +174,7 @@ class ReminderController extends ChangeNotifier {
   void _syncTimer() {
     _timer?.cancel();
     _timer = null;
-    if (enabled) {
+    if (enabled && !_disposed) {
       _timer = Timer.periodic(const Duration(seconds: 30), (_) => checkDue());
     }
   }
@@ -173,7 +182,7 @@ class ReminderController extends ChangeNotifier {
   /// Zamanı gelmiş bir hatırlatma varsa teslim eder (dakikada birkaç kez
   /// çağrılabilir; aynı hatırlatma bir kez gönderilir).
   void checkDue() {
-    if (!enabled) return;
+    if (!enabled || _disposed) return;
     final n = _now();
     final p = plan;
     if (!p.isDue(n)) {
@@ -184,7 +193,7 @@ class ReminderController extends ChangeNotifier {
     lastKind = p.kind;
     _saveState();
     onDue();
-    notifyListeners();
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> _saveState() async {
@@ -202,6 +211,7 @@ class ReminderController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _timer?.cancel();
     super.dispose();
   }

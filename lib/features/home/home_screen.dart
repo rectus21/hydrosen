@@ -53,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _thermosKey = GlobalKey();
   int _selectedTab = 0;
 
+  bool _waterLoadStarted = false;
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       repository: widget.repository,
       goalMl: widget.settings.goalMl,
       streakRepository: widget.streakRepository,
-    )..load();
+    );
     WidgetsBinding.instance.addObserver(this);
     _delivery = ReminderDelivery([
       InAppReminderNotifier(_showBanner),
@@ -71,6 +73,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       contextProvider: _reminderContext,
     )..load();
     widget.settings.addListener(_syncGoal);
+    _maybeLoadWater();
+  }
+
+  void _maybeLoadWater() {
+    if (_waterLoadStarted || !widget.settings.loaded) return;
+    _waterLoadStarted = true;
+    _controller.goalMl = widget.settings.goalMl;
+    _controller.load();
   }
 
   /// Hatırlatıcının bilmesi gereken bugünkü durum: son kayıt ve hedef.
@@ -109,11 +119,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Gece yarısı geçmiş olabilir: seriyi yeni güne getir.
-    if (state == AppLifecycleState.resumed) _controller.refresh();
+    // Gece yarısı geçmiş olabilir: seriyi yeni güne getir ve hatırlatmayı denetle.
+    if (state == AppLifecycleState.resumed) {
+      _controller.refresh();
+      _reminder.checkDue();
+    }
   }
 
-  void _syncGoal() => _controller.goalMl = widget.settings.goalMl;
+  void _syncGoal() {
+    _controller.goalMl = widget.settings.goalMl;
+    _maybeLoadWater();
+  }
 
   void _openSettings() {
     Navigator.of(context).push(

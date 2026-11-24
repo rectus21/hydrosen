@@ -17,6 +17,10 @@ class SettingsController extends ChangeNotifier {
   AppSettings _settings = const AppSettings();
   bool _loaded = false;
   bool _saveFailed = false;
+  bool _disposed = false;
+  bool _drainingSaves = false;
+  Future<void>? _saveLoop;
+  AppSettings? _pendingSave;
 
   bool get loaded => _loaded;
 
@@ -39,6 +43,10 @@ class SettingsController extends ChangeNotifier {
   /// [t] temasının matara/karakter adı.
   String bottleNameOf(ThermosTheme t) => _settings.bottleName(t);
 
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
   Future<void> load() async {
     try {
       _settings = await _repository.load();
@@ -46,7 +54,7 @@ class SettingsController extends ChangeNotifier {
       _settings = const AppSettings(); // Okunamazsa varsayılanlarla aç.
     }
     _loaded = true;
-    notifyListeners();
+    _notify();
   }
 
   Future<void> setShape(ThermosShape shape) =>
@@ -135,15 +143,39 @@ class SettingsController extends ChangeNotifier {
   static bool _validMl(int ml) =>
       ml >= SavedContainer.minMl && ml <= SavedContainer.maxMl;
 
-  Future<void> _update(AppSettings next) async {
+  Future<void> _update(AppSettings next) {
     _settings = next;
-    notifyListeners();
+    _pendingSave = next;
+    _notify();
+    if (_drainingSaves) return _saveLoop!;
+    _drainingSaves = true;
+    final loop = _drainSaves();
+    if (_drainingSaves) _saveLoop = loop;
+    return loop;
+  }
+
+  Future<void> _drainSaves() async {
     try {
-      await _repository.save(next);
-      _saveFailed = false;
-    } catch (_) {
-      _saveFailed = true;
+      while (_pendingSave != null) {
+        final snapshot = _pendingSave!;
+        _pendingSave = null;
+        try {
+          await _repository.save(snapshot);
+          _saveFailed = false;
+        } catch (_) {
+          _saveFailed = true;
+        }
+        _notify();
+      }
+    } finally {
+      _drainingSaves = false;
+      _saveLoop = null;
     }
-    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }
