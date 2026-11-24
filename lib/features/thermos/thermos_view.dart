@@ -84,6 +84,12 @@ class _ThermosViewState extends State<ThermosView>
   /// Çalkalanma yönü her itkide değişir (rastgelelik yok, deterministik).
   double _side = 1;
   double _dragDx = 0;
+  late Listenable _celebrationListenable = _mergeCelebration();
+
+  Listenable _mergeCelebration() => Listenable.merge([
+    widget.celebrationT ?? _noCelebration,
+    widget.celebrationLoop ?? _noCelebration,
+  ]);
 
   @override
   void didChangeDependencies() {
@@ -107,6 +113,10 @@ class _ThermosViewState extends State<ThermosView>
   @override
   void didUpdateWidget(ThermosView old) {
     super.didUpdateWidget(old);
+    if (old.celebrationT != widget.celebrationT ||
+        old.celebrationLoop != widget.celebrationLoop) {
+      _celebrationListenable = _mergeCelebration();
+    }
     if (_reduceMotion) _shown = widget.progress;
     final now = widget.totalMl, before = old.totalMl;
     final deltaMl = now != null && before != null
@@ -190,10 +200,7 @@ class _ThermosViewState extends State<ThermosView>
         onHorizontalDragEnd: _onDragEnd,
         onHorizontalDragCancel: _onDragCancel,
         child: ListenableBuilder(
-          listenable: Listenable.merge([
-            widget.celebrationT ?? _noCelebration,
-            widget.celebrationLoop ?? _noCelebration,
-          ]),
+          listenable: _celebrationListenable,
           builder: (context, _) {
             final ct = (widget.celebrationT ?? _noCelebration).value;
             final lp = (widget.celebrationLoop ?? _noCelebration).value;

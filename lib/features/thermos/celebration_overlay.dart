@@ -171,13 +171,15 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
   Offset? _sceneToLocal(double u, double v) =>
       SceneGeometry.toLocal(context, widget.theme.id, u, v);
 
+  late final Listenable _mergedAnimation = Listenable.merge([_c, _cycles]);
+
   @override
   Widget build(BuildContext context) {
     // Ayar açıksa sistem "azalt" dese de tam hareket.
     final reduceMotion = _reduceMotion && !widget.animated;
     return IgnorePointer(
       child: AnimatedBuilder(
-        animation: Listenable.merge([_c, _cycles]),
+        animation: _mergedAnimation,
         builder: (context, _) {
           if (!_c.isAnimating) {
             if (!_loopOn) return const SizedBox.shrink();

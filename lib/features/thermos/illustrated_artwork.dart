@@ -25,6 +25,18 @@ class IllustratedArtwork {
   static Future<double> _sampleTopLuma(ui.Image scene) =>
       _sampleBandLuma(scene, 0, 0.08);
 
+  /// Bir sahne görselinin üst, alt ve orta bant parlaklıklarını örnekler.
+  /// [WolfArtwork] gibi ayrı yüklenen sahneler de bunu kullanır.
+  static Future<void> sampleSceneLuma(String id, ui.Image scene) async {
+    try {
+      topLuma[id] = await _sampleTopLuma(scene);
+      bottomLuma[id] = await _sampleBandLuma(scene, 0.72, 0.94);
+      midLuma[id] = await _sampleBandLuma(scene, 0.30, 0.70);
+    } catch (_) {
+      // Parlaklık örneği alınamazsa tema varsayılan renkte kalır.
+    }
+  }
+
   static Future<double> _sampleBandLuma(
     ui.Image scene,
     double fromFrac,
@@ -43,7 +55,13 @@ class IllustratedArtwork {
       ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
       ui.Paint()..filterQuality = ui.FilterQuality.medium,
     );
-    final small = await rec.endRecording().toImage(w, h);
+    final picture = rec.endRecording();
+    final ui.Image small;
+    try {
+      small = await picture.toImage(w, h);
+    } finally {
+      picture.dispose();
+    }
     final data = await small.toByteData();
     small.dispose();
     if (data == null) return 0.5;
@@ -308,13 +326,7 @@ class IllustratedArtwork {
         try {
           scene = await decode('assets/scenes/$id.png');
           images.add(scene);
-          try {
-            topLuma[id] = await _sampleTopLuma(scene);
-            bottomLuma[id] = await _sampleBandLuma(scene, 0.72, 0.94);
-            midLuma[id] = await _sampleBandLuma(scene, 0.30, 0.70);
-          } catch (_) {
-            // Parlaklık örneği alınamazsa tema varsayılan renkte kalır.
-          }
+          await sampleSceneLuma(id, scene);
         } catch (_) {
           // New illustrated caps inherit the theme's existing vector scene.
         }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../thermos/illustrated_artwork.dart';
 import '../thermos/thermos_theme.dart';
+import '../thermos/wolf_artwork.dart';
 
 /// Karakterin küçük yuvarlak resmi (kapak). Resim bulunamazsa adın baş harfi.
 class CharacterAvatar extends StatelessWidget {
@@ -13,7 +14,9 @@ class CharacterAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Uygulama açılışında çözülmüş kapak varsa onu kullan (anında görünür).
-    final preloaded = IllustratedArtwork.byId[theme.id]?.normal;
+    final preloaded = theme.id == 'kurt'
+        ? WolfArtwork.current?.normal
+        : IllustratedArtwork.byId[theme.id]?.normal;
     final initial = theme.name.isEmpty ? '?' : theme.name[0].toUpperCase();
     return Container(
       width: size,

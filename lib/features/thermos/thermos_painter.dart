@@ -382,7 +382,7 @@ class ThermosPainter extends CustomPainter {
     }
     final b = geo.base;
     canvas.drawPath(
-      svgPath(
+      _p(
         'M${b.left} ${b.top} H${b.right} V${b.bottom - 24} Q${b.right} ${b.bottom} ${b.right - 26} ${b.bottom} '
         'H${b.left + 26} Q${b.left} ${b.bottom} ${b.left} ${b.bottom - 24} Z',
       ),
@@ -445,6 +445,7 @@ class ThermosPainter extends CustomPainter {
           textDirection: TextDirection.ltr,
         )..layout();
         tp.paint(canvas, Offset(geo.labelX, y - tp.height / 2));
+        tp.dispose();
       }
     }
   }

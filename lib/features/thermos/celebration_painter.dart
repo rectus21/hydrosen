@@ -570,6 +570,7 @@ class CelebrationPainter extends CustomPainter {
       final x = b.right - t * (b.width + tp.width) * 1.05;
       tp.paint(canvas, Offset(x, b.center.dy - tp.height / 2));
     }
+    tp.dispose();
     canvas.restore();
     canvas.restore();
   }

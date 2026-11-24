@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 
+import 'illustrated_artwork.dart';
 import 'thermos_theme.dart';
 
 /// First illustrated theme. Vector artwork remains the loading/error fallback.
@@ -30,6 +31,7 @@ class WolfArtwork {
           codec.dispose();
         }
       }
+      await IllustratedArtwork.sampleSceneLuma('kurt', images[2]);
       return current = WolfArtwork._(images[0], images[1], images[2]);
     } catch (_) {
       for (final image in images) {
