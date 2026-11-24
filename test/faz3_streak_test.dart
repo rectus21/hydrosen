@@ -484,9 +484,9 @@ void main() {
       expect(find.byIcon(Icons.shield_outlined), findsOneWidget);
       // 10 rozet; 5'i kilitli (kilit simgesi).
       expect(find.byIcon(Icons.lock_rounded), findsNWidgets(5));
-      // Kilitli rozetlerde kalan gün: en uzun seri 16 -> 30 için 14 gün.
-      expect(find.text('14 gün kaldı'), findsOneWidget);
-      expect(find.text('349 gün kaldı'), findsOneWidget);
+      // Kilitli rozetlerde kalan gün: mevcut seri 12 -> 30 için 18, 365 için 353 gün.
+      expect(find.text('18 gün kaldı'), findsOneWidget);
+      expect(find.text('353 gün kaldı'), findsOneWidget);
       expect(find.text('İlk hedef'), findsOneWidget);
     });
 

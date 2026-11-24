@@ -36,8 +36,9 @@ import 'package:hydrosen/features/thermos/thermos_painter.dart';
 import 'package:hydrosen/features/thermos/thermos_theme.dart';
 import 'package:hydrosen/features/thermos/thermos_view.dart';
 
-const _outDir =
-    r'C:\Users\PC\Documents\Obsidian Vault\HydroSen\02-Design\yeni-temalar\render';
+final _outDir =
+    Platform.environment['RENDER_THEMES_DIR'] ??
+    '${Directory.systemTemp.path}/hydrosen_render';
 
 final _enabled = Platform.environment.containsKey('RENDER_THEMES');
 

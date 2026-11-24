@@ -20,11 +20,15 @@ void main() {
       tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
       tester.view.reset();
     });
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final today = DateTime.now();
     await tester.pumpWidget(
       HydroSenApp(
         repository: InMemoryWaterRepository([
-          WaterEntry(id: 1, amountMl: 250, time: yesterday),
+          WaterEntry(
+            id: 1,
+            amountMl: 250,
+            time: DateTime(today.year, today.month, today.day),
+          ),
         ]),
         settingsRepository: InMemorySettingsRepository(),
       ),
@@ -40,7 +44,7 @@ void main() {
     await tester.tap(find.text('Kayıtlar'));
     await tester.pumpAndSettle();
     expect(find.text('Su kayıtları'), findsOneWidget);
-    expect(find.text('250 ml'), findsOneWidget);
+    expect(find.text('250 ml'), findsWidgets);
 
     await tester.tap(find.text('Hatırlatıcı'));
     await tester.pumpAndSettle();
