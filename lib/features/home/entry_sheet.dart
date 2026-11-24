@@ -34,6 +34,7 @@ Future<EntrySheetResult?> showEntrySheet(
   WaterEntry? entry,
   DateTime? day,
   DateTime? now,
+  DateTime Function()? nowProvider,
   List<SavedContainer> containers = AppSettings.defaultContainers,
 }) => showModalBottomSheet<EntrySheetResult>(
   context: context,
@@ -43,7 +44,8 @@ Future<EntrySheetResult?> showEntrySheet(
   builder: (_) => EntrySheet(
     entry: entry,
     day: day,
-    now: now ?? DateTime.now(),
+    now: now ?? nowProvider?.call() ?? DateTime.now(),
+    nowProvider: now != null ? null : (nowProvider ?? DateTime.now),
     containers: containers,
   ),
 );
@@ -58,7 +60,7 @@ Future<void> editEntryFlow(
   final result = await showEntrySheet(
     context,
     entry: entry,
-    now: controller.now,
+    nowProvider: () => controller.now,
     containers: containers,
   );
   if (result == null) return;
@@ -84,7 +86,7 @@ Future<void> addEntryFlow(
   final result = await showEntrySheet(
     context,
     day: day,
-    now: controller.now,
+    nowProvider: () => controller.now,
     containers: containers,
   );
   if (result == null || result.delete) return;
@@ -101,12 +103,17 @@ class EntrySheet extends StatefulWidget {
     this.entry,
     this.day,
     required this.now,
+    this.nowProvider,
     this.containers = AppSettings.defaultContainers,
   });
 
   final WaterEntry? entry;
   final DateTime? day;
   final DateTime now;
+
+  /// Verilirse kaydetme/tarih seçimi anında güncel saati okur (sayfa uzun süre
+  /// açık kaldığında o anki saat "gelecek" sayılmasın).
+  final DateTime Function()? nowProvider;
   final List<SavedContainer> containers;
 
   @override
@@ -121,6 +128,7 @@ class _EntrySheetState extends State<EntrySheet> {
   String? _error;
 
   bool get _editing => widget.entry != null;
+  DateTime get _currentNow => widget.nowProvider?.call() ?? widget.now;
 
   @override
   void initState() {
@@ -151,7 +159,7 @@ class _EntrySheetState extends State<EntrySheet> {
       DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute);
 
   Future<void> _pickDate() async {
-    final today = DateUtils.dateOnly(widget.now);
+    final today = DateUtils.dateOnly(_currentNow);
     final picked = await showDatePicker(
       context: context,
       initialDate: _date.isAfter(today) ? today : _date,
@@ -184,7 +192,7 @@ class _EntrySheetState extends State<EntrySheet> {
       return;
     }
     final when = _when;
-    if (when.isAfter(widget.now)) {
+    if (when.isAfter(_currentNow)) {
       setState(() => _error = 'Gelecek bir saat seçemezsin');
       return;
     }
@@ -195,9 +203,9 @@ class _EntrySheetState extends State<EntrySheet> {
   }
 
   String _dateLabel() {
-    final today = DateUtils.dateOnly(widget.now);
+    final today = DateUtils.dateOnly(_currentNow);
     if (DateUtils.isSameDay(_date, today)) return 'Bugün';
-    if (DateUtils.isSameDay(_date, today.subtract(const Duration(days: 1)))) {
+    if (DateUtils.isSameDay(_date, DateTime(today.year, today.month, today.day - 1))) {
       return 'Dün';
     }
     return '${_date.day} ${_months[_date.month - 1]} ${_date.year}';

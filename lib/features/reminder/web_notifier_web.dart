@@ -40,7 +40,9 @@ class _WebReminderNotifier implements ReminderNotifier {
     // arka plandayken ya da pencere gizliyken gösterilir.
     if (web.document.visibilityState == 'visible') return false;
     try {
-      final icon = Uri.base.resolve('assets/${message.capAsset}').toString();
+      final rawBase = web.document.baseURI;
+      final base = rawBase.isNotEmpty ? Uri.parse(rawBase) : Uri.base;
+      final icon = base.resolve('assets/${message.capAsset}').toString();
       web.Notification(
         message.title,
         web.NotificationOptions(

@@ -25,19 +25,12 @@ class ReminderSection extends StatefulWidget {
 
 class _ReminderSectionState extends State<ReminderSection> {
   ReminderController get c => widget.controller;
-  ReminderPermission? _permission;
-
-  @override
-  void initState() {
-    super.initState();
-    _permission = widget.webNotifier?.permission;
-  }
 
   Future<void> _askPermission() async {
     final n = widget.webNotifier;
     if (n == null) return;
-    final result = await n.requestPermission();
-    if (mounted) setState(() => _permission = result);
+    await n.requestPermission();
+    if (mounted) setState(() {});
   }
 
   Future<void> _pickTime(BuildContext context, bool start) async {
@@ -46,6 +39,10 @@ class _ReminderSectionState extends State<ReminderSection> {
       context: context,
       initialTime: TimeOfDay(hour: minute ~/ 60, minute: minute % 60),
       helpText: start ? 'Başlangıç saati' : 'Bitiş saati',
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: child!,
+      ),
     );
     if (picked == null || !context.mounted) return;
     final value = picked.hour * 60 + picked.minute;
@@ -79,7 +76,7 @@ class _ReminderSectionState extends State<ReminderSection> {
     ReminderQuiet.capReached => 'Bugünlük hatırlatmalar tamam.',
     ReminderQuiet.endOfDay => 'Bugünlük bu kadar, iyi dinlenmeler.',
     ReminderQuiet.invalidWindow =>
-      'Uyanık saatleri biraz genişletirsen hatırlatma gelir.',
+      'Uyanık saatler tekrarlama sıklığından kısa; saatleri biraz genişlet veya sıklığı kısalt.',
     ReminderQuiet.none =>
       plan.kind == ReminderKind.retry
           ? 'Yumuşak bir hatırlatma: bir yudum içmediysen sorarım.'
@@ -89,7 +86,7 @@ class _ReminderSectionState extends State<ReminderSection> {
   @override
   Widget build(BuildContext context) {
     final plan = c.plan;
-    final perm = _permission;
+    final perm = widget.webNotifier?.permission;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
@@ -130,6 +127,7 @@ class _ReminderSectionState extends State<ReminderSection> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<int>(
+                    key: ValueKey('reminder-interval-${c.intervalMinute}'),
                     isExpanded: true,
                     initialValue: c.intervalMinute,
                     decoration: const InputDecoration(
@@ -223,7 +221,6 @@ class _ReminderSectionState extends State<ReminderSection> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
             if (perm != null && perm != ReminderPermission.unsupported) ...[
               const SizedBox(height: 12),
               FrostedPanel(

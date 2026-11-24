@@ -76,6 +76,12 @@ class _ThemeSceneState extends State<ThemeScene>
     }
   }
 
+  late Listenable _repaint = _buildRepaint();
+
+  Listenable _buildRepaint() => widget.scroll == null
+      ? _ambient
+      : Listenable.merge([_ambient, widget.scroll!]);
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -85,31 +91,33 @@ class _ThemeSceneState extends State<ThemeScene>
   @override
   void didUpdateWidget(ThemeScene oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.scroll != widget.scroll) _repaint = _buildRepaint();
     _syncAmbient();
   }
 
   @override
   void dispose() {
+    if (SceneGeometry.sceneKey == _sceneKey) SceneGeometry.sceneKey = null;
     _ambient.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    SceneGeometry.sceneKey = _sceneKey;
-    return CustomPaint(
-      key: _sceneKey,
-      painter: _ScenePainter(
-        theme: widget.theme,
-        sceneKey: _sceneKey,
-        thermosKey: widget.thermosKey,
-        ambient: _ambient,
-        repaint: Listenable.merge([
-          _ambient,
-          if (widget.scroll != null) widget.scroll!,
-        ]),
+    if (widget.thermosKey != null) SceneGeometry.sceneKey = _sceneKey;
+    return SceneGeometryScope(
+      sceneKey: _sceneKey,
+      child: CustomPaint(
+        key: _sceneKey,
+        painter: _ScenePainter(
+          theme: widget.theme,
+          sceneKey: _sceneKey,
+          thermosKey: widget.thermosKey,
+          ambient: _ambient,
+          repaint: _repaint,
+        ),
+        child: widget.child,
       ),
-      child: widget.child,
     );
   }
 }

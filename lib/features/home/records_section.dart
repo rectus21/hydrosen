@@ -34,10 +34,12 @@ class _RecordsSectionState extends State<RecordsSection> {
   late DateTime _selectedDay;
   _RecordsPeriod _period = _RecordsPeriod.week;
 
+  DateTime get _today => _dateOnly(widget.controller.now);
+
   @override
   void initState() {
     super.initState();
-    final today = _dateOnly(DateTime.now());
+    final today = _today;
     _weekAnchor = _startOfWeek(today);
     _monthAnchor = DateTime(today.year, today.month);
     _selectedDay = today;
@@ -62,7 +64,7 @@ class _RecordsSectionState extends State<RecordsSection> {
 
   void _selectPeriod(_RecordsPeriod period) {
     if (_period == period) return;
-    final today = _dateOnly(DateTime.now());
+    final today = _today;
     setState(() {
       _period = period;
       if (period == _RecordsPeriod.week) {
@@ -76,10 +78,10 @@ class _RecordsSectionState extends State<RecordsSection> {
   }
 
   void _movePeriod(int amount) {
-    final today = _dateOnly(DateTime.now());
+    final today = _today;
     setState(() {
       if (_period == _RecordsPeriod.week) {
-        _weekAnchor = _weekAnchor.add(Duration(days: amount * 7));
+        _weekAnchor = _addDays(_weekAnchor, amount * 7);
         final proposed = _weekAnchor;
         _selectedDay = proposed.isAfter(today) ? today : proposed;
       } else {
@@ -92,8 +94,10 @@ class _RecordsSectionState extends State<RecordsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final today = _today;
     final totals = _dailyTotals;
     final protectedDays = widget.controller.streak.protectedDays;
+    final isFutureDay = _dateOnly(_selectedDay).isAfter(today);
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
@@ -153,6 +157,7 @@ class _RecordsSectionState extends State<RecordsSection> {
             const SizedBox(height: 12),
             _DayRecords(
               day: _selectedDay,
+              today: today,
               entries: _selectedEntries,
               isProtected: protectedDays.contains(_dateOnly(_selectedDay)),
               totalMl: totals[_dateOnly(_selectedDay)] ?? 0,
@@ -164,12 +169,14 @@ class _RecordsSectionState extends State<RecordsSection> {
                 entry,
                 containers: widget.containers,
               ),
-              onAdd: () => addEntryFlow(
-                context,
-                widget.controller,
-                _selectedDay,
-                containers: widget.containers,
-              ),
+              onAdd: isFutureDay
+                  ? null
+                  : () => addEntryFlow(
+                      context,
+                      widget.controller,
+                      _selectedDay,
+                      containers: widget.containers,
+                    ),
             ),
           ],
         ),
@@ -178,7 +185,7 @@ class _RecordsSectionState extends State<RecordsSection> {
   }
 
   bool get _canMoveForward {
-    final today = _dateOnly(DateTime.now());
+    final today = _today;
     if (_period == _RecordsPeriod.week) {
       return _weekAnchor.isBefore(_startOfWeek(today));
     }
@@ -245,7 +252,7 @@ class _WeeklyChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final days = List.generate(
       7,
-      (index) => weekStart.add(Duration(days: index)),
+      (index) => _addDays(weekStart, index),
     );
     final values = [for (final day in days) totals[_dateOnly(day)] ?? 0];
     final weekTotal = values.fold(0, (sum, value) => sum + value);
@@ -617,6 +624,7 @@ class _MonthDay extends StatelessWidget {
 class _DayRecords extends StatelessWidget {
   const _DayRecords({
     required this.day,
+    required this.today,
     required this.entries,
     required this.isProtected,
     required this.totalMl,
@@ -627,17 +635,19 @@ class _DayRecords extends StatelessWidget {
   });
 
   final DateTime day;
+  final DateTime today;
   final List<WaterEntry> entries;
   final bool isProtected;
   final int totalMl;
   final int goalMl;
   final void Function(int id) onDelete;
   final void Function(WaterEntry entry) onEdit;
-  final VoidCallback onAdd;
+  final VoidCallback? onAdd;
 
   @override
   Widget build(BuildContext context) {
     final progress = goalMl <= 0 ? 0.0 : (totalMl / goalMl).clamp(0.0, 1.0);
+    final rawPercent = goalMl <= 0 ? 0 : (totalMl / goalMl * 100).round();
     final scheme = Theme.of(context).colorScheme;
     return FrostedPanel(
       child: Column(
@@ -650,7 +660,7 @@ class _DayRecords extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _dateLabel(day),
+                      _dateLabel(day, today),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 2),
@@ -663,7 +673,7 @@ class _DayRecords extends StatelessWidget {
                 ),
               ),
               Text(
-                '%${(progress * 100).round()}',
+                '%$rawPercent',
                 style: Theme.of(context).textTheme.titleMedium
                     ?.copyWith(color: scheme.primary),
               ),
@@ -774,11 +784,14 @@ const _monthNames = [
 
 DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
 
+DateTime _addDays(DateTime date, int days) =>
+    DateTime(date.year, date.month, date.day + days);
+
 DateTime _startOfWeek(DateTime date) =>
-    _dateOnly(date).subtract(Duration(days: date.weekday - 1));
+    _addDays(_dateOnly(date), -(date.weekday - 1));
 
 String _weekLabel(DateTime start) {
-  final end = start.add(const Duration(days: 6));
+  final end = _addDays(start, 6);
   if (start.year != end.year) {
     return '${start.day} ${_monthNames[start.month - 1]} ${start.year} – '
         '${end.day} ${_monthNames[end.month - 1]} ${end.year}';
@@ -793,10 +806,9 @@ String _weekLabel(DateTime start) {
 String _monthLabel(DateTime month) =>
     '${_monthNames[month.month - 1]} ${month.year}';
 
-String _dateLabel(DateTime date) {
-  final today = _dateOnly(DateTime.now());
+String _dateLabel(DateTime date, DateTime today) {
   if (DateUtils.isSameDay(date, today)) return 'Bugün';
-  if (DateUtils.isSameDay(date, today.subtract(const Duration(days: 1)))) {
+  if (DateUtils.isSameDay(date, _addDays(today, -1))) {
     return 'Dün';
   }
   return '${date.day} ${_monthNames[date.month - 1]} ${date.year}';
