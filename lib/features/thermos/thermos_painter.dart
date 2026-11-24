@@ -82,6 +82,7 @@ class ThermosPainter extends CustomPainter {
     this.happy = false,
     this.headLift = 1,
     this.labelStyle,
+    this.sceneLuma,
     this.capPose = CapPose.identity,
     this.lemonade = 0,
     this.umbrellaOn = true,
@@ -116,6 +117,10 @@ class ThermosPainter extends CustomPainter {
   /// Ölçek yazılarının taban stili (temanın yazı tipi); renk ve boyut
   /// termos temasından gelir.
   final TextStyle? labelStyle;
+
+  /// Sahnenin orta bandının parlaklığı (0..1); ölçek yazısı/çizgi rengi için.
+  /// Null ise temanın kendi renkleri kullanılır.
+  final double? sceneLuma;
 
   /// Kutlama sırasında imza animasyonunun kapağa uyguladığı hareket.
   final CapPose capPose;
@@ -405,10 +410,22 @@ class ThermosPainter extends CustomPainter {
   }
 
   void _marks(Canvas canvas, _Geometry geo) {
-    final line = Paint()..color = theme.mark;
+    final dark = sceneLuma != null && sceneLuma! < 0.45;
+    final markColor = dark ? const Color(0xF2FFFFFF) : theme.mark;
+    final labelColor = dark ? const Color(0xFFFFFFFF) : theme.label;
+    final shadowColor = dark
+        ? const Color(0xCC000000)
+        : const Color(0x99FFFFFF);
+    final line = Paint()..color = markColor;
+    final lineShadow = Paint()..color = shadowColor;
     for (var ml = 250; ml <= goalMl; ml += 250) {
       final y = geo.bottom - (ml / goalMl) * (geo.bottom - geo.top);
       final big = ml % 500 == 0;
+      canvas.drawLine(
+        Offset(geo.markRight - (big ? 26 : 14), y + 1),
+        Offset(geo.markRight, y + 1),
+        lineShadow..strokeWidth = big ? 2 : 1.2,
+      );
       canvas.drawLine(
         Offset(geo.markRight - (big ? 26 : 14), y),
         Offset(geo.markRight, y),
@@ -419,9 +436,10 @@ class ThermosPainter extends CustomPainter {
           text: TextSpan(
             text: '${_liters(ml)} L',
             style: (labelStyle ?? const TextStyle()).copyWith(
-              color: theme.label,
+              color: labelColor,
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: dark ? FontWeight.w600 : FontWeight.w500,
+              shadows: [Shadow(color: shadowColor, blurRadius: 4)],
             ),
           ),
           textDirection: TextDirection.ltr,
@@ -453,5 +471,6 @@ class ThermosPainter extends CustomPainter {
       old.umbrellaOn != umbrellaOn ||
       old.umbrellaSway != umbrellaSway ||
       old.goalMl != goalMl ||
+      old.sceneLuma != sceneLuma ||
       old.labelStyle != labelStyle;
 }

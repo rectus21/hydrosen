@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 
 import '../../data/settings_repository.dart';
 import '../../domain/app_settings.dart';
+import '../../domain/saved_container.dart';
 import '../thermos/thermos_theme.dart';
 
 /// Ayarların durumu. Değişiklik hemen yansır, ardından kalıcı olarak saklanır.
@@ -24,6 +27,7 @@ class SettingsController extends ChangeNotifier {
   int get goalMl => _settings.goalMl;
   int get glassMl => _settings.glassMl;
   bool get animatedCelebrations => _settings.animatedCelebrations;
+  List<SavedContainer> get containers => _settings.containers;
 
   Future<void> load() async {
     try {
@@ -49,6 +53,60 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> setAnimatedCelebrations(bool on) =>
       _update(_settings.copyWith(animatedCelebrations: on));
+
+  /// Yeni kap ekler; ad boş/miktar geçersiz veya sınır doluysa false.
+  Future<bool> addContainer(String name, int ml) async {
+    final n = SavedContainer.normalizeName(name);
+    if (n.isEmpty || !_validMl(ml)) return false;
+    final list = _settings.containers;
+    if (list.length >= AppSettings.maxContainers) return false;
+    final id = list.fold(0, (m, c) => math.max(m, c.id)) + 1;
+    await _update(
+      _settings.copyWith(
+        containers: [
+          ...list,
+          SavedContainer(id: id, name: n, ml: ml),
+        ],
+      ),
+    );
+    return true;
+  }
+
+  /// Kabın adını/miktarını yerinde günceller (kimlik ve sıra korunur).
+  Future<bool> updateContainer(int id, {String? name, int? ml}) async {
+    final list = _settings.containers;
+    if (!list.any((c) => c.id == id)) return false;
+    final n = name == null ? null : SavedContainer.normalizeName(name);
+    if ((n != null && n.isEmpty) || (ml != null && !_validMl(ml))) {
+      return false;
+    }
+    await _update(
+      _settings.copyWith(
+        containers: [
+          for (final c in list) c.id == id ? c.copyWith(name: n, ml: ml) : c,
+        ],
+      ),
+    );
+    return true;
+  }
+
+  /// Kabı siler; en az bir kap kalmalı, son kap silinmez (false).
+  Future<bool> removeContainer(int id) async {
+    final list = _settings.containers;
+    if (list.length <= 1 || !list.any((c) => c.id == id)) return false;
+    await _update(
+      _settings.copyWith(
+        containers: [
+          for (final c in list)
+            if (c.id != id) c,
+        ],
+      ),
+    );
+    return true;
+  }
+
+  static bool _validMl(int ml) =>
+      ml >= SavedContainer.minMl && ml <= SavedContainer.maxMl;
 
   Future<void> _update(AppSettings next) async {
     _settings = next;

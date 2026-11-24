@@ -94,27 +94,6 @@ const List<ThermosTheme> sporThemes = [
     ]),
   ),
   ThermosTheme(
-    id: 'eczaci',
-    name: 'Eczacı',
-    glass: Color(0xFFE3F6EE),
-    edge: Color(0xFF1F7A6B),
-    water: Color(0xFF2E86C8),
-    deepWater: Color(0xFF124E7C),
-    waterSurface: Color(0xFFBFE0F5),
-    mark: Color(0xFF184F45),
-    label: Color(0xFF184F45),
-    band: Color(0xFF3FB58F),
-    bandLight: Color(0xFFB8EBD8),
-    background: _eczBg,
-    capChubby: _eczA,
-    capSlim: _eczB,
-    celebration: CelebrationStyle(CelebrationKind.twinkles, [
-      0x3FB58F,
-      0xB8EBD8,
-      0xFFFFFF,
-    ]),
-  ),
-  ThermosTheme(
     id: 'karaejderha',
     name: 'Kara Ejderha',
     glass: Color(0xFFD3DAE4),
@@ -287,29 +266,6 @@ void _voleyB(Art a, bool happy) {
   a.box(0xFFFFFF, 0xFFFFFF, 0xBFD6E6);
   a.p('M284 100 Q320 90 340 110 L340 160 L284 160 Z', 0x3DB3E8);
   a.p('M340 110 Q370 94 396 104 L396 160 L340 160 Z', 0xF7C93A);
-}
-
-// --- Eczacı ----------------------------------------------------------------
-
-void _eczBg(Art a) {
-  a.p(_sFull, 0xD9F3E8);
-  a.p('M120 330 H560 V512 H120 Z', 0xB8EBD8);
-  a.p('M120 120 H190 V330 H120 Z', 0xFFFFFF, op: 0.6);
-  a.p('M490 120 H560 V330 H490 Z', 0xFFFFFF, op: 0.6);
-}
-
-void _eczA(Art a, bool happy) {
-  a.o(340, 134, 92, 84, 0x8A4B2A);
-  a.o(340, 140, 76, 70, 0xFFDDBB);
-  a.p('M262 160 Q340 210 418 160 L430 200 H250 Z', 0xFFFFFF);
-  _face(a, happy, 138);
-  a.cheeks(164, happy ? 1 : 0.7);
-}
-
-void _eczB(Art a, bool happy) {
-  a.box(0xFFFFFF, 0xFFFFFF, 0xB8EBD8);
-  a.p('M326 98 H354 V110 H366 V138 H354 V150 H326 V138 H314 V110 H326 Z',
-      0x3FB58F);
 }
 
 // --- Kara Ejderha ----------------------------------------------------------

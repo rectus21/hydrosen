@@ -78,6 +78,7 @@ class ReminderSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<int>(
+                    isExpanded: true,
                     initialValue: controller.intervalMinute,
                     decoration: const InputDecoration(
                       labelText: 'Tekrarlama sıklığı',
@@ -170,6 +171,18 @@ class ProfileSection extends StatelessWidget {
                   leading: const Icon(Icons.local_drink_outlined),
                   title: const Text('Bardak boyu'),
                   trailing: Text('${settings.glassMl} ml'),
+                ),
+                ListTile(
+                  key: const ValueKey('profile-containers'),
+                  leading: const Icon(Icons.local_cafe_outlined),
+                  title: const Text('Kaplarım'),
+                  subtitle: Text(
+                    settings.containers
+                        .map((c) => '${c.name} ${c.ml}')
+                        .join(' · '),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: onOpenSettings,
                 ),
                 ListTile(
                   leading: const Icon(Icons.palette_outlined),

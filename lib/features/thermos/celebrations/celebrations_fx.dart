@@ -31,7 +31,6 @@ const fxThemeIds = {
   'futbol',
   'basketbol',
   'voleybol',
-  'eczaci',
   'karaejderha',
   'yarisarabasi',
   'kedi',

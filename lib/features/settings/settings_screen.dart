@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_look.dart';
 import '../../domain/app_settings.dart';
 import '../thermos/thermos_theme.dart';
+import 'containers_section.dart';
 import 'settings_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -68,6 +69,8 @@ class SettingsScreen extends StatelessWidget {
                       semanticFormatterCallback: (v) => '${v.round()} ml',
                       onChanged: (v) => controller.setGlassMl(v.round()),
                     ),
+                    const SizedBox(height: 16),
+                    ContainersSection(controller: controller),
                     const SizedBox(height: 16),
                     Text('Termos biçimi', style: text.titleMedium),
                     const SizedBox(height: 8),

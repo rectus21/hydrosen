@@ -10,6 +10,11 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:hydrosen/app/app.dart' show HydroSenApp;
+import 'package:hydrosen/data/water_repository.dart';
+import 'package:hydrosen/domain/app_settings.dart';
+import 'package:hydrosen/domain/drink_type.dart';
+import 'package:hydrosen/domain/water_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrosen/features/home/home_sections.dart' show ThemeSection;
 import 'package:hydrosen/features/settings/settings_controller.dart';
@@ -31,6 +36,7 @@ const _outDir =
 final _enabled = Platform.environment.containsKey('RENDER_THEMES');
 
 void main() {
+  _faz1Tests();
   testWidgets(
     'karaejderha kareleri',
     (tester) async {
@@ -172,6 +178,209 @@ void main() {
     },
     skip: !_enabled,
   );
+}
+
+// ---- Faz 1 – Kayıt kolaylığı (390x844, 2x) -------------------------------
+
+const _faz1Dir =
+    r'C:\Users\PC\Documents\Obsidian Vault\HydroSen\02-Design\faz1';
+
+void _faz1Tests() {
+  Future<GlobalKey> setUpApp(
+    WidgetTester tester,
+    WaterRepository repo, {
+    String? themeId,
+  }) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(() async {
+      await _loadFazFonts();
+      await IllustratedArtwork.load();
+      await FxSprites.load();
+    });
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(() {
+      tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+      tester.view.reset();
+    });
+    Directory(_faz1Dir).createSync(recursive: true);
+    final shot = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: shot,
+        child: HydroSenApp(
+          repository: repo,
+          settingsRepository: InMemorySettingsRepository(
+            themeId == null
+                ? const AppSettings()
+                : AppSettings(theme: ThermosTheme.byId(themeId)),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return shot;
+  }
+
+  Future<void> snap(WidgetTester tester, GlobalKey shot, String name) async {
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      final boundary =
+          shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 2);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      File('$_faz1Dir\\$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+    });
+  }
+
+  final now = DateTime.now();
+  final todayStart = DateTime(now.year, now.month, now.day);
+  final lastWeekMonday = todayStart.subtract(
+    Duration(days: todayStart.weekday - 1 + 7),
+  );
+
+  WaterRepository seeded() => InMemoryWaterRepository([
+    WaterEntry(
+      id: 1,
+      amountMl: 200,
+      time: todayStart.add(const Duration(hours: 8, minutes: 10)),
+    ),
+    WaterEntry(
+      id: 2,
+      amountMl: 200,
+      time: todayStart.add(const Duration(hours: 9, minutes: 30)),
+      drink: DrinkType.tea,
+    ),
+    WaterEntry(
+      id: 3,
+      amountMl: 300,
+      time: todayStart.add(const Duration(hours: 11)),
+      drink: DrinkType.coffee,
+    ),
+    WaterEntry(
+      id: 10,
+      amountMl: 250,
+      time: lastWeekMonday.add(const Duration(hours: 8, minutes: 30)),
+      drink: DrinkType.ayran,
+    ),
+    WaterEntry(
+      id: 11,
+      amountMl: 500,
+      time: lastWeekMonday.add(const Duration(hours: 13)),
+    ),
+  ]);
+
+  testWidgets('faz1: liste (çay) ve özel miktar penceresi', (tester) async {
+    final shot = await setUpApp(tester, seeded());
+    await snap(tester, shot, 'ana_ekran');
+    await tester.tap(find.text('Kayıtlar'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'liste_cay');
+    await tester.tap(find.text('Günlük'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Özel miktar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('container-chip-2')));
+    await tester.tap(find.byKey(const ValueKey('drink-chip-cay')));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'ozel_miktar');
+  }, skip: !_enabled);
+
+  testWidgets('faz1: ana ekran koyu sahne', (tester) async {
+    final shot = await setUpApp(tester, seeded(), themeId: 'karaejderha');
+    await snap(tester, shot, 'ana_ekran_koyu');
+  }, skip: !_enabled);
+
+  testWidgets('faz1: düzenleme sayfası', (tester) async {
+    final shot = await setUpApp(tester, seeded());
+    await tester.tap(find.text('Kayıtlar'));
+    await tester.pumpAndSettle();
+    final tile = find.byKey(const ValueKey('record-2'));
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'duzenle');
+  }, skip: !_enabled);
+
+  testWidgets('faz1: Kayıtlar geçmiş gün', (tester) async {
+    final shot = await setUpApp(tester, seeded());
+    await tester.tap(find.text('Kayıtlar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Önceki dönem'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'kayitlar_gecmis');
+
+    await tester.tap(find.byKey(const ValueKey('records-add')));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'ekle_gecmis');
+  }, skip: !_enabled);
+
+  testWidgets('faz1: Kaplarım ayarları', (tester) async {
+    final shot = await setUpApp(tester, seeded());
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ayarları düzenle'));
+    await tester.pumpAndSettle();
+    final section = find.byKey(const ValueKey('containers-section'));
+    await tester.ensureVisible(section);
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'kaplarim');
+  }, skip: !_enabled);
+}
+
+/// Faz 1 görüntüleri için okunur metin ve simgeler: Flutter'ın Roboto'su tüm
+/// tema yazı tipi adlarının yerine, MaterialIcons simge yazı tipi olarak.
+Future<void> _loadFazFonts() async {
+  const dir = r'C:\src\flutter\bin\cache\artifacts\material_fonts';
+  final regular = File('$dir\\roboto-regular.ttf');
+  final bold = File('$dir\\roboto-bold.ttf');
+  final icons = File('$dir\\materialicons-regular.otf');
+  if (!regular.existsSync() || !icons.existsSync()) return;
+  final families = <String>['Roboto'];
+  for (final f in const [
+    'Nunito',
+    'Baloo2',
+    'Grandstander',
+    'Kalam',
+    'Quicksand',
+    'ChakraPetch',
+    'Cinzel',
+    'Alegreya',
+    'PirataOne',
+  ]) {
+    families.add(f);
+    for (final w in const [
+      'regular',
+      '300',
+      '400',
+      '500',
+      '600',
+      '700',
+      '800',
+      '900',
+    ]) {
+      families.add('${f}_$w');
+    }
+  }
+  for (final family in families) {
+    final l = FontLoader(family)
+      ..addFont(Future.value(ByteData.sublistView(regular.readAsBytesSync())));
+    if (bold.existsSync()) {
+      l.addFont(Future.value(ByteData.sublistView(bold.readAsBytesSync())));
+    }
+    await l.load();
+  }
+  final il = FontLoader('MaterialIcons')
+    ..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())));
+  await il.load();
 }
 
 Future<void> _loadFonts() async {

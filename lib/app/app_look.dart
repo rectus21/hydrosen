@@ -76,7 +76,6 @@ const Map<String, AppTypeface> themeTypefaces = {
   'futbol': _playful,
   'basketbol': _playful,
   'voleybol': _playful,
-  'eczaci': _calm,
   'pofuduk': _playful,
   'karaejderha': _fantasy,
   'yarisarabasi': _playful,

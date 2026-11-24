@@ -81,7 +81,6 @@ class _HydroSenAppState extends State<HydroSenApp> {
             'futbol',
             'basketbol',
             'voleybol',
-            'eczaci',
             'kedi',
             'pofuduk',
             'karaejderha',

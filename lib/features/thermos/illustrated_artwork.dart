@@ -15,12 +15,31 @@ class IllustratedArtwork {
   /// 0..1; başlık/ikon rengini seçmek için. Sahnesiz temalarda yoktur.
   static final topLuma = <String, double>{};
 
-  static Future<double> _sampleTopLuma(ui.Image scene) async {
+  /// Sahnenin alt bandının (günlük kontrol alanının arkası) ortalama
+  /// parlaklığı 0..1; toplam metni rengini seçmek için.
+  static final bottomLuma = <String, double>{};
+
+  /// Sahnenin orta bandı (şişenin sağındaki ölçek yazıları); 0..1.
+  static final midLuma = <String, double>{};
+
+  static Future<double> _sampleTopLuma(ui.Image scene) =>
+      _sampleBandLuma(scene, 0, 0.08);
+
+  static Future<double> _sampleBandLuma(
+    ui.Image scene,
+    double fromFrac,
+    double toFrac,
+  ) async {
     const w = 16, h = 3;
     final rec = ui.PictureRecorder();
     ui.Canvas(rec).drawImageRect(
       scene,
-      ui.Rect.fromLTWH(0, 0, scene.width.toDouble(), scene.height * 0.08),
+      ui.Rect.fromLTRB(
+        0,
+        scene.height * fromFrac,
+        scene.width.toDouble(),
+        scene.height * toFrac,
+      ),
       ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
       ui.Paint()..filterQuality = ui.FilterQuality.medium,
     );
@@ -191,7 +210,6 @@ class IllustratedArtwork {
       'futbol': (492, 492),
       'basketbol': (492, 492),
       'voleybol': (492, 492),
-      'eczaci': (492, 492),
       'kedi': (492, 492),
       'pofuduk': (492, 492),
       'karaejderha': (492, 492),
@@ -254,7 +272,6 @@ class IllustratedArtwork {
       'futbol',
       'basketbol',
       'voleybol',
-      'eczaci',
       'karaejderha',
       'yarisarabasi',
       'kedi',
@@ -292,6 +309,8 @@ class IllustratedArtwork {
           images.add(scene);
           try {
             topLuma[id] = await _sampleTopLuma(scene);
+            bottomLuma[id] = await _sampleBandLuma(scene, 0.72, 0.94);
+            midLuma[id] = await _sampleBandLuma(scene, 0.30, 0.70);
           } catch (_) {
             // Parlaklık örneği alınamazsa tema varsayılan renkte kalır.
           }

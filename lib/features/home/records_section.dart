@@ -3,7 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../app/frosted_panel.dart';
+import '../../domain/app_settings.dart';
+import '../../domain/saved_container.dart';
 import '../../domain/water_entry.dart';
+import 'drink_widgets.dart';
+import 'entry_sheet.dart';
 import 'water_controller.dart';
 
 enum _RecordsPeriod { week, month }
@@ -13,10 +17,12 @@ class RecordsSection extends StatefulWidget {
     super.key,
     required this.controller,
     required this.onDelete,
+    this.containers = AppSettings.defaultContainers,
   });
 
   final WaterController controller;
   final void Function(int id) onDelete;
+  final List<SavedContainer> containers;
 
   @override
   State<RecordsSection> createState() => _RecordsSectionState();
@@ -43,8 +49,8 @@ class _RecordsSectionState extends State<RecordsSection> {
       final day = _dateOnly(entry.time);
       totals.update(
         day,
-        (value) => value + entry.amountMl,
-        ifAbsent: () => entry.amountMl,
+        (value) => value + entry.countedMl,
+        ifAbsent: () => entry.countedMl,
       );
     }
     return totals;
@@ -148,6 +154,18 @@ class _RecordsSectionState extends State<RecordsSection> {
               totalMl: totals[_dateOnly(_selectedDay)] ?? 0,
               goalMl: widget.controller.goalMl,
               onDelete: widget.onDelete,
+              onEdit: (entry) => editEntryFlow(
+                context,
+                widget.controller,
+                entry,
+                containers: widget.containers,
+              ),
+              onAdd: () => addEntryFlow(
+                context,
+                widget.controller,
+                _selectedDay,
+                containers: widget.containers,
+              ),
             ),
           ],
         ),
@@ -282,13 +300,15 @@ class _WeeklyChart extends StatelessWidget {
                 color: scheme.onSurfaceVariant,
               ),
               const SizedBox(width: 5),
-              Flexible(child: Text(
-                'Ayrıntılar için bir güne dokun',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: scheme.onSurfaceVariant),
-              )),
+              Flexible(
+                child: Text(
+                  'Ayrıntılar için bir güne dokun',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+              ),
             ],
           ),
         ],
@@ -553,6 +573,8 @@ class _DayRecords extends StatelessWidget {
     required this.totalMl,
     required this.goalMl,
     required this.onDelete,
+    required this.onEdit,
+    required this.onAdd,
   });
 
   final DateTime day;
@@ -560,6 +582,8 @@ class _DayRecords extends StatelessWidget {
   final int totalMl;
   final int goalMl;
   final void Function(int id) onDelete;
+  final void Function(WaterEntry entry) onEdit;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -618,19 +642,22 @@ class _DayRecords extends StatelessWidget {
             )
           else
             for (final entry in entries)
-              ListTile(
+              EntryTile(
                 key: ValueKey('record-${entry.id}'),
-                contentPadding: EdgeInsets.zero,
-                minVerticalPadding: 0,
-                leading: const Icon(Icons.water_drop_outlined),
-                title: Text('${entry.amountMl} ml'),
-                subtitle: Text(_clock(entry.time)),
-                trailing: IconButton(
-                  tooltip: 'Kaydı sil',
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => onDelete(entry.id),
-                ),
+                entry: entry,
+                onEdit: () => onEdit(entry),
+                onDelete: () => onDelete(entry.id),
               ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              key: const ValueKey('records-add'),
+              onPressed: onAdd,
+              icon: const Icon(Icons.add),
+              label: const Text('Kayıt ekle'),
+            ),
+          ),
         ],
       ),
     );
@@ -707,10 +734,6 @@ String _dateLabel(DateTime date) {
   }
   return '${date.day} ${_monthNames[date.month - 1]} ${date.year}';
 }
-
-String _clock(DateTime time) =>
-    '${time.hour.toString().padLeft(2, '0')}:'
-    '${time.minute.toString().padLeft(2, '0')}';
 
 String _compactAmount(int amountMl) {
   if (amountMl < 1000) return '$amountMl';

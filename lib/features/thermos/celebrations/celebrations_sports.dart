@@ -17,7 +17,6 @@ const Map<String, SignatureCelebration> sportsCelebrations = {
   'futbol': _futbol,
   'basketbol': _basket,
   'voleybol': _voley,
-  'eczaci': _eczaci,
   'karaejderha': _kara,
   'yarisarabasi': _yaris,
 };
@@ -27,7 +26,6 @@ const Map<String, SignatureCelebration> sportsLoops = {
   'futbol': _futbolLoop,
   'basketbol': _basketLoop,
   'voleybol': _voleyLoop,
-  'eczaci': _eczaciLoop,
   'karaejderha': _karaLoop,
   'yarisarabasi': _yarisLoop,
 };
@@ -37,7 +35,6 @@ const Map<String, CapPoseFn> sportsCapPoses = {
   'futbol': _futbolPose,
   'basketbol': _basketPose,
   'voleybol': _voleyPose,
-  'eczaci': _eczaciPose,
   'karaejderha': _karaPose,
   'yarisarabasi': _yarisPose,
 };
@@ -47,7 +44,6 @@ const Map<String, CapPoseFn> sportsLoopPoses = {
   'futbol': _futbolLoopPose,
   'basketbol': _basketLoopPose,
   'voleybol': _voleyLoopPose,
-  'eczaci': _eczaciLoopPose,
   'karaejderha': _karaLoopPose,
   'yarisarabasi': _yarisLoopPose,
 };
@@ -640,161 +636,6 @@ void _voleyLoop(Canvas cv, CelebrationContext c) {
     final y = math.max(_minY + 14, g.head.dy + s[1] * g.w);
     _glint(cv, c, Offset(x, y), 9 + 6 * s[2] * tw,
         i.isEven ? 0xF7C93A : 0xFFFFFF, 0.35 + 0.65 * tw);
-  }
-}
-
-// ================================================================ ECZACI ===
-
-CapPose _eczaciPose(CelebrationContext c) {
-  final a = _hump(_sp(c.t, 0.14, 0.3));
-  final b = _hump(_sp(c.t, 0.3, 0.44));
-  return CapPose(dy: -11 * a - 6 * b, rotation: 0.05 * (a - b), scale: 1 + 0.03 * a);
-}
-
-CapPose _eczaciLoopPose(CelebrationContext c) {
-  if (c.reduceMotion) return CapPose.identity;
-  final l = _lp(c) * _tau;
-  return CapPose(
-    dy: -5 * (0.5 - 0.5 * math.cos(l)),
-    rotation: 0.025 * math.sin(l),
-  );
-}
-
-/// Artı (sağlık haçı) parıltısı; [s] kol uzunluğu (merkezden uca).
-void _plus(Canvas cv, CelebrationContext c, Offset p, double s, int hex,
-    double op, double rot) {
-  if (op <= 0.03 || s <= 1) return;
-  cv.save();
-  cv.translate(p.dx, p.dy);
-  cv.rotate(rot);
-  final t = s * 0.36;
-  final path = Path()
-    ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: s * 2, height: t * 2),
-        Radius.circular(t * 0.8)))
-    ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: t * 2, height: s * 2),
-        Radius.circular(t * 0.8)));
-  cv.drawPath(path, _fill(c, hex, op));
-  cv.drawPath(path, _line(c, 0x1F7A6B, 1.6, 0.55 * op));
-  cv.restore();
-}
-
-/// Sarı-kırmızı vitamin kapsülü; [len] uzunluk.
-void _capsule(Canvas cv, CelebrationContext c, Offset p, double len,
-    double rot, double op) {
-  if (op <= 0.03) return;
-  final th = len * 0.5;
-  cv.save();
-  cv.translate(p.dx, p.dy);
-  cv.rotate(rot);
-  final rr = Radius.circular(th / 2);
-  cv.drawRRect(
-    RRect.fromRectAndCorners(Rect.fromLTWH(-len / 2, -th / 2, len / 2, th),
-        topLeft: rr, bottomLeft: rr),
-    _fill(c, 0xF7C93A, op),
-  );
-  cv.drawRRect(
-    RRect.fromRectAndCorners(Rect.fromLTWH(0, -th / 2, len / 2, th),
-        topRight: rr, bottomRight: rr),
-    _fill(c, 0xE8553A, op),
-  );
-  cv.drawRRect(
-    RRect.fromRectAndRadius(
-        Rect.fromLTWH(-len / 2, -th / 2, len, th), rr),
-    _line(c, 0x8A5A12, 2, op),
-  );
-  cv.drawLine(Offset(-len * 0.34, -th * 0.2), Offset(-len * 0.1, -th * 0.2),
-      _line(c, 0xFFFFFF, 2.4, 0.8 * op));
-  cv.restore();
-}
-
-// Yerde duracak kapsüller: x, gecikme, dönüş, yatış açısı.
-const _eczCaps = <List<double>>[
-  [200, 0.10, 5, 0.12],
-  [244, 0.22, -6, -0.1],
-  [440, 0.16, 6, -0.12],
-  [484, 0.30, -5, 0.1],
-  [222, 0.40, 4, -0.2],
-  [462, 0.46, -4, 0.2],
-];
-
-void _eczaci(Canvas cv, CelebrationContext c) {
-  final g = _G(c);
-  final t = _ti(c);
-  final el = c.reduceMotion ? 2.4 : c.elapsed;
-  final len = g.w * 0.3;
-  final restY = 470 - len * 0.25;
-  // Artı parıltıları kapaktan dışarı yayılıp solar.
-  if (!c.reduceMotion) {
-    for (var i = 0; i < 9; i++) {
-      final k = ((el - 0.1 - 0.09 * i) / 1.4);
-      if (k <= 0 || k >= 1) continue;
-      final ang = -math.pi * (0.1 + 0.8 * (i / 8)) - 0.0;
-      final dir = Offset(math.cos(ang) * 1.25, math.sin(ang) * 0.9 + 0.35);
-      final d = g.w * (0.42 + 0.55 * _eo(k));
-      final p = g.head + dir * d;
-      _plus(
-        cv, c,
-        Offset(p.dx.clamp(_minX + 14, _maxX - 14), math.max(_minY + 14, p.dy)),
-        g.w * (0.12 + 0.05 * c.rand(i, 1)),
-        i.isEven ? 0x3FB58F : 0xFFFFFF,
-        _hump(k) * 0.95,
-        k * 2 + i,
-      );
-    }
-  }
-  // Kapsüller: kapaktan fırlar, yumuşakça yere düşer ve yatar.
-  for (var i = 0; i < _eczCaps.length; i++) {
-    final d = _eczCaps[i];
-    final tau = el - d[1];
-    if (tau < 0) continue;
-    const dur = 1.0;
-    final u = (tau / dur).clamp(0.0, 1.0);
-    final x = _lerp(g.head.dx, d[0], _eo(u));
-    double y;
-    if (u < 1) {
-      y = _lerp(g.head.dy + g.w * 0.2, restY, u * u) - 90 * 4 * u * (1 - u);
-    } else {
-      final v = ((tau - dur) / 0.3).clamp(0.0, 1.0);
-      y = restY - 10 * 4 * v * (1 - v);
-    }
-    final rot = (1 - _eo(u)) * d[2] * 2 + d[3];
-    _capsule(cv, c, Offset(x, math.max(_minY + len * 0.25, y)), len, rot,
-        (tau / 0.1).clamp(0.0, 1.0));
-  }
-  _bubble(
-    cv,
-    c,
-    'Sağlığına!',
-    Offset(g.head.dx + g.w * 0.62, g.head.dy - g.w * 0.18),
-    _back(_sp(t, 0.14, 0.28)),
-    0x1F7A6B,
-    tailDx: -26,
-  );
-}
-
-void _eczaciLoop(Canvas cv, CelebrationContext c) {
-  final g = _G(c);
-  final l = _lp(c);
-  final len = g.w * 0.3;
-  final restY = 470 - len * 0.25;
-  for (final d in _eczCaps) {
-    _capsule(cv, c, Offset(d[0], restY), len, d[3], 1);
-  }
-  const spots = [
-    [-0.62, -0.28, 1.0],
-    [0.62, -0.34, 0.8],
-    [-0.5, 0.3, 0.7],
-    [0.54, 0.28, 0.9],
-  ];
-  for (var i = 0; i < spots.length; i++) {
-    final s = spots[i];
-    final tw = 0.5 + 0.5 * math.sin(l * _tau + i * 1.6);
-    final x = (g.head.dx + s[0] * g.w).clamp(_minX + 16, _maxX - 16);
-    final y = math.max(_minY + 16, g.head.dy + s[1] * g.w);
-    _plus(cv, c, Offset(x, y), g.w * (0.09 + 0.05 * tw * s[2]),
-        i.isEven ? 0x3FB58F : 0xFFFFFF, 0.4 + 0.6 * tw, 0);
   }
 }
 

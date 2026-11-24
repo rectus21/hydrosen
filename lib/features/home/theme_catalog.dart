@@ -14,7 +14,6 @@ const List<String> kThemeCategories = [
   'Hayvanlar',
   'Meyve ve tatlılar',
   'Spor',
-  'Meslekler',
   'Fantastik ve uzay',
   'Doğa ve mevsim',
   kThemeOtherCategory,
@@ -63,8 +62,6 @@ const Map<String, String> kThemeCategoryOf = {
   'basketbol': 'Spor',
   'voleybol': 'Spor',
   'yarisarabasi': 'Spor',
-  // Meslekler
-  'eczaci': 'Meslekler',
   // Fantastik ve uzay
   'tekboynuz': 'Fantastik ve uzay',
   'astronot': 'Fantastik ve uzay',

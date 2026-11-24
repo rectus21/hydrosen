@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../app/app_look.dart';
 import '../../app/frosted_panel.dart';
 import '../../data/water_repository.dart';
+import '../../domain/app_settings.dart';
+import '../../domain/drink_type.dart';
+import '../../domain/saved_container.dart';
 import '../settings/settings_controller.dart';
 import '../settings/settings_screen.dart';
 import '../thermos/celebration_overlay.dart';
@@ -10,6 +13,7 @@ import '../thermos/illustrated_artwork.dart';
 import '../thermos/thermos_painter.dart' show designRect;
 import '../thermos/thermos_theme.dart';
 import '../thermos/thermos_view.dart';
+import 'drink_widgets.dart';
 import 'home_sections.dart';
 import 'quick_glass_buttons.dart';
 import 'reminder_controller.dart';
@@ -77,12 +81,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _addCustom() async {
-    final value = await showDialog<int>(
+    final value = await showDialog<CustomAmountResult>(
       context: context,
-      builder: (context) => const CustomAmountDialog(),
+      builder: (context) =>
+          CustomAmountDialog(containers: widget.settings.containers),
     );
     if (value == null) return;
-    _controller.add(value);
+    _controller.add(value.amountMl, drink: value.drink);
   }
 
   void _addGlasses(int n) {
@@ -180,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : _selectedTab == 1
                 ? RecordsSection(
                     controller: _controller,
+                    containers: widget.settings.containers,
                     onDelete: (id) {
                       _controller.remove(id);
                     },
@@ -244,6 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       constraints: const BoxConstraints(maxWidth: 560),
                       child: _DailyControlCard(
                         controller: _controller,
+                        themeId: widget.settings.theme.id,
                         glassMl: widget.settings.glassMl,
                         onAdd: _addGlasses,
                         onRemove: _controller.totalMl > 0 ? _removeGlass : null,
@@ -267,6 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
 class _DailyControlCard extends StatelessWidget {
   const _DailyControlCard({
     required this.controller,
+    required this.themeId,
     required this.glassMl,
     required this.onAdd,
     required this.onRemove,
@@ -274,6 +282,7 @@ class _DailyControlCard extends StatelessWidget {
   });
 
   final WaterController controller;
+  final String themeId;
   final int glassMl;
   final void Function(int glasses) onAdd;
   final VoidCallback? onRemove;
@@ -285,31 +294,64 @@ class _DailyControlCard extends StatelessWidget {
     final rawPercent = controller.goalMl == 0
         ? 0
         : (controller.totalMl / controller.goalMl * 100).round();
-    return FrostedPanel(
+    // Kart zemini yok: yazı rengi sahnenin alt bandının parlaklığına göre.
+    final luma = IllustratedArtwork.bottomLuma[themeId];
+    final Color fg, shadow, track, fill;
+    if (luma == null) {
+      fg = scheme.onSurface;
+      shadow = Colors.transparent;
+      track = scheme.onSurface.withValues(alpha: 0.16);
+      fill = scheme.primary;
+    } else if (luma < 0.45) {
+      fg = const Color(0xFFFFFFFF);
+      shadow = const Color(0xCC000000);
+      track = const Color(0x4DFFFFFF);
+      fill = Color.lerp(scheme.primary, Colors.white, 0.65)!;
+    } else {
+      fg = const Color(0xFF10223A);
+      shadow = const Color(0xAAFFFFFF);
+      track = const Color(0x2E000000);
+      fill = scheme.primary;
+    }
+    final shadows = [Shadow(color: shadow, blurRadius: 6)];
+    return Padding(
       key: const ValueKey('daily-control-card'),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-      radius: 24,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '${controller.totalMl} / ${controller.goalMl} ml',
-            style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: fg,
+              shadows: shadows,
+            ),
           ),
           const SizedBox(height: 1),
           Text(
             'Günlük hedefin %$rawPercent’i',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: fg,
+              shadows: shadows,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
-              value: controller.progress,
-              minHeight: 7,
-              backgroundColor: scheme.surfaceContainerHighest.withValues(
-                alpha: 0.55,
+          DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(99),
+              boxShadow: [
+                BoxShadow(color: shadow.withValues(alpha: 0.25), blurRadius: 4),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: controller.progress,
+                minHeight: 7,
+                color: fill,
+                backgroundColor: track,
               ),
             ),
           ),
@@ -439,12 +481,26 @@ class _BottomTabs extends StatelessWidget {
   }
 }
 
-/// Özel miktar penceresi. Metin denetleyicisini kendi ömrüyle yönetir; böylece
-/// pencere kapanma animasyonu sürerken denetleyici erken atılmaz.
-class CustomAmountDialog extends StatefulWidget {
-  const CustomAmountDialog({super.key});
+/// Özel miktar penceresinin sonucu: ham miktar ve içecek türü.
+class CustomAmountResult {
+  const CustomAmountResult(this.amountMl, this.drink);
 
-  static const maxMl = 5000;
+  final int amountMl;
+  final DrinkType drink;
+}
+
+/// Özel miktar penceresi: miktar, kayıtlı kap düğmeleri ve içecek türü.
+/// Metin denetleyicisini kendi ömrüyle yönetir; böylece pencere kapanma
+/// animasyonu sürerken denetleyici erken atılmaz.
+class CustomAmountDialog extends StatefulWidget {
+  const CustomAmountDialog({
+    super.key,
+    this.containers = AppSettings.defaultContainers,
+  });
+
+  static const maxMl = SavedContainer.maxMl;
+
+  final List<SavedContainer> containers;
 
   @override
   State<CustomAmountDialog> createState() => _CustomAmountDialogState();
@@ -452,6 +508,7 @@ class CustomAmountDialog extends StatefulWidget {
 
 class _CustomAmountDialogState extends State<CustomAmountDialog> {
   final _text = TextEditingController();
+  DrinkType _drink = DrinkType.water;
   String? _error;
 
   @override
@@ -461,26 +518,55 @@ class _CustomAmountDialogState extends State<CustomAmountDialog> {
   }
 
   void _submit() {
-    final v = int.tryParse(_text.text.trim());
-    if (v == null || v <= 0 || v > CustomAmountDialog.maxMl) {
+    final v = parseAmount(_text.text, max: CustomAmountDialog.maxMl);
+    if (v == null) {
       setState(
         () => _error = '1–${CustomAmountDialog.maxMl} arasında bir sayı gir',
       );
       return;
     }
-    Navigator.pop(context, v);
+    Navigator.pop(context, CustomAmountResult(v, _drink));
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       title: const Text('Özel miktar (ml)'),
-      content: TextField(
-        controller: _text,
-        autofocus: true,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(hintText: 'Örn. 200', errorText: _error),
-        onSubmitted: (_) => _submit(),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _text,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Örn. 200',
+                errorText: _error,
+              ),
+              onChanged: (_) => setState(() => _error = null),
+              onSubmitted: (_) => _submit(),
+            ),
+            const FieldLabel('Kaplarım'),
+            ContainerChips(
+              containers: widget.containers,
+              onPick: (c) => setState(() {
+                _text.text = '${c.ml}';
+                _error = null;
+              }),
+            ),
+            const FieldLabel('İçecek'),
+            DrinkChips(
+              selected: _drink,
+              onSelected: (d) => setState(() => _drink = d),
+            ),
+            CountedHint(amountText: _text.text, drink: _drink),
+          ],
+        ),
       ),
       actions: [
         TextButton(

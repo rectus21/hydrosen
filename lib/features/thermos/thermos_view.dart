@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 
 import 'celebration_painter.dart';
 import 'celebrations/celebration_registry.dart';
+import 'illustrated_artwork.dart';
 import 'slosh_model.dart';
 import 'thermos_painter.dart';
 import 'thermos_theme.dart';
@@ -252,6 +253,7 @@ class _ThermosViewState extends State<ThermosView>
                     ? 1
                     : WolfArtwork.howlLift(intro: ct, loop: lp),
                 labelStyle: Theme.of(context).textTheme.labelSmall,
+                sceneLuma: IllustratedArtwork.midLuma[widget.theme.id],
                 capPose: posePainter == null
                     ? CapPose.identity
                     : resolveCapPose(posePainter),

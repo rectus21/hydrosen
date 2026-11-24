@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../../data/water_repository.dart';
+import '../../domain/drink_type.dart';
 import '../../domain/water_entry.dart';
 import 'goal_celebration.dart';
 
@@ -20,6 +21,9 @@ class WaterController extends ChangeNotifier {
   int _goalMl;
 
   int get goalMl => _goalMl;
+
+  /// Denetleyicinin saati (testlerde sahte olabilir).
+  DateTime get now => _now();
 
   /// Ayarlardan gelen yeni günlük hedef; kayıtlar etkilenmez.
   set goalMl(int value) {
@@ -75,15 +79,21 @@ class WaterController extends ChangeNotifier {
     return t.year == n.year && t.month == n.month && t.day == n.day;
   }
 
+  // En yeni önce: önce saat, eşitse sonradan eklenen (büyük kimlik).
+  static int _newestFirst(WaterEntry a, WaterEntry b) {
+    final c = b.time.compareTo(a.time);
+    return c != 0 ? c : b.id.compareTo(a.id);
+  }
+
   /// Bugünün kayıtları, en yeni önde.
   List<WaterEntry> get todayEntries =>
-      _entries.where((e) => _isToday(e.time)).toList().reversed.toList();
+      _entries.where((e) => _isToday(e.time)).toList()..sort(_newestFirst);
 
   /// Tüm kayıtlar, en yeni önce. Geçmiş günler Kayıtlar sekmesinde gösterilir.
-  List<WaterEntry> get allEntries =>
-      [..._entries]..sort((a, b) => b.time.compareTo(a.time));
+  List<WaterEntry> get allEntries => [..._entries]..sort(_newestFirst);
 
-  int get totalMl => todayEntries.fold(0, (sum, e) => sum + e.amountMl);
+  /// Bugünün hedefe sayılan toplamı (içecek oranlarıyla).
+  int get totalMl => todayEntries.fold(0, (sum, e) => sum + e.countedMl);
 
   double get progress => goalMl == 0 ? 0 : (totalMl / goalMl).clamp(0.0, 1.0);
 
@@ -93,17 +103,51 @@ class WaterController extends ChangeNotifier {
   /// Son ekleme/çıkarma/silme geri alınabilir mi?
   bool get canUndo => _undoSnapshot != null;
 
-  Future<void> add(int amountMl) async {
+  /// Kayıt ekler. Varsayılan: şimdi, su. Geçmiş bir [time] bugünün toplamını
+  /// etkilemez.
+  Future<void> add(
+    int amountMl, {
+    DrinkType drink = DrinkType.water,
+    DateTime? time,
+  }) async {
     if (amountMl <= 0) return;
     _undoSnapshot = _entries;
     final nextId = _entries.fold(0, (m, e) => math.max(m, e.id)) + 1;
     _entries = [
       ..._entries,
-      WaterEntry(id: nextId, amountMl: amountMl, time: _now()),
+      WaterEntry(
+        id: nextId,
+        amountMl: amountMl,
+        time: time ?? _now(),
+        drink: drink,
+      ),
     ];
     _observeGoal();
     notifyListeners();
     await _persist();
+  }
+
+  /// Kaydı yerinde günceller (kimlik korunur). Kayıt yoksa false.
+  Future<bool> update(
+    int id, {
+    int? amountMl,
+    DateTime? time,
+    DrinkType? drink,
+  }) async {
+    if (amountMl != null && amountMl <= 0) return false;
+    final index = _entries.indexWhere((e) => e.id == id);
+    if (index < 0) return false;
+    _undoSnapshot = _entries;
+    _entries = [
+      for (var i = 0; i < _entries.length; i++)
+        i == index
+            ? _entries[i].copyWith(amountMl: amountMl, time: time, drink: drink)
+            : _entries[i],
+    ];
+    _observeGoal();
+    notifyListeners();
+    await _persist();
+    return true;
   }
 
   Future<void> remove(int id) async {
@@ -125,18 +169,18 @@ class WaterController extends ChangeNotifier {
     if (amountMl <= 0) return 0;
     var left = amountMl;
     final next = [..._entries];
-    for (var i = next.length - 1; i >= 0 && left > 0; i--) {
-      final e = next[i];
-      if (!_isToday(e.time)) continue;
-      if (e.amountMl <= left) {
-        left -= e.amountMl;
+    // Miktar hedefe sayılan ml'dir; en yeni bugünkü kayıttan başlanır.
+    for (final e in todayEntries) {
+      if (left <= 0) break;
+      final i = next.indexWhere((x) => x.id == e.id);
+      if (e.countedMl <= left) {
+        left -= e.countedMl;
         next.removeAt(i);
       } else {
-        next[i] = WaterEntry(
-          id: e.id,
-          amountMl: e.amountMl - left,
-          time: e.time,
-        );
+        // Ham miktarı, kalan sayılan miktara karşılık gelecek şekilde küçült.
+        final keepCounted = e.countedMl - left;
+        final raw = math.max(1, (keepCounted * 100 / e.drink.percent).round());
+        next[i] = e.copyWith(amountMl: raw);
         left = 0;
       }
     }
