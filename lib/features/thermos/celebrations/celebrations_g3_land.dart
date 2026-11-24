@@ -117,8 +117,14 @@ void fil(Canvas cv, Ctx c) {
     final r = (3.2 + 2.2 * c.rand(i, 5)) * (0.9 + 0.2 * k);
     waterDrop(c, cv, p, r, ang, op, base: cols[i % 4]);
   }
-  filJet(cv, c, tip, k, c.reduceMotion ? 1.0 : c.span(0.04, 0.16),
-      c.reduceMotion ? 0.0 : c.t * 3);
+  filJet(
+    cv,
+    c,
+    tip,
+    k,
+    c.reduceMotion ? 1.0 : c.span(0.04, 0.16),
+    c.reduceMotion ? 0.0 : c.t * 3,
+  );
   filShimmer(cv, c, tip, k, c.reduceMotion ? 0.5 : c.t * 6);
 }
 
@@ -597,7 +603,14 @@ void baykus(Canvas cv, Ctx c) {
 /// Hortum ağzından görünür su yayı: yukarı çıkıp sağa kıvrılan şeffaf mavi
 /// akış, üzerinde akan parlak boncuklar. [appear] 0..1 uzunluğu büyütür,
 /// [flow] boncukların akış fazı (döngüde tam sayı).
-void filJet(Canvas cv, Ctx c, Offset tip, double k, double appear, double flow) {
+void filJet(
+  Canvas cv,
+  Ctx c,
+  Offset tip,
+  double k,
+  double appear,
+  double flow,
+) {
   if (appear <= 0.01) return;
   const vx = 140.0, vy = -50.0, g = 240.0;
   final tEnd = appear;

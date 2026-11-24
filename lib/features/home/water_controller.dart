@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
+import '../../data/streak_repository.dart';
 import '../../data/water_repository.dart';
+import '../../domain/badges.dart';
 import '../../domain/drink_type.dart';
+import '../../domain/streak.dart';
 import '../../domain/water_entry.dart';
 import 'goal_celebration.dart';
 
@@ -14,9 +18,12 @@ class WaterController extends ChangeNotifier {
     required this._repository,
     this._goalMl = 2000,
     DateTime Function()? now,
-  }) : _now = now ?? DateTime.now;
+    StreakRepository? streakRepository,
+  }) : _now = now ?? DateTime.now,
+       _streakRepository = streakRepository ?? InMemoryStreakRepository();
 
   final WaterRepository _repository;
+  final StreakRepository _streakRepository;
   final DateTime Function() _now;
   int _goalMl;
 
@@ -30,6 +37,7 @@ class WaterController extends ChangeNotifier {
     if (value == _goalMl) return;
     _goalMl = value;
     _observeGoal();
+    _flushStreak();
     notifyListeners();
   }
 
@@ -48,6 +56,87 @@ class WaterController extends ChangeNotifier {
       goalMl: _goalMl,
     );
     if (crossed) _celebrations++;
+    _syncStreak();
+  }
+
+  // ---- Seri ve rozetler ---------------------------------------------------
+
+  StreakData? _streakData;
+  StreakStatus _streak = StreakStatus.empty;
+  String? _savedStreakJson;
+  String? _currentStreakJson;
+
+  /// Güncel seri durumu (bugün bitmediyse dünkü seri bozulmadan gösterilir).
+  StreakStatus get streak => _streak;
+
+  /// Kazanılan rozetler ve tarihleri.
+  Map<String, DateTime> get earnedBadges =>
+      Map.unmodifiable(_streakData?.badges ?? const <String, DateTime>{});
+
+  /// Kazanılmış ama kutlama penceresi henüz gösterilmemiş rozetler, değerce
+  /// artan sırada (en küçük önce).
+  List<BadgeDef> get pendingBadges {
+    final d = _streakData;
+    if (d == null) return const [];
+    return [
+      for (final b in Badges.all)
+        if (d.badges.containsKey(b.id) && !d.celebrated.contains(b.id)) b,
+    ];
+  }
+
+  /// Kutlama gösterildi; rozet bir daha kutlanmaz.
+  Future<void> markBadgeCelebrated(String id) async {
+    final d = _streakData;
+    if (d == null || d.celebrated.contains(id)) return;
+    _streakData = d.copyWith(celebrated: {...d.celebrated, id});
+    _currentStreakJson = jsonEncode(_streakData!.toJson());
+    notifyListeners();
+    await _flushStreak();
+  }
+
+  /// Gün değişmiş olabilir (uygulama öne geldi): seriyi bugüne getirir.
+  Future<void> refresh() async {
+    if (!_loaded) return;
+    _syncStreak();
+    notifyListeners();
+    await _flushStreak();
+  }
+
+  Map<DateTime, int> _dailyTotals() {
+    final totals = <DateTime, int>{};
+    for (final e in _entries) {
+      totals.update(
+        dayOf(e.time),
+        (v) => v + e.countedMl,
+        ifAbsent: () => e.countedMl,
+      );
+    }
+    return totals;
+  }
+
+  void _syncStreak() {
+    if (!_loaded) return;
+    final result = StreakEngine.advance(
+      data: _streakData,
+      now: _now(),
+      dailyCountedMl: _dailyTotals(),
+      goalMl: _goalMl,
+    );
+    _streakData = result.data;
+    _streak = result.status;
+    _currentStreakJson = jsonEncode(result.data.toJson());
+  }
+
+  Future<void> _flushStreak() async {
+    final data = _streakData;
+    final json = _currentStreakJson;
+    if (data == null || json == null || json == _savedStreakJson) return;
+    try {
+      await _streakRepository.save(data);
+      _savedStreakJson = json;
+    } catch (_) {
+      // Seri kaydedilemese de kayıtlar etkilenmez; sonraki değişimde denenir.
+    }
   }
 
   List<WaterEntry> _entries = [];
@@ -69,9 +158,18 @@ class WaterController extends ChangeNotifier {
       _entries = [];
       _saveFailed = true;
     }
+    try {
+      _streakData = await _streakRepository.load();
+      _savedStreakJson = _streakData == null
+          ? null
+          : jsonEncode(_streakData!.toJson());
+    } catch (_) {
+      _streakData = null; // Bozuk veri: seri kayıtlardan yeniden kurulur.
+    }
     _loaded = true;
     _observeGoal(); // Başlangıç durumu: açılışta kutlama oynamaz.
     notifyListeners();
+    await _flushStreak();
   }
 
   bool _isToday(DateTime t) {
@@ -214,5 +312,6 @@ class WaterController extends ChangeNotifier {
       _saveFailed = true;
     }
     notifyListeners();
+    await _flushStreak();
   }
 }

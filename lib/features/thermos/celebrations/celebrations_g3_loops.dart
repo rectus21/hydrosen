@@ -6,7 +6,8 @@ import '../celebration_painter.dart';
 import '../illustrated_artwork.dart';
 import 'celebration_context.dart';
 import 'celebrations_g3_kit.dart';
-import 'celebrations_g3_land.dart' show antlerPath, filJet, filShimmer, filTrunkTip;
+import 'celebrations_g3_land.dart'
+    show antlerPath, filJet, filShimmer, filTrunkTip;
 
 // GRUP 3 - SUREKLI DONGULER (kara hayvanlari). Hepsi ctx.loop degerinin tam
 // sayi katlarinin periyodik fonksiyonlaridir; tur sonunda sicrama/solma olmaz.

@@ -88,43 +88,92 @@ CapPose _loopPose(CelebrationContext c) {
 
 /// Pati: dipten (kafanın arkasındaki pivot) yukarı uzanır, pivot etrafında
 /// döner. [side] -1 sol (aynalı), 1 sağ.
-void _paw(Canvas cv, CelebrationContext c, String name, _G g, int side,
-    double grow, double rot) {
+void _paw(
+  Canvas cv,
+  CelebrationContext c,
+  String name,
+  _G g,
+  int side,
+  double grow,
+  double rot,
+) {
   if (grow <= 0.02) return;
   final pivot = c.capImagePt(side < 0 ? 0.15 : 0.85, 0.93);
   final w = 0.32 * g.w * grow;
   // Kapağın ÜSTÜNE çizilir: yüzün alt yanlarında, çene/yanak hizasında.
-  _spr(cv, c, name, pivot, w,
-      rot: rot * side + side * 0.35, flip: side < 0,
-      at: const Alignment(0, 0.97), op: grow.clamp(0.0, 1.0));
+  _spr(
+    cv,
+    c,
+    name,
+    pivot,
+    w,
+    rot: rot * side + side * 0.35,
+    flip: side < 0,
+    at: const Alignment(0, 0.97),
+    op: grow.clamp(0.0, 1.0),
+  );
 }
 
 /// Kuyruk: kafanın ARKASINDA, sağ üstten (kulağın yanından) çıkar; kök kafayla
 /// örtülür (kapak sonradan üstüne çizilir).
-void _tail(Canvas cv, CelebrationContext c, String name, _G g, double grow,
-    double rot) {
+void _tail(
+  Canvas cv,
+  CelebrationContext c,
+  String name,
+  _G g,
+  double grow,
+  double rot,
+) {
   if (grow <= 0.02) return;
   final root = c.capImagePt(0.78, 0.5);
-  _spr(cv, c, name, root, 0.34 * g.w * grow,
-      rot: rot + 0.85, at: const Alignment(0, 0.97), op: grow.clamp(0.0, 1.0));
+  _spr(
+    cv,
+    c,
+    name,
+    root,
+    0.34 * g.w * grow,
+    rot: rot + 0.85,
+    at: const Alignment(0, 0.97),
+    op: grow.clamp(0.0, 1.0),
+  );
 }
 
 void _heart(Canvas cv, CelebrationContext c, Offset p, double size, double op) {
-  _spr(cv, c, 'kedi_heart',
-      Offset(p.dx.clamp(_minX + size, _maxX - size), math.max(_minY + size, p.dy)),
-      size, op: op);
+  _spr(
+    cv,
+    c,
+    'kedi_heart',
+    Offset(
+      p.dx.clamp(_minX + size, _maxX - size),
+      math.max(_minY + size, p.dy),
+    ),
+    size,
+    op: op,
+  );
 }
 
 // ================================================================= KEDİ ====
 
 CapPose _kediPose(CelebrationContext c) {
   final a = _hump(_sp(c.t, 0.1, 0.3));
-  return CapPose(dy: -6 * a, rotation: 0.04 * math.sin(c.t * _tau * 3) * _sp(c.t, 0.1, 0.2));
+  return CapPose(
+    dy: -6 * a,
+    rotation: 0.04 * math.sin(c.t * _tau * 3) * _sp(c.t, 0.1, 0.2),
+  );
 }
 
-void _catScene(Canvas cv, CelebrationContext c, String pawName, String tailName,
-    {required double grow, required double wave, required double tailGrow,
-    required double tailWag, required double phaseL, required double phaseR}) {
+void _catScene(
+  Canvas cv,
+  CelebrationContext c,
+  String pawName,
+  String tailName, {
+  required double grow,
+  required double wave,
+  required double tailGrow,
+  required double tailWag,
+  required double phaseL,
+  required double phaseR,
+}) {
   final g = _G(c);
   _tail(cv, c, tailName, g, tailGrow, tailWag);
   c.drawCapOver(cv);
@@ -138,7 +187,10 @@ void _kedi(Canvas cv, CelebrationContext c) {
   final grow = c.reduceMotion ? 1.0 : _back(_sp(t, 0.06, 0.2));
   final tg = c.reduceMotion ? 1.0 : _back(_sp(t, 0.14, 0.3));
   _catScene(
-    cv, c, 'kedi_paw', 'kedi_tail',
+    cv,
+    c,
+    'kedi_paw',
+    'kedi_tail',
     grow: grow,
     wave: c.reduceMotion ? 0 : t * _tau * 4,
     tailGrow: tg,
@@ -158,11 +210,18 @@ void _kedi(Canvas cv, CelebrationContext c) {
     if (k <= 0 || k >= 1) continue;
     final side = i.isEven ? -1.0 : 1.0;
     final p = Offset(
-      g.head.dx + side * (0.62 + 0.1 * (i % 3)) * g.w + 6 * math.sin(k * _tau * 2 + i),
+      g.head.dx +
+          side * (0.62 + 0.1 * (i % 3)) * g.w +
+          6 * math.sin(k * _tau * 2 + i),
       g.head.dy + 0.3 * g.w - k * 0.9 * g.w,
     );
-    _heart(cv, c, p, (0.1 + 0.05 * c.rand(i, 1)) * g.w,
-        math.min(1.0, k * 6) * math.min(1.0, (1 - k) * 4));
+    _heart(
+      cv,
+      c,
+      p,
+      (0.1 + 0.05 * c.rand(i, 1)) * g.w,
+      math.min(1.0, k * 6) * math.min(1.0, (1 - k) * 4),
+    );
   }
 }
 
@@ -177,9 +236,14 @@ void _kediLoop(Canvas cv, CelebrationContext c) {
   _paw(cv, c, 'kedi_paw', g, 1, 1, -0.26 * a);
   final k = _fract(l * 1.0);
   _heart(
-    cv, c,
-    Offset(g.head.dx + 0.66 * g.w + 6 * math.sin(k * _tau * 2), g.head.dy + 0.3 * g.w - k * 0.9 * g.w),
-    0.12 * g.w, _hump(k) * 0.95,
+    cv,
+    c,
+    Offset(
+      g.head.dx + 0.66 * g.w + 6 * math.sin(k * _tau * 2),
+      g.head.dy + 0.3 * g.w - k * 0.9 * g.w,
+    ),
+    0.12 * g.w,
+    _hump(k) * 0.95,
   );
 }
 
@@ -192,7 +256,12 @@ CapPose _pofudukPose(CelebrationContext c) {
 
 /// Yumak yolu; (konum, dönüş). Zemin: şişenin sol yanı.
 ({Offset p, double rot, double trailTo}) _yarn(
-    _G g, double groundY, double r, double t, Offset hit) {
+  _G g,
+  double groundY,
+  double r,
+  double t,
+  Offset hit,
+) {
   const x0 = 186.0, xRoll = 240.0, xRest = 222.0;
   if (t < 0.22) {
     final k = _sp(t, 0.02, 0.22);
@@ -217,11 +286,22 @@ CapPose _pofudukPose(CelebrationContext c) {
   } else {
     y = groundY;
   }
-  return (p: Offset(x, y), rot: 2 + (hit.dx - x) / r * -1.2, trailTo: _lerp(xRoll, xRest, _eo(k)));
+  return (
+    p: Offset(x, y),
+    rot: 2 + (hit.dx - x) / r * -1.2,
+    trailTo: _lerp(xRoll, xRest, _eo(k)),
+  );
 }
 
-void _trail(Canvas cv, CelebrationContext c, double groundY, double r,
-    double toX, Offset ball, double w) {
+void _trail(
+  Canvas cv,
+  CelebrationContext c,
+  double groundY,
+  double r,
+  double toX,
+  Offset ball,
+  double w,
+) {
   if (toX <= 190) return;
   final path = Path()..moveTo(182, groundY + r - 2);
   const n = 18;
@@ -249,14 +329,21 @@ void _pofuduk(Canvas cv, CelebrationContext c) {
   final ph = 0.32 * g.w * 379 / 254; // pati yüksekliği
   // Vuruş anında patinin ucu.
   const hitAngle = -0.95;
-  final hit = pivot +
+  final hit =
+      pivot +
       Offset(math.sin(hitAngle) * ph * 0.95, -math.cos(hitAngle) * ph * 0.95);
   final y = _yarn(g, groundY, r, t, hit);
 
   // Kuyruk (şişenin arkasından) ve pati (kafanın arkasından).
   final tg = c.reduceMotion ? 1.0 : _back(_sp(t, 0.4, 0.55));
-  _tail(cv, c, 'pofuduk_tail', g, tg,
-      c.reduceMotion ? 0 : 0.22 * math.sin(t * _tau * 3.5));
+  _tail(
+    cv,
+    c,
+    'pofuduk_tail',
+    g,
+    tg,
+    c.reduceMotion ? 0 : 0.22 * math.sin(t * _tau * 3.5),
+  );
   final grow = c.reduceMotion ? 0.0 : _back(_sp(t, 0.26, 0.36));
   final swat = _sp(t, 0.36, 0.42) * (1 - _sp(t, 0.5, 0.65));
   c.drawCapOver(cv);
@@ -264,8 +351,15 @@ void _pofuduk(Canvas cv, CelebrationContext c) {
 
   // İp izi ve yumak.
   _trail(cv, c, groundY, r, y.trailTo, y.p, g.w);
-  _spr(cv, c, 'pofuduk_yarn', y.p, 2 * r, rot: y.rot,
-      op: c.reduceMotion ? 1 : _sp(t, 0.0, 0.05));
+  _spr(
+    cv,
+    c,
+    'pofuduk_yarn',
+    y.p,
+    2 * r,
+    rot: y.rot,
+    op: c.reduceMotion ? 1 : _sp(t, 0.0, 0.05),
+  );
 
   // Kalpler (kuyruk çevresinde).
   if (c.reduceMotion) {
@@ -280,8 +374,13 @@ void _pofuduk(Canvas cv, CelebrationContext c) {
       g.head.dx + (0.62 + 0.1 * (i % 3)) * g.w + 6 * math.sin(k * _tau * 2 + i),
       g.head.dy + 0.4 * g.w - k * 0.9 * g.w,
     );
-    _heart(cv, c, p, (0.1 + 0.04 * c.rand(i, 2)) * g.w,
-        math.min(1.0, k * 6) * math.min(1.0, (1 - k) * 4));
+    _heart(
+      cv,
+      c,
+      p,
+      (0.1 + 0.04 * c.rand(i, 2)) * g.w,
+      math.min(1.0, k * 6) * math.min(1.0, (1 - k) * 4),
+    );
   }
 }
 
@@ -302,8 +401,10 @@ void _pofudukLoop(Canvas cv, CelebrationContext c) {
   _spr(cv, c, 'pofuduk_yarn', ball, 2 * r, rot: 2 + 0.25 * wob);
   final k = _fract(l);
   _heart(
-    cv, c,
+    cv,
+    c,
     Offset(g.head.dx + 0.66 * g.w, g.head.dy + 0.4 * g.w - k * 0.9 * g.w),
-    0.11 * g.w, _hump(k) * 0.9,
+    0.11 * g.w,
+    _hump(k) * 0.9,
   );
 }

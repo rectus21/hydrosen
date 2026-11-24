@@ -19,6 +19,7 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
   static const glassKey = 'settings_glass_ml_v1';
   static const animatedKey = 'settings_animated_celebrations_v1';
   static const containersKey = 'settings_containers_v1';
+  static const bottleNamesKey = 'settings_bottle_names_v1';
 
   @override
   Future<AppSettings> load() async {
@@ -30,6 +31,7 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
     final glass = prefs.get(glassKey);
     final animated = prefs.get(animatedKey);
     final containers = prefs.get(containersKey);
+    final bottleNames = prefs.get(bottleNamesKey);
     return AppSettings(
       shape: ThermosShape.values.firstWhere(
         (s) => s.name == shapeName,
@@ -46,7 +48,22 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
           : AppSettings.defaultGlassMl,
       animatedCelebrations: animated is bool ? animated : true,
       containers: _decodeContainers(containers),
+      bottleNames: _decodeBottleNames(bottleNames),
     );
+  }
+
+  /// Eksik (eski sürüm) ya da bozuk veri boş ad listesine döner.
+  static Map<String, String> _decodeBottleNames(Object? raw) {
+    if (raw is! String) return const {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return const {};
+      return AppSettings.sanitizeBottleNames(decoded.cast<String, Object?>());
+    } on FormatException {
+      return const {};
+    } on TypeError {
+      return const {};
+    }
   }
 
   /// Eksik/bozuk veri varsayılan kaplara döner; bozuk tek kap atlanır.
@@ -91,7 +108,8 @@ class SharedPrefsSettingsRepository implements SettingsRepository {
         await prefs.setString(
           containersKey,
           jsonEncode([for (final c in settings.containers) c.toJson()]),
-        );
+        ) &&
+        await prefs.setString(bottleNamesKey, jsonEncode(settings.bottleNames));
     if (!ok) throw StateError('Ayarlar saklanamadı');
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../data/settings_repository.dart';
 import '../../domain/app_settings.dart';
+import '../../domain/bottle_name.dart';
 import '../../domain/saved_container.dart';
 import '../thermos/thermos_theme.dart';
 
@@ -29,6 +30,15 @@ class SettingsController extends ChangeNotifier {
   bool get animatedCelebrations => _settings.animatedCelebrations;
   List<SavedContainer> get containers => _settings.containers;
 
+  /// Seçili temanın matara/karakter adı (özel ad ya da tema adı).
+  String get bottleName => _settings.bottleName(theme);
+
+  /// Seçili tema için kullanıcı ad verdiyse o ad, yoksa null.
+  String? get customBottleName => _settings.customBottleName(theme);
+
+  /// [t] temasının matara/karakter adı.
+  String bottleNameOf(ThermosTheme t) => _settings.bottleName(t);
+
   Future<void> load() async {
     try {
       _settings = await _repository.load();
@@ -53,6 +63,23 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> setAnimatedCelebrations(bool on) =>
       _update(_settings.copyWith(animatedCelebrations: on));
+
+  /// [theme] için matara/karakter adını kaydeder. Ad kırpılır; boş ad ya da
+  /// tema adının aynısı varsayılana döner. Uzun/uygunsuz ad kaydedilmez ve
+  /// hata sonucu döner.
+  Future<BottleNameResult> setBottleName(ThermosTheme theme, String raw) async {
+    final result = BottleName.validate(raw);
+    if (!result.isOk) return result;
+    final name = result.name!;
+    final next = Map<String, String>.of(_settings.bottleNames);
+    if (name.isEmpty || name == theme.name) {
+      next.remove(theme.id);
+    } else {
+      next[theme.id] = name;
+    }
+    await _update(_settings.copyWith(bottleNames: next));
+    return result;
+  }
 
   /// Yeni kap ekler; ad boş/miktar geçersiz veya sınır doluysa false.
   Future<bool> addContainer(String name, int ml) async {

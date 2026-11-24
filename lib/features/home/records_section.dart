@@ -93,6 +93,7 @@ class _RecordsSectionState extends State<RecordsSection> {
   @override
   Widget build(BuildContext context) {
     final totals = _dailyTotals;
+    final protectedDays = widget.controller.streak.protectedDays;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
@@ -136,6 +137,7 @@ class _RecordsSectionState extends State<RecordsSection> {
                 weekStart: _weekAnchor,
                 selectedDay: _selectedDay,
                 totals: totals,
+                protectedDays: protectedDays,
                 goalMl: widget.controller.goalMl,
                 onSelect: (day) => setState(() => _selectedDay = day),
               )
@@ -144,6 +146,7 @@ class _RecordsSectionState extends State<RecordsSection> {
                 month: _monthAnchor,
                 selectedDay: _selectedDay,
                 totals: totals,
+                protectedDays: protectedDays,
                 goalMl: widget.controller.goalMl,
                 onSelect: (day) => setState(() => _selectedDay = day),
               ),
@@ -151,6 +154,7 @@ class _RecordsSectionState extends State<RecordsSection> {
             _DayRecords(
               day: _selectedDay,
               entries: _selectedEntries,
+              isProtected: protectedDays.contains(_dateOnly(_selectedDay)),
               totalMl: totals[_dateOnly(_selectedDay)] ?? 0,
               goalMl: widget.controller.goalMl,
               onDelete: widget.onDelete,
@@ -225,6 +229,7 @@ class _WeeklyChart extends StatelessWidget {
     required this.weekStart,
     required this.selectedDay,
     required this.totals,
+    required this.protectedDays,
     required this.goalMl,
     required this.onSelect,
   });
@@ -232,6 +237,7 @@ class _WeeklyChart extends StatelessWidget {
   final DateTime weekStart;
   final DateTime selectedDay;
   final Map<DateTime, int> totals;
+  final Set<DateTime> protectedDays;
   final int goalMl;
   final ValueChanged<DateTime> onSelect;
 
@@ -285,6 +291,7 @@ class _WeeklyChart extends StatelessWidget {
                       amountMl: values[i],
                       heightFactor: maxValue == 0 ? 0 : values[i] / maxValue,
                       selected: DateUtils.isSameDay(days[i], selectedDay),
+                      isProtected: protectedDays.contains(_dateOnly(days[i])),
                       onTap: () => onSelect(days[i]),
                     ),
                   ),
@@ -323,6 +330,7 @@ class _DayBar extends StatelessWidget {
     required this.amountMl,
     required this.heightFactor,
     required this.selected,
+    required this.isProtected,
     required this.onTap,
   });
 
@@ -330,6 +338,9 @@ class _DayBar extends StatelessWidget {
   final int amountMl;
   final double heightFactor;
   final bool selected;
+
+  /// Kaçırma hakkıyla korunan gün.
+  final bool isProtected;
   final VoidCallback onTap;
 
   @override
@@ -339,7 +350,9 @@ class _DayBar extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: '${_weekdayShort[day.weekday - 1]} ${day.day}, $amountMl ml',
+      label:
+          '${_weekdayShort[day.weekday - 1]} ${day.day}, $amountMl ml'
+          '${isProtected ? ', korundu' : ''}',
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -348,6 +361,18 @@ class _DayBar extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              // Her günde aynı yer ayrılır: çubuk yükseklikleri kıyaslanabilir kalır.
+              SizedBox(
+                height: 15,
+                child: isProtected
+                    ? Icon(
+                        Icons.shield,
+                        key: ValueKey('protected-${day.day}'),
+                        size: 14,
+                        color: const Color(0xFF3FA7D6),
+                      )
+                    : null,
+              ),
               Text(
                 amountMl == 0 ? '–' : _compactAmount(amountMl),
                 maxLines: 1,
@@ -407,6 +432,7 @@ class _MonthlyCalendar extends StatelessWidget {
     required this.month,
     required this.selectedDay,
     required this.totals,
+    required this.protectedDays,
     required this.goalMl,
     required this.onSelect,
   });
@@ -414,6 +440,7 @@ class _MonthlyCalendar extends StatelessWidget {
   final DateTime month;
   final DateTime selectedDay;
   final Map<DateTime, int> totals;
+  final Set<DateTime> protectedDays;
   final int goalMl;
   final ValueChanged<DateTime> onSelect;
 
@@ -481,6 +508,7 @@ class _MonthlyCalendar extends StatelessWidget {
                 amountMl: amount,
                 goalMl: goalMl,
                 selected: DateUtils.isSameDay(day, selectedDay),
+                isProtected: protectedDays.contains(_dateOnly(day)),
                 onTap: () => onSelect(day),
               );
             },
@@ -497,6 +525,7 @@ class _MonthDay extends StatelessWidget {
     required this.amountMl,
     required this.goalMl,
     required this.selected,
+    required this.isProtected,
     required this.onTap,
   });
 
@@ -504,6 +533,7 @@ class _MonthDay extends StatelessWidget {
   final int amountMl;
   final int goalMl;
   final bool selected;
+  final bool isProtected;
   final VoidCallback onTap;
 
   @override
@@ -513,7 +543,9 @@ class _MonthDay extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: '${day.day} ${_monthNames[day.month - 1]}, $amountMl ml',
+      label:
+          '${day.day} ${_monthNames[day.month - 1]}, $amountMl ml'
+          '${isProtected ? ', korundu' : ''}',
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         onTap: onTap,
@@ -531,32 +563,48 @@ class _MonthDay extends StatelessWidget {
                   : scheme.outlineVariant.withValues(alpha: 0.45),
             ),
           ),
-          child: Column(
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Text(
-                '${day.day}',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                height: 4,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: scheme.surfaceContainerHighest,
-                    color: progress >= 1 ? Colors.green : scheme.primary,
+              if (isProtected)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Icon(
+                    Icons.shield,
+                    key: ValueKey('protected-${day.day}'),
+                    size: 11,
+                    color: const Color(0xFF3FA7D6),
                   ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                amountMl == 0 ? '–' : _compactAmount(amountMl),
-                maxLines: 1,
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(fontSize: 9, color: scheme.onSurfaceVariant),
+              Column(
+                children: [
+                  Text(
+                    '${day.day}',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    height: 4,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: scheme.surfaceContainerHighest,
+                        color: progress >= 1 ? Colors.green : scheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    amountMl == 0 ? '–' : _compactAmount(amountMl),
+                    maxLines: 1,
+                    style: Theme.of(context).textTheme.labelSmall
+                        ?.copyWith(fontSize: 9, color: scheme.onSurfaceVariant),
+                  ),
+                ],
               ),
             ],
           ),
@@ -570,6 +618,7 @@ class _DayRecords extends StatelessWidget {
   const _DayRecords({
     required this.day,
     required this.entries,
+    required this.isProtected,
     required this.totalMl,
     required this.goalMl,
     required this.onDelete,
@@ -579,6 +628,7 @@ class _DayRecords extends StatelessWidget {
 
   final DateTime day;
   final List<WaterEntry> entries;
+  final bool isProtected;
   final int totalMl;
   final int goalMl;
   final void Function(int id) onDelete;
@@ -619,6 +669,23 @@ class _DayRecords extends StatelessWidget {
               ),
             ],
           ),
+          if (isProtected) ...[
+            const SizedBox(height: 8),
+            Row(
+              key: const ValueKey('day-protected'),
+              children: [
+                const Icon(Icons.shield, size: 16, color: Color(0xFF3FA7D6)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Korundu: kaçırma hakkın kullanıldı, seri devam ediyor.',
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),

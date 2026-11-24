@@ -10,7 +10,12 @@ import 'illustrated_artwork.dart';
 class SceneGeometry {
   static GlobalKey? sceneKey;
 
-  static Offset? toLocal(BuildContext overlay, String themeId, double u, double v) {
+  static Offset? toLocal(
+    BuildContext overlay,
+    String themeId,
+    double u,
+    double v,
+  ) {
     try {
       final image = IllustratedArtwork.byId[themeId]?.scene;
       final sb = sceneKey?.currentContext?.findRenderObject();

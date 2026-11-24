@@ -484,16 +484,7 @@ final Path _visorSlimL = svgPath(visorSlim);
 
 void _astronotLoop(Canvas canvas, CelebrationContext ctx) {
   final th = lpTheta(ctx);
-  lpDriftStars(
-    canvas,
-    ctx,
-    20,
-    3,
-    xLeft: 168,
-    xRight: 400,
-    yTop: 100,
-    yH: 370,
-  );
+  lpDriftStars(canvas, ctx, 20, 3, xLeft: 168, xRight: 400, yTop: 100, yH: 370);
 
   // Kayan yildiz (turda bir kez).
   final ss = ((ctx.loop - 0.12) / 0.3).clamp(0.0, 1.0);

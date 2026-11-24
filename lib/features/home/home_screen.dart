@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_look.dart';
 import '../../app/frosted_panel.dart';
+import '../../data/streak_repository.dart';
 import '../../data/water_repository.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/drink_type.dart';
 import '../../domain/saved_container.dart';
+import '../badges/badge_popup.dart';
+import '../badges/streak_line.dart';
+import '../../domain/streak.dart';
 import '../settings/settings_controller.dart';
 import '../settings/settings_screen.dart';
 import '../thermos/celebration_overlay.dart';
@@ -16,6 +20,10 @@ import '../thermos/thermos_view.dart';
 import 'drink_widgets.dart';
 import 'home_sections.dart';
 import 'quick_glass_buttons.dart';
+import '../../domain/reminder_messages.dart';
+import '../reminder/reminder_banner.dart';
+import '../reminder/reminder_notifier.dart';
+import '../reminder/web_notifier.dart';
 import 'reminder_controller.dart';
 import 'resin_button.dart';
 import 'water_controller.dart';
@@ -25,18 +33,22 @@ class HomeScreen extends StatefulWidget {
     super.key,
     required this.repository,
     required this.settings,
+    this.streakRepository,
   });
 
   final WaterRepository repository;
+  final StreakRepository? streakRepository;
   final SettingsController settings;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final WaterController _controller;
   late final ReminderController _reminder;
+  late final ReminderNotifier _webNotifier = createWebNotifier();
+  late final ReminderDelivery _delivery;
   final _scroll = ScrollController();
   final _thermosKey = GlobalKey();
   int _selectedTab = 0;
@@ -47,18 +59,58 @@ class _HomeScreenState extends State<HomeScreen> {
     _controller = WaterController(
       repository: widget.repository,
       goalMl: widget.settings.goalMl,
+      streakRepository: widget.streakRepository,
     )..load();
-    _reminder = ReminderController(onDue: _showReminder)..load();
+    WidgetsBinding.instance.addObserver(this);
+    _delivery = ReminderDelivery([
+      InAppReminderNotifier(_showBanner),
+      _webNotifier,
+    ]);
+    _reminder = ReminderController(
+      onDue: _showReminder,
+      contextProvider: _reminderContext,
+    )..load();
     widget.settings.addListener(_syncGoal);
+  }
+
+  /// Hatırlatıcının bilmesi gereken bugünkü durum: son kayıt ve hedef.
+  ReminderContext _reminderContext() {
+    final today = _controller.todayEntries;
+    return ReminderContext(
+      lastDrink: today.isEmpty ? null : today.first.time,
+      goalReached:
+          _controller.goalMl > 0 && _controller.totalMl >= _controller.goalMl,
+    );
   }
 
   void _showReminder() {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Su içme zamanı! Bir bardak su eklemeyi unutma.'),
+    final theme = widget.settings.theme;
+    final kind = _reminder.lastKind;
+    _delivery.deliver(
+      ReminderMessage(
+        title: 'HydroSen',
+        body: ReminderMessages.pick(
+          themeId: theme.id,
+          name: widget.settings.bottleName,
+          kind: kind,
+          index: _reminder.sentToday - 1,
+        ),
+        themeId: theme.id,
+        kind: kind,
       ),
     );
+  }
+
+  void _showBanner(ReminderMessage message) {
+    if (!mounted) return;
+    showReminderBanner(context, message, widget.settings.theme);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Gece yarısı geçmiş olabilir: seriyi yeni güne getir.
+    if (state == AppLifecycleState.resumed) _controller.refresh();
   }
 
   void _syncGoal() => _controller.goalMl = widget.settings.goalMl;
@@ -73,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.settings.removeListener(_syncGoal);
     _controller.dispose();
     _reminder.dispose();
@@ -116,156 +169,186 @@ class _HomeScreenState extends State<HomeScreen> {
     return ThemeBackdrop(
       thermosKey: _thermosKey,
       scroll: _scroll,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          flexibleSpace: ListenableBuilder(
-            listenable: widget.settings,
-            builder: (context, _) {
-              final luma = IllustratedArtwork.topLuma[widget.settings.theme.id];
-              if (luma == null) return const SizedBox.shrink();
-              // Başlığın arkasına zıt renkli yumuşak perde: orta tonlu
-              // sahnelerde de okunur kalır.
-              final scrim = luma < 0.45 ? 0xFF000000 : 0xFFFFFFFF;
-              return DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(scrim).withValues(alpha: 0.5),
-                      Color(scrim).withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          title: ListenableBuilder(
-            listenable: widget.settings,
-            builder: (context, _) {
-              final fg = _barForeground(context);
-              return Text(
-                'HydroSen',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: fg.$1,
-                  shadows: [Shadow(color: fg.$2, blurRadius: 6)],
-                ),
-              );
-            },
-          ),
-          actions: [
-            ListenableBuilder(
-              listenable: widget.settings,
-              builder: (context, _) {
-                final fg = _barForeground(context);
-                return IconButton(
-                  tooltip: 'Ayarlar',
-                  icon: Icon(
-                    Icons.settings_outlined,
-                    color: fg.$1,
-                    shadows: [Shadow(color: fg.$2, blurRadius: 6)],
-                  ),
-                  onPressed: _openSettings,
-                );
-              },
-            ),
-          ],
-        ),
-        body: SafeArea(
-          child: ListenableBuilder(
-            listenable: Listenable.merge([
-              _controller,
-              widget.settings,
-              _reminder,
-            ]),
-            builder: (context, _) =>
-                !_controller.loaded || !widget.settings.loaded
-                ? const Center(child: CircularProgressIndicator())
-                : _selectedTab == 1
-                ? RecordsSection(
-                    controller: _controller,
-                    containers: widget.settings.containers,
-                    onDelete: (id) {
-                      _controller.remove(id);
-                    },
-                  )
-                : _selectedTab == 2
-                ? ReminderSection(controller: _reminder)
-                : _selectedTab == 3
-                ? ThemeSection(
-                    settings: widget.settings,
-                    onOpenSettings: _openSettings,
-                  )
-                : _selectedTab == 4
-                ? ProfileSection(
-                    settings: widget.settings,
-                    onOpenSettings: _openSettings,
-                  )
-                : Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 560),
-                      child: ListView(
-                        controller: _scroll,
-                        padding: const EdgeInsets.all(16),
-                        children: [
-                          if (_controller.saveFailed)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                'Kayıtlar cihaza saklanamadı; uygulamayı kapatırsan kaybolabilir.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                              ),
-                            ),
-                          _ThermosSection(
-                            thermosKey: _thermosKey,
-                            controller: _controller,
-                            shape: widget.settings.shape,
-                            theme: widget.settings.theme,
-                            animatedCelebrations:
-                                widget.settings.animatedCelebrations,
-                          ),
-                          const SizedBox(height: 16),
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              flexibleSpace: ListenableBuilder(
+                listenable: widget.settings,
+                builder: (context, _) {
+                  final luma =
+                      IllustratedArtwork.topLuma[widget.settings.theme.id];
+                  if (luma == null) return const SizedBox.shrink();
+                  // Başlığın arkasına zıt renkli yumuşak perde: orta tonlu
+                  // sahnelerde de okunur kalır.
+                  final scrim = luma < 0.45 ? 0xFF000000 : 0xFFFFFFFF;
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(scrim).withValues(alpha: 0.5),
+                          Color(scrim).withValues(alpha: 0),
                         ],
                       ),
                     ),
-                  ),
-          ),
-        ),
-        bottomNavigationBar: ListenableBuilder(
-          listenable: Listenable.merge([_controller, widget.settings]),
-          builder: (context, _) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_selectedTab == 0 &&
-                  _controller.loaded &&
-                  widget.settings.loaded)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 560),
-                      child: _DailyControlCard(
-                        controller: _controller,
-                        themeId: widget.settings.theme.id,
-                        glassMl: widget.settings.glassMl,
-                        onAdd: _addGlasses,
-                        onRemove: _controller.totalMl > 0 ? _removeGlass : null,
-                        onCustom: _addCustom,
+                  );
+                },
+              ),
+              title: ListenableBuilder(
+                listenable: widget.settings,
+                builder: (context, _) {
+                  final fg = _barForeground(context);
+                  return Text(
+                    'HydroSen',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: fg.$1,
+                      shadows: [Shadow(color: fg.$2, blurRadius: 6)],
+                    ),
+                  );
+                },
+              ),
+              actions: [
+                ListenableBuilder(
+                  listenable: widget.settings,
+                  builder: (context, _) {
+                    final fg = _barForeground(context);
+                    return IconButton(
+                      tooltip: 'Ayarlar',
+                      icon: Icon(
+                        Icons.settings_outlined,
+                        color: fg.$1,
+                        shadows: [Shadow(color: fg.$2, blurRadius: 6)],
                       ),
+                      onPressed: _openSettings,
+                    );
+                  },
+                ),
+              ],
+            ),
+            body: Stack(
+              children: [
+                Positioned.fill(
+                  child: SafeArea(
+                    child: ListenableBuilder(
+                      listenable: Listenable.merge([
+                        _controller,
+                        widget.settings,
+                        _reminder,
+                      ]),
+                      builder: (context, _) =>
+                          !_controller.loaded || !widget.settings.loaded
+                          ? const Center(child: CircularProgressIndicator())
+                          : _selectedTab == 1
+                          ? RecordsSection(
+                              controller: _controller,
+                              containers: widget.settings.containers,
+                              onDelete: (id) {
+                                _controller.remove(id);
+                              },
+                            )
+                          : _selectedTab == 2
+                          ? ReminderSection(
+                              controller: _reminder,
+                              webNotifier: _webNotifier,
+                            )
+                          : _selectedTab == 3
+                          ? ThemeSection(
+                              settings: widget.settings,
+                              onOpenSettings: _openSettings,
+                            )
+                          : _selectedTab == 4
+                          ? ProfileSection(
+                              settings: widget.settings,
+                              controller: _controller,
+                              onOpenSettings: _openSettings,
+                            )
+                          : Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 560,
+                                ),
+                                child: ListView(
+                                  controller: _scroll,
+                                  padding: const EdgeInsets.all(16),
+                                  children: [
+                                    if (_controller.saveFailed)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: Text(
+                                          'Kayıtlar cihaza saklanamadı; uygulamayı kapatırsan kaybolabilir.',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .error,
+                                          ),
+                                        ),
+                                      ),
+                                    _ThermosSection(
+                                      thermosKey: _thermosKey,
+                                      controller: _controller,
+                                      shape: widget.settings.shape,
+                                      theme: widget.settings.theme,
+                                      animatedCelebrations:
+                                          widget.settings.animatedCelebrations,
+                                      celebrationText:
+                                          ReminderMessages.celebration(
+                                            widget.settings.customBottleName,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                  ],
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                 ),
-              _BottomTabs(
-                selected: _selectedTab,
-                onSelected: (index) => setState(() => _selectedTab = index),
+              ],
+            ),
+            bottomNavigationBar: ListenableBuilder(
+              listenable: Listenable.merge([_controller, widget.settings]),
+              builder: (context, _) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_selectedTab == 0 &&
+                      _controller.loaded &&
+                      widget.settings.loaded)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 560),
+                          child: _DailyControlCard(
+                            controller: _controller,
+                            themeId: widget.settings.theme.id,
+                            glassMl: widget.settings.glassMl,
+                            streak: _controller.streak,
+                            onAdd: _addGlasses,
+                            onRemove: _controller.totalMl > 0
+                                ? _removeGlass
+                                : null,
+                            onCustom: _addCustom,
+                          ),
+                        ),
+                      ),
+                    ),
+                  _BottomTabs(
+                    selected: _selectedTab,
+                    onSelected: (index) => setState(() => _selectedTab = index),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          // Kutlama her sekmenin ve alt çubuğun üstünde, dokunuşu engellemeden.
+          Positioned.fill(child: BadgePopupHost(controller: _controller)),
+        ],
       ),
     );
   }
@@ -276,10 +359,13 @@ class _DailyControlCard extends StatelessWidget {
     required this.controller,
     required this.themeId,
     required this.glassMl,
+    required this.streak,
     required this.onAdd,
     required this.onRemove,
     required this.onCustom,
   });
+
+  final StreakStatus streak;
 
   final WaterController controller;
   final String themeId;
@@ -337,7 +423,9 @@ class _DailyControlCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 2),
+          StreakLine(status: streak, fg: fg, shadows: shadows),
+          const SizedBox(height: 5),
           DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(99),
@@ -586,9 +674,11 @@ class _ThermosSection extends StatefulWidget {
     required this.shape,
     required this.theme,
     required this.animatedCelebrations,
+    required this.celebrationText,
   });
 
   final bool animatedCelebrations;
+  final String celebrationText;
   final GlobalKey thermosKey;
   final WaterController controller;
   final ThermosShape shape;
@@ -682,6 +772,7 @@ class _ThermosSectionState extends State<_ThermosSection> {
             looping: controller.progress >= 1,
             loopProgress: _celebrationLoop,
             animated: widget.animatedCelebrations,
+            bannerText: widget.celebrationText,
           ),
         ),
       ],

@@ -227,8 +227,7 @@ class _ThermosViewState extends State<ThermosView>
                 lemonade = (ct != null || lp != null || widget.happy) ? 1 : 0;
               } else if (ct != null) {
                 lemonade =
-                    sp(ct, 0, 0.3) *
-                    (widget.happy ? 1 : 1 - sp(ct, 0.9, 1));
+                    sp(ct, 0, 0.3) * (widget.happy ? 1 : 1 - sp(ct, 0.9, 1));
                 umbrella = !(ct > 0.35 && ct < 0.84);
               } else if (lp != null || widget.happy) {
                 lemonade = 1;

@@ -134,12 +134,7 @@ Future<_CapImage?> _loadCap(String id) => _capCache.putIfAbsent(id, () async {
     if (maxX < 0) return _CapImage(img, Offset.zero & _sizeOf(img));
     return _CapImage(
       img,
-      Rect.fromLTRB(
-        minX.toDouble(),
-        minY.toDouble(),
-        maxX + 1.0,
-        maxY + 1.0,
-      ),
+      Rect.fromLTRB(minX.toDouble(), minY.toDouble(), maxX + 1.0, maxY + 1.0),
     );
   } catch (_) {
     return null;
@@ -169,7 +164,10 @@ class _CapPainter extends CustomPainter {
       dst.shift(const Offset(0, 2.5)),
       Paint()
         ..filterQuality = FilterQuality.medium
-        ..colorFilter = const ColorFilter.mode(Color(0x66000000), BlendMode.srcIn)
+        ..colorFilter = const ColorFilter.mode(
+          Color(0x66000000),
+          BlendMode.srcIn,
+        )
         ..imageFilter = ui.ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
     );
     canvas.drawImageRect(
@@ -210,11 +208,17 @@ class _ThemeAvatarState extends State<_ThemeAvatar>
   );
   late final Animation<double> _scale = TweenSequence<double>([
     TweenSequenceItem(
-      tween: Tween(begin: 1.0, end: 1.14).chain(CurveTween(curve: Curves.easeOut)),
+      tween: Tween(
+        begin: 1.0,
+        end: 1.14,
+      ).chain(CurveTween(curve: Curves.easeOut)),
       weight: 35,
     ),
     TweenSequenceItem(
-      tween: Tween(begin: 1.14, end: 1.0).chain(CurveTween(curve: Curves.easeOutBack)),
+      tween: Tween(
+        begin: 1.14,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.easeOutBack)),
       weight: 65,
     ),
   ]).animate(_pop);

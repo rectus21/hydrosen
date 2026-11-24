@@ -264,8 +264,13 @@ Offset _kopekMouth(CelebrationContext c) =>
     c.capCenter + Offset(c.capWidth * 0.03, c.capWidth * 0.06);
 
 void _boneInMouth(_Fx f, double op) {
-  f.spr('kopek_bone', _kopekMouth(f.c), f.c.capWidth * 0.55,
-      rot: _boneHeldRot * 0.7, op: op);
+  f.spr(
+    'kopek_bone',
+    _kopekMouth(f.c),
+    f.c.capWidth * 0.55,
+    rot: _boneHeldRot * 0.7,
+    op: op,
+  );
 }
 
 List<Offset> _pawSpots(_Fx f) {
@@ -288,8 +293,13 @@ void _kopek(Canvas cv, CelebrationContext c) {
   final bubblePos = Offset(base.dx + 92, _top(base.dy - 66));
   if (c.reduceMotion) {
     for (var i = 0; i < 4; i++) {
-      f.spr('kopek_paw', spots[i], 40,
-          rot: i.isEven ? -0.3 : 0.3, tint: Color(_pawTints[i % 4]));
+      f.spr(
+        'kopek_paw',
+        spots[i],
+        40,
+        rot: i.isEven ? -0.3 : 0.3,
+        tint: Color(_pawTints[i % 4]),
+      );
     }
     _boneInMouth(f, 1);
     f.bubble('HAV HAV!', bubblePos, 1, 1, -1);
@@ -305,22 +315,37 @@ void _kopek(Canvas cv, CelebrationContext c) {
     final target = _kopekMouth(c);
     final start = Offset(target.dx + 18, base.dy - 200);
     final pos = Offset.lerp(start, target, k * k)!;
-    f.spr('kopek_bone', pos, 62,
-        rot: _boneHeldRot - (1 - k) * 2 * _tau, op: _sp(t, 0.02, 0.08));
+    f.spr(
+      'kopek_bone',
+      pos,
+      62,
+      rot: _boneHeldRot - (1 - k) * 2 * _tau,
+      op: _sp(t, 0.02, 0.08),
+    );
   }
   // Pati izleri sırayla.
   for (var i = 0; i < spots.length; i++) {
     final s = 0.40 + i * 0.065;
     final k = _sp(t, s, s + 0.12);
     if (k <= 0) continue;
-    f.spr('kopek_paw', spots[i], 40 * _back(k),
-        rot: i.isEven ? -0.3 : 0.3, tint: Color(_pawTints[i % 4]));
+    f.spr(
+      'kopek_paw',
+      spots[i],
+      40 * _back(k),
+      rot: i.isEven ? -0.3 : 0.3,
+      tint: Color(_pawTints[i % 4]),
+    );
   }
   // HAV HAV! balonu.
   final bk = _sp(t, 0.30, 0.38);
   if (bk > 0) {
-    f.bubble('HAV HAV!', bubblePos, _back(bk) * (1 + 0.03 * math.sin(t * 40)),
-        1, -1);
+    f.bubble(
+      'HAV HAV!',
+      bubblePos,
+      _back(bk) * (1 + 0.03 * math.sin(t * 40)),
+      1,
+      -1,
+    );
   }
 }
 
@@ -331,18 +356,26 @@ void _kopekLoop(Canvas cv, CelebrationContext c) {
   final k = _sp(c.loop, 0.15, 0.75);
   if (k <= 0 || k >= 1) return;
   if (c.loopCount.isEven) {
-    f.heart(base + Offset(78 + 8 * math.sin(k * 6), -10 - 70 * _eo(k)),
-        9 + 5 * _hump(k), 0xFFFF6B8E, _life(k));
+    f.heart(
+      base + Offset(78 + 8 * math.sin(k * 6), -10 - 70 * _eo(k)),
+      9 + 5 * _hump(k),
+      0xFFFF6B8E,
+      _life(k),
+    );
   } else {
     final left = (c.loopCount ~/ 2).isEven;
     final p = Offset(
       left ? f.glassL - 36 : f.glassR + 36,
       300 + (c.loopCount % 5) * 22.0,
     );
-    f.spr('kopek_paw', p, 38 * _back(_sp(k, 0, 0.3)),
-        rot: left ? -0.3 : 0.3,
-        op: _life(k, 0.2, 0.3),
-        tint: Color(_pawTints[c.loopCount % 4]));
+    f.spr(
+      'kopek_paw',
+      p,
+      38 * _back(_sp(k, 0, 0.3)),
+      rot: left ? -0.3 : 0.3,
+      op: _life(k, 0.2, 0.3),
+      tint: Color(_pawTints[c.loopCount % 4]),
+    );
   }
 }
 
@@ -354,9 +387,9 @@ CapPose _penguenPose(CelebrationContext c) {
 }
 
 CapPose _penguenLoopPose(CelebrationContext c) => CapPose(
-      rotation: math.sin(c.loop * 3 * _tau) * 0.05,
-      dx: math.sin(c.loop * 3 * _tau) * 3,
-    );
+  rotation: math.sin(c.loop * 3 * _tau) * 0.05,
+  dx: math.sin(c.loop * 3 * _tau) * 3,
+);
 
 void _aurora(_Fx f, double op, double wave) {
   f.spr(
@@ -376,16 +409,26 @@ void _snow(_Fx f, int n, double op, {double from = 0}) {
     final k = _fract((f.c.looping ? f.c.loop : f.c.t) + r);
     final x = 130 + 420 * f.c.rand(i, 22) + math.sin(k * 6 + i) * 14;
     final y = 24 + 470 * k;
-    f.spr('penguen_snowflake', Offset(x, y), 12 + 14 * f.c.rand(i, 23),
-        rot: k * 4 + i, op: op * _life(k, 0.1, 0.15));
+    f.spr(
+      'penguen_snowflake',
+      Offset(x, y),
+      12 + 14 * f.c.rand(i, 23),
+      rot: k * 4 + i,
+      op: op * _life(k, 0.1, 0.15),
+    );
   }
 }
 
 void _penguinSlide(_Fx f, double k, bool left, double y, double endX) {
   final startX = left ? 96.0 : 584.0;
   final x = ui.lerpDouble(startX, endX, _eo(k))!;
-  f.spr('penguen_mini_slide', Offset(x, y + math.sin(k * 14) * 2), 78,
-      flip: !left, op: _life(k, 0.12, 0.3));
+  f.spr(
+    'penguen_mini_slide',
+    Offset(x, y + math.sin(k * 14) * 2),
+    78,
+    flip: !left,
+    op: _life(k, 0.12, 0.3),
+  );
 }
 
 void _penguen(Canvas cv, CelebrationContext c) {
@@ -446,8 +489,12 @@ void _koala(Canvas cv, CelebrationContext c) {
     for (var i = 0; i < 7; i++) {
       final x = 150 + 360 * c.rand(i, 3);
       final y = 40 + 400 * c.rand(i, 6);
-      f.spr(i.isEven ? 'koala_leaf_1' : 'koala_leaf_2', Offset(x, y),
-          40 + 10 * c.rand(i, 4), rot: i * 1.3);
+      f.spr(
+        i.isEven ? 'koala_leaf_1' : 'koala_leaf_2',
+        Offset(x, y),
+        40 + 10 * c.rand(i, 4),
+        rot: i * 1.3,
+      );
     }
     return;
   }
@@ -482,24 +529,39 @@ void _puffBurst(_Fx f, double t) {
     final d = 24 + 78 * _eo(k);
     final p0 = o + Offset(math.cos(ang) * d * 1.15, math.sin(ang) * d);
     final p = Offset(p0.dx, math.max(p0.dy, _safeTop + 24));
-    f.spr('koyun_wool_puff', p, 22 + 34 * _back(k * 1.2),
-        rot: i - 2.5 + k, op: _life(k, 0.1, 0.45));
+    f.spr(
+      'koyun_wool_puff',
+      p,
+      22 + 34 * _back(k * 1.2),
+      rot: i - 2.5 + k,
+      op: _life(k, 0.1, 0.45),
+    );
   }
 }
 
 double _fenceX(_Fx f) => f.glassL - 68;
 
 void _fence(_Fx f, double op) {
-  f.spr('koyun_fence', Offset(_fenceX(f), 468), 104,
-      at: Alignment.bottomCenter, op: op);
+  f.spr(
+    'koyun_fence',
+    Offset(_fenceX(f), 468),
+    104,
+    at: Alignment.bottomCenter,
+    op: op,
+  );
 }
 
 void _sheepJump(_Fx f, double k) {
   if (k <= 0 || k >= 1) return;
   final x = _fenceX(f) - 80 + 160 * k;
   final y = 440 - 100 * _hump(k);
-  f.spr('koyun_mini_jump', Offset(x, y), 58,
-      rot: -math.cos(k * math.pi) * 0.45, op: _life(k, 0.1, 0.14));
+  f.spr(
+    'koyun_mini_jump',
+    Offset(x, y),
+    58,
+    rot: -math.cos(k * math.pi) * 0.45,
+    op: _life(k, 0.1, 0.14),
+  );
 }
 
 void _koyun(Canvas cv, CelebrationContext c) {
@@ -508,8 +570,11 @@ void _koyun(Canvas cv, CelebrationContext c) {
   if (c.reduceMotion) {
     for (var i = 0; i < 4; i++) {
       final ang = -math.pi * (0.15 + 0.7 * i / 3);
-      f.spr('koyun_wool_puff',
-          f.head + Offset(math.cos(ang) * 84, math.sin(ang) * 70), 40);
+      f.spr(
+        'koyun_wool_puff',
+        f.head + Offset(math.cos(ang) * 84, math.sin(ang) * 70),
+        40,
+      );
     }
     f.bubble('Mee!', bubblePos, 1, 1, -1);
     _fence(f, 1);
@@ -566,8 +631,14 @@ Offset _kFlowerPos(_Fx f) {
 }
 
 void _rainbow(_Fx f, double op) {
-  f.spr('kaktus_rainbow', Offset(f.head.dx, f.head.dy + 10), 330,
-      h: 112, at: Alignment.bottomCenter, op: op);
+  f.spr(
+    'kaktus_rainbow',
+    Offset(f.head.dx, f.head.dy + 10),
+    330,
+    h: 112,
+    at: Alignment.bottomCenter,
+    op: op,
+  );
 }
 
 void _kaktus(Canvas cv, CelebrationContext c) {
@@ -582,9 +653,12 @@ void _kaktus(Canvas cv, CelebrationContext c) {
     f.spr('kaktus_flower', _kFlowerPos(f), 54);
     for (var i = 0; i < 5; i++) {
       final a = -math.pi * (0.15 + 0.7 * i / 4);
-      f.spr('kaktus_petal',
-          _kFlowerPos(f) + Offset(math.cos(a) * 54, math.sin(a) * 46), 20,
-          rot: a + 1.2);
+      f.spr(
+        'kaktus_petal',
+        _kFlowerPos(f) + Offset(math.cos(a) * 54, math.sin(a) * 46),
+        20,
+        rot: a + 1.2,
+      );
     }
     return;
   }
@@ -595,8 +669,10 @@ void _kaktus(Canvas cv, CelebrationContext c) {
   if (ck > 0) {
     f.spr(
       'kaktus_cloud',
-      Offset(h.dx + ui.lerpDouble(-210, -85, _eo(ck))!,
-          cloudY + 2 * math.sin(f.ph(3))),
+      Offset(
+        h.dx + ui.lerpDouble(-210, -85, _eo(ck))!,
+        cloudY + 2 * math.sin(f.ph(3)),
+      ),
       130,
       op: _eo(ck),
     );
@@ -613,8 +689,13 @@ void _kaktus(Canvas cv, CelebrationContext c) {
   final fk = _sp(t, 0.5, 0.68);
   final fp = _kFlowerPos(f);
   if (fk > 0) {
-    f.spr('kaktus_flower', fp, 54 * _back(fk),
-        rot: (1 - _back(fk)) * -1.6, op: _sp(fk, 0, 0.3));
+    f.spr(
+      'kaktus_flower',
+      fp,
+      54 * _back(fk),
+      rot: (1 - _back(fk)) * -1.6,
+      op: _sp(fk, 0, 0.3),
+    );
   }
   for (var i = 0; i < 7; i++) {
     final s = 0.62 + i * 0.012;
@@ -622,9 +703,15 @@ void _kaktus(Canvas cv, CelebrationContext c) {
     if (k <= 0 || k >= 1) continue;
     final a = -math.pi * (0.1 + 0.8 * i / 6);
     final d = 26 + 54 * _eo(k);
-    final pp = fp + Offset(math.cos(a) * d * 1.15, math.sin(a) * d + 34 * k * k);
-    f.spr('kaktus_petal', Offset(pp.dx, _top(pp.dy)), 20,
-        rot: a + 1.2 + k * 3, op: _life(k, 0.1, 0.45));
+    final pp =
+        fp + Offset(math.cos(a) * d * 1.15, math.sin(a) * d + 34 * k * k);
+    f.spr(
+      'kaktus_petal',
+      Offset(pp.dx, _top(pp.dy)),
+      20,
+      rot: a + 1.2 + k * 3,
+      op: _life(k, 0.1, 0.45),
+    );
   }
 }
 
@@ -637,12 +724,19 @@ void _kaktusLoop(Canvas cv, CelebrationContext c) {
   final k = _sp(c.loop, 0.15, 0.7);
   if (k <= 0 || k >= 1) return;
   if (c.loopCount.isEven) {
-    f.spr('kaktus_raindrop',
-        Offset(f.head.dx - 72, _top(f.head.dy - 100 + 120 * k * k)), 15,
-        op: _life(k, 0.15, 0.2));
+    f.spr(
+      'kaktus_raindrop',
+      Offset(f.head.dx - 72, _top(f.head.dy - 100 + 120 * k * k)),
+      15,
+      op: _life(k, 0.15, 0.2),
+    );
   } else {
-    f.spr('kaktus_petal',
-        fp + Offset(34 * k + math.sin(k * 7) * 8, 10 + 90 * k), 20,
-        rot: k * 4, op: _life(k, 0.15, 0.3));
+    f.spr(
+      'kaktus_petal',
+      fp + Offset(34 * k + math.sin(k * 7) * 8, 10 + 90 * k),
+      20,
+      rot: k * 4,
+      op: _life(k, 0.15, 0.3),
+    );
   }
 }

@@ -12,11 +12,17 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:hydrosen/app/app.dart' show HydroSenApp;
 import 'package:hydrosen/data/water_repository.dart';
+import 'package:hydrosen/data/streak_repository.dart';
 import 'package:hydrosen/domain/app_settings.dart';
+import 'package:hydrosen/domain/badges.dart';
+import 'package:hydrosen/domain/streak.dart';
 import 'package:hydrosen/domain/drink_type.dart';
 import 'package:hydrosen/domain/water_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrosen/features/home/home_sections.dart' show ThemeSection;
+import 'package:hydrosen/domain/reminder_messages.dart';
+import 'package:hydrosen/features/reminder/reminder_banner.dart';
+import 'package:hydrosen/features/reminder/reminder_notifier.dart';
 import 'package:hydrosen/features/settings/settings_controller.dart';
 import 'package:hydrosen/app/theme_scene.dart';
 import 'package:hydrosen/data/settings_repository.dart';
@@ -37,6 +43,8 @@ final _enabled = Platform.environment.containsKey('RENDER_THEMES');
 
 void main() {
   _faz1Tests();
+  _faz2Tests();
+  _faz3Tests();
   testWidgets(
     'karaejderha kareleri',
     (tester) async {
@@ -333,6 +341,414 @@ void _faz1Tests() {
     await tester.ensureVisible(section);
     await tester.pumpAndSettle();
     await snap(tester, shot, 'kaplarim');
+  }, skip: !_enabled);
+}
+
+// ---- Faz 2 - Akıllı hatırlatma (390x844, 2x) -----------------------------
+
+const _faz2Dir =
+    r'C:\Users\PC\Documents\Obsidian Vault\HydroSen\02-Design\faz2';
+
+void _faz2Tests() {
+  Future<GlobalKey> setUpApp(
+    WidgetTester tester,
+    String themeId, {
+    Map<String, String> names = const {},
+    List<WaterEntry> entries = const [],
+  }) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(() async {
+      await _loadFazFonts();
+      await IllustratedArtwork.load();
+      await FxSprites.load();
+    });
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(() {
+      tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+      tester.view.reset();
+    });
+    Directory(_faz2Dir).createSync(recursive: true);
+    final shot = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: shot,
+        child: HydroSenApp(
+          repository: InMemoryWaterRepository(entries),
+          settingsRepository: InMemorySettingsRepository(
+            AppSettings(theme: ThermosTheme.byId(themeId), bottleNames: names),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return shot;
+  }
+
+  Future<void> snap(WidgetTester tester, GlobalKey shot, String name) async {
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      final boundary =
+          shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 2);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      File('$_faz2Dir\\$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+    });
+  }
+
+  testWidgets('faz2: hatırlatıcı ekranı', (tester) async {
+    final shot = await setUpApp(
+      tester,
+      'kopek',
+      names: {'kopek': 'Pamuk'},
+      entries: [
+        WaterEntry(
+          id: 1,
+          amountMl: 200,
+          time: DateTime.now().subtract(const Duration(minutes: 10)),
+        ),
+      ],
+    );
+    await tester.tap(find.text('Hatırlatıcı'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Switch).first);
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'hatirlatici_ekrani');
+    await tester.drag(find.byType(ListView).first, const Offset(0, -1200));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'hatirlatici_ekrani_alt');
+    // Zamanlayıcıyı kapat.
+    await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Switch).first);
+    await tester.pumpAndSettle();
+  }, skip: !_enabled);
+
+  testWidgets('faz2: uygulama içi temalı hatırlatma', (tester) async {
+    final shot = await setUpApp(tester, 'kopek', names: {'kopek': 'Pamuk'});
+    final theme = ThermosTheme.byId('kopek');
+    showReminderBanner(
+      tester.element(find.byType(Scaffold).first),
+      ReminderMessage(
+        title: 'HydroSen',
+        body: ReminderMessages.pick(themeId: 'kopek', name: 'Pamuk'),
+        themeId: 'kopek',
+      ),
+      theme,
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    await snap(tester, shot, 'hatirlatma_banner_kopek');
+  }, skip: !_enabled);
+
+  testWidgets('faz2: Profil matara adı', (tester) async {
+    final shot = await setUpApp(tester, 'kedi');
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'profil_matara_adi');
+    await tester.enterText(
+      find.byKey(const ValueKey('bottle-name-field')),
+      'Pamuk',
+    );
+    await tester.tap(find.byKey(const ValueKey('bottle-name-save')));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'profil_matara_adi_kayitli');
+    await tester.enterText(
+      find.byKey(const ValueKey('bottle-name-field')),
+      's1kt1r',
+    );
+    await tester.tap(find.byKey(const ValueKey('bottle-name-save')));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'profil_matara_adi_hata');
+  }, skip: !_enabled);
+}
+
+// ---- Faz 3 - Seri ve rozetler (390x844, 2x) -------------------------------
+
+const _faz3Dir =
+    r'C:\Users\PC\Documents\Obsidian Vault\HydroSen\02-Design\faz3';
+
+void _faz3Tests() {
+  final today = DateTime.now();
+  final d0 = DateTime(today.year, today.month, today.day);
+  DateTime ago(int n) => DateTime(d0.year, d0.month, d0.day - n);
+
+  /// [goalDays] kadar hedef günü + bugüne kadar uzanan hazır seri verisi.
+  StreakData seed({
+    required int streakDays,
+    required Set<String> earned,
+    required Set<String> celebrated,
+    int best = 0,
+  }) {
+    // Dün biten ardışık günler.
+    final goal = {for (var i = 1; i <= streakDays; i++) ago(i)};
+    return StreakData(
+      start: ago(streakDays),
+      through: ago(1),
+      goalDays: goal,
+      throughGoalMl: 2000,
+      lastGoalMl: 2000,
+      best: best > streakDays ? best : streakDays,
+      badges: {for (final id in earned) id: ago(streakDays - 2)},
+      celebrated: celebrated,
+    );
+  }
+
+  Future<GlobalKey> setUpApp(
+    WidgetTester tester,
+    String themeId, {
+    required List<WaterEntry> entries,
+    required StreakRepository streak,
+    bool settle = true,
+  }) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(() async {
+      await _loadFazFonts();
+      await IllustratedArtwork.load();
+      await FxSprites.load();
+    });
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(() {
+      tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+      tester.view.reset();
+    });
+    Directory(_faz3Dir).createSync(recursive: true);
+    final shot = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: shot,
+        child: HydroSenApp(
+          repository: InMemoryWaterRepository(entries),
+          settingsRepository: InMemorySettingsRepository(
+            AppSettings(
+              theme: ThermosTheme.byId(themeId),
+              animatedCelebrations: false,
+            ),
+          ),
+          streakRepository: streak,
+        ),
+      ),
+    );
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    return shot;
+  }
+
+  /// [settle] false: animasyon sürerken (ör. popup) olduğu gibi çek.
+  Future<void> snap(
+    WidgetTester tester,
+    GlobalKey shot,
+    String name, {
+    bool settle = true,
+  }) async {
+    if (settle) await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      final boundary =
+          shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 2);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      File('$_faz3Dir\\$name.png').writeAsBytesSync(data!.buffer.asUint8List());
+    });
+  }
+
+  List<WaterEntry> entriesFor(Iterable<int> daysAgo, {int ml = 2000}) => [
+    for (final n in daysAgo)
+      WaterEntry(id: 100 + n, amountMl: ml, time: ago(n).add(
+        const Duration(hours: 12),
+      )),
+  ];
+
+  const allCelebrated = {
+    Badges.firstEntryId,
+    Badges.firstGoalId,
+    's3',
+    's7',
+    's15',
+    's30',
+  };
+
+  testWidgets('faz3: ana ekran seri satırı (açık sahne)', (tester) async {
+    final shot = await setUpApp(
+      tester,
+      'kedi',
+      entries: [
+        ...entriesFor([for (var n = 1; n <= 15; n++) n]),
+        WaterEntry(
+          id: 1,
+          amountMl: 1200,
+          time: DateTime.now().subtract(const Duration(minutes: 5)),
+        ),
+      ],
+      streak: InMemoryStreakRepository(
+        seed(
+          streakDays: 15,
+          earned: {Badges.firstEntryId, Badges.firstGoalId, 's3', 's7', 's15'},
+          celebrated: allCelebrated,
+        ),
+      ),
+    );
+    // ignore: avoid_print
+    print(
+      'bottomLuma kedi=${IllustratedArtwork.bottomLuma['kedi']} '
+      'karaejderha=${IllustratedArtwork.bottomLuma['karaejderha']}',
+    );
+    await snap(tester, shot, 'ana_ekran_seri_acik');
+  }, skip: !_enabled);
+
+  testWidgets('faz3: ana ekran seri satırı (koyu sahne)', (tester) async {
+    final shot = await setUpApp(
+      tester,
+      'karaejderha',
+      settle: false,
+      entries: [
+        ...entriesFor([for (var n = 1; n <= 11; n++) n]),
+        WaterEntry(
+          id: 1,
+          amountMl: 2000,
+          time: DateTime.now().subtract(const Duration(minutes: 5)),
+        ),
+      ],
+      streak: InMemoryStreakRepository(
+        seed(
+          streakDays: 11,
+          earned: {Badges.firstEntryId, Badges.firstGoalId, 's3', 's7'},
+          celebrated: allCelebrated,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 8));
+    await snap(tester, shot, 'ana_ekran_seri_koyu', settle: false);
+  }, skip: !_enabled);
+
+  testWidgets('faz3: Rozetlerim', (tester) async {
+    final shot = await setUpApp(
+      tester,
+      'panda',
+      entries: entriesFor([for (var n = 1; n <= 8; n++) n]),
+      streak: InMemoryStreakRepository(
+        seed(
+          streakDays: 8,
+          best: 41,
+          earned: {
+            Badges.firstEntryId,
+            Badges.firstGoalId,
+            's3',
+            's7',
+            's15',
+            's30',
+          },
+          celebrated: allCelebrated,
+        ),
+      ),
+    );
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+    final section = find.byKey(const ValueKey('badges-section'));
+    await tester.dragUntilVisible(
+      section,
+      find.byType(ListView).first,
+      const Offset(0, -150),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'rozetlerim_alt');
+    await tester.drag(find.byType(ListView).first, const Offset(0, 330));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'rozetlerim_ust');
+  }, skip: !_enabled);
+
+  testWidgets('faz3: tüm rozetler kazanılmış', (tester) async {
+    final shot = await setUpApp(
+      tester,
+      'kopek',
+      entries: entriesFor([for (var n = 1; n <= 8; n++) n]),
+      streak: InMemoryStreakRepository(
+        seed(
+          streakDays: 8,
+          best: 400,
+          earned: {for (final b in Badges.all) b.id},
+          celebrated: {for (final b in Badges.all) b.id},
+        ),
+      ),
+    );
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -3000));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'rozetlerim_hepsi');
+  }, skip: !_enabled);
+
+  testWidgets('faz3: yeni rozet kutlaması', (tester) async {
+    final shot = await setUpApp(
+      tester,
+      'tilki',
+      settle: false,
+      entries: [
+        ...entriesFor([for (var n = 1; n <= 6; n++) n]),
+        WaterEntry(
+          id: 1,
+          amountMl: 2000,
+          time: DateTime.now().subtract(const Duration(minutes: 5)),
+        ),
+      ],
+      streak: InMemoryStreakRepository(
+        seed(
+          streakDays: 6,
+          earned: {Badges.firstEntryId, Badges.firstGoalId, 's3', 's7'},
+          celebrated: {Badges.firstEntryId, Badges.firstGoalId, 's3'},
+        ),
+      ),
+    );
+    // Kutlama gecikmesi (2.4 sn) + birkaç yüz ms: madalyon yeni belirmiş.
+    await tester.pump(const Duration(milliseconds: 2400 + 650));
+    await snap(tester, shot, 'yeni_rozet_belirme', settle: false);
+    await tester.pump(const Duration(milliseconds: 900));
+    await snap(tester, shot, 'yeni_rozet_konfeti', settle: false);
+    await tester.pump(const Duration(seconds: 6));
+  }, skip: !_enabled);
+
+  testWidgets('faz3: Kayıtlar korundu günü', (tester) async {
+    // Geçmişten kurulur: 21, 8 ve 1 gün önce kaçırılmış (hak ile korunur).
+    final missed = {21, 8, 1};
+    final entries = [
+      ...entriesFor([
+        for (var n = 28; n >= 1; n--)
+          if (!missed.contains(n)) n,
+      ]),
+      ...entriesFor(missed, ml: 900),
+    ];
+    final shot = await setUpApp(
+      tester,
+      'kedi',
+      entries: entries,
+      streak: InMemoryStreakRepository(),
+    );
+    await tester.tap(find.text('Kayıtlar'));
+    await tester.pumpAndSettle();
+    final yesterday = find.byKey(ValueKey('protected-${ago(1).day}'));
+    // ignore: avoid_print
+    print('korundu gun bulundu: ${yesterday.evaluate().length}');
+    await tester.tap(yesterday);
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'kayitlar_haftalik_korundu');
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'kayitlar_haftalik_korundu_detay');
+    await tester.drag(find.byType(ListView).first, const Offset(0, 600));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Aylık'));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'kayitlar_aylik_korundu');
   }, skip: !_enabled);
 }
 

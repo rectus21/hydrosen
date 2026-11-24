@@ -95,7 +95,9 @@ class ResinColors {
     Color clamp(Color c, double lMin, double lMax, double sMin, double sMax) {
       final h = HSLColor.fromColor(c);
       return h
-          .withLightness((h.lightness.clamp(lMin, lMax) + nudge).clamp(0.0, 1.0))
+          .withLightness(
+            (h.lightness.clamp(lMin, lMax) + nudge).clamp(0.0, 1.0),
+          )
           .withSaturation(h.saturation.clamp(sMin, sMax))
           .toColor();
     }
@@ -158,8 +160,7 @@ class ResinColors {
     final theme = Theme.of(context);
     final backdropExt = theme.extension<BackdropColors>();
     final ThermosTheme? t = backdropExt?.scene;
-    final backdrop =
-        backdropExt?.top ?? theme.colorScheme.surface;
+    final backdrop = backdropExt?.top ?? theme.colorScheme.surface;
     final scheme = theme.colorScheme;
     return derive(
       tone: tone,
@@ -249,9 +250,7 @@ class _ResinButtonState extends State<ResinButton> {
               alignment: Alignment.center,
               children: [
                 Positioned.fill(
-                  child: CustomPaint(
-                    painter: _ResinPainter(c, r, glassy),
-                  ),
+                  child: CustomPaint(painter: _ResinPainter(c, r, glassy)),
                 ),
                 // Üstte yumuşak parlama.
                 Positioned(
@@ -282,10 +281,11 @@ class _ResinButtonState extends State<ResinButton> {
                     color: c.text,
                     shadows: [
                       Shadow(
-                        color: (c.text.computeLuminance() > 0.5
-                                ? Colors.black
-                                : Colors.white)
-                            .withValues(alpha: 0.28),
+                        color:
+                            (c.text.computeLuminance() > 0.5
+                                    ? Colors.black
+                                    : Colors.white)
+                                .withValues(alpha: 0.28),
                         blurRadius: 2,
                         offset: const Offset(0, 1),
                       ),

@@ -20,6 +20,7 @@ class CelebrationOverlay extends StatefulWidget {
     this.looping = false,
     this.loopProgress,
     this.animated = false,
+    this.bannerText = message,
   });
 
   /// Hedef aşılmış durumda mı: true oldukça giriş bittikten sonra (ya da
@@ -37,17 +38,22 @@ class CelebrationOverlay extends StatefulWidget {
   final int trigger;
   final ThermosTheme theme;
   final ThermosShape shape;
+
   /// Verilmezse temaya göre (Okyanus 4 sn, diğerleri 2,6 sn).
   final Duration? duration;
 
-  static Duration durationFor(ThermosTheme theme) =>
-      Duration(milliseconds: theme.id == 'okyanus' || theme.id == 'limon' ? 4000 : 2600);
+  static Duration durationFor(ThermosTheme theme) => Duration(
+    milliseconds: theme.id == 'okyanus' || theme.id == 'limon' ? 4000 : 2600,
+  );
 
   /// Verilirse kutlama süresince t (0..1), bitince null yazılır; ThermosView'ın
   /// celebrationT'si ile paylaşılarak kapak hareketi senkronlanır.
   final ValueNotifier<double?>? progress;
 
   static const message = 'Tebrikler! Günlük hedefe ulaştın.';
+
+  /// Gösterilen tebrik yazısı (karaktere ad verildiyse adı içerir).
+  final String bannerText;
 
   @override
   State<CelebrationOverlay> createState() => _CelebrationOverlayState();
@@ -208,7 +214,10 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                   opacity: reduceMotion ? 1 : _bannerOpacity(t),
                   child: Transform.scale(
                     scale: reduceMotion ? 1 : _bannerScale(t),
-                    child: _Banner(theme: widget.theme),
+                    child: _Banner(
+                      theme: widget.theme,
+                      text: widget.bannerText,
+                    ),
                   ),
                 ),
               ),
@@ -230,7 +239,9 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
 }
 
 class _Banner extends StatelessWidget {
-  const _Banner({required this.theme});
+  const _Banner({required this.theme, required this.text});
+
+  final String text;
 
   final ThermosTheme theme;
 
@@ -253,7 +264,7 @@ class _Banner extends StatelessWidget {
           boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 8)],
         ),
         child: Text(
-          CelebrationOverlay.message,
+          text,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleSmall
               ?.copyWith(color: ink, fontWeight: FontWeight.w700),

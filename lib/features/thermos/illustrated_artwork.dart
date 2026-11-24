@@ -49,7 +49,8 @@ class IllustratedArtwork {
     if (data == null) return 0.5;
     var sum = 0.0;
     for (var i = 0; i < w * h; i++) {
-      sum += 0.2126 * data.getUint8(i * 4) +
+      sum +=
+          0.2126 * data.getUint8(i * 4) +
           0.7152 * data.getUint8(i * 4 + 1) +
           0.0722 * data.getUint8(i * 4 + 2);
     }

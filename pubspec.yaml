@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.6
   google_fonts: ^9.0.0
+  # Tarayıcı bildirimi (Notification API); yalnız web kanalında kullanılır.
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +67,7 @@ flutter:
     - assets/caps/
     - assets/scenes/
     - assets/fx/
+    - assets/badges/
     - google_fonts/
     - google_fonts/LICENSES/
 

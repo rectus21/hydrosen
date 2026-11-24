@@ -85,45 +85,101 @@ void _spr(
 }
 
 /// Limonata: yüzeyde köpük, iki buz, yükselen kabarcıklar.
-void _lemonade(Canvas cv, CelebrationContext c, double w, double k,
-    double phase, {bool still = false}) {
+void _lemonade(
+  Canvas cv,
+  CelebrationContext c,
+  double w,
+  double k,
+  double phase, {
+  bool still = false,
+}) {
   if (k <= 0.02) return;
   final gl = c.glass;
   final wy = c.waterY;
   final cx = gl.center.dx;
   // Kabarcıklar (suyun içinde).
   for (var i = 0; i < 7; i++) {
-    final u = still ? 0.15 + 0.13 * i : _fract(phase + i / 7 + 0.07 * c.rand(i, 1));
-    final x = gl.left + 16 + (gl.width - 32) * c.rand(i, 2) +
+    final u = still
+        ? 0.15 + 0.13 * i
+        : _fract(phase + i / 7 + 0.07 * c.rand(i, 1));
+    final x =
+        gl.left +
+        16 +
+        (gl.width - 32) * c.rand(i, 2) +
         4 * math.sin(u * _tau * 2 + i);
     final y = _lerp(gl.bottom - 36, wy + 8, u);
-    _spr(cv, c, 'limon_bubble', Offset(x, y), (0.07 + 0.05 * c.rand(i, 3)) * w,
-        op: k * (still ? 0.9 : _hump(u) * 0.95));
+    _spr(
+      cv,
+      c,
+      'limon_bubble',
+      Offset(x, y),
+      (0.07 + 0.05 * c.rand(i, 3)) * w,
+      op: k * (still ? 0.9 : _hump(u) * 0.95),
+    );
   }
   // Buzlar.
   final bob = still ? 0.0 : math.sin(phase * _tau);
-  _spr(cv, c, 'limon_ice', Offset(cx - 0.17 * w, wy + 20 + 3 * bob), 0.2 * w,
-      rot: -0.25 + 0.12 * bob, op: k);
-  _spr(cv, c, 'limon_ice', Offset(cx + 0.19 * w, wy + 30 - 3 * bob), 0.17 * w,
-      rot: 0.3 - 0.12 * bob, op: k);
+  _spr(
+    cv,
+    c,
+    'limon_ice',
+    Offset(cx - 0.17 * w, wy + 20 + 3 * bob),
+    0.2 * w,
+    rot: -0.25 + 0.12 * bob,
+    op: k,
+  );
+  _spr(
+    cv,
+    c,
+    'limon_ice',
+    Offset(cx + 0.19 * w, wy + 30 - 3 * bob),
+    0.17 * w,
+    rot: 0.3 - 0.12 * bob,
+    op: k,
+  );
   // Köpük kümeleri yüzeyde.
   for (var i = 0; i < 3; i++) {
     final x = cx + (i - 1) * 0.24 * w;
     final bobY = still ? 0.0 : 2 * math.sin(phase * _tau + i * 2);
-    _spr(cv, c, 'limon_foam', Offset(x, wy + 12 + bobY),
-        (0.3 - 0.04 * (i % 2)) * w * _back(k),
-        at: Alignment.bottomCenter, op: k);
+    _spr(
+      cv,
+      c,
+      'limon_foam',
+      Offset(x, wy + 12 + bobY),
+      (0.3 - 0.04 * (i % 2)) * w * _back(k),
+      at: Alignment.bottomCenter,
+      op: k,
+    );
   }
 }
 
-void _slice(Canvas cv, CelebrationContext c, Offset p, double size, double rot,
-    double op) {
-  _spr(cv, c, 'limon_slice', Offset(p.dx.clamp(_minX + size / 2, _maxX - size / 2), p.dy),
-      size, rot: rot, op: op);
+void _slice(
+  Canvas cv,
+  CelebrationContext c,
+  Offset p,
+  double size,
+  double rot,
+  double op,
+) {
+  _spr(
+    cv,
+    c,
+    'limon_slice',
+    Offset(p.dx.clamp(_minX + size / 2, _maxX - size / 2), p.dy),
+    size,
+    rot: rot,
+    op: op,
+  );
 }
 
-void _rotor(Canvas cv, CelebrationContext c, Offset p, double w, double angle,
-    double op) {
+void _rotor(
+  Canvas cv,
+  CelebrationContext c,
+  Offset p,
+  double w,
+  double angle,
+  double op,
+) {
   final img = FxSprites.get('limon_umbrella_top');
   if (img == null || op <= 0.01) return;
   final o = (op * c.alpha).clamp(0.0, 1.0);
@@ -176,8 +232,16 @@ void limonCelebration(Canvas cv, CelebrationContext c) {
     final uw = 0.42 * cw;
     final pos = Offset.lerp(side, top, m)!;
     final rot = _lerp(0.5 + c.pose.rotation, c.pose.rotation, m);
-    _spr(cv, c, 'limon_umbrella_side', pos, uw,
-        rot: rot, op: 1 - m, at: const Alignment(0, 0.94));
+    _spr(
+      cv,
+      c,
+      'limon_umbrella_side',
+      pos,
+      uw,
+      rot: rot,
+      op: 1 - m,
+      at: const Alignment(0, 0.94),
+    );
     if (m > 0.02) {
       final hover = Offset(top.dx, top.dy + 0.02 * cw * m);
       _rotor(cv, c, hover, 0.85 * cw, t * _tau * 22, m);
@@ -189,11 +253,20 @@ void limonCelebration(Canvas cv, CelebrationContext c) {
     final s = 0.38 + 0.3 * c.rand(i, 1);
     final k = _sp(t, s, s + 0.2);
     if (k <= 0 || k >= 1) continue;
-    final x = 195 + (_maxX - 195 - 40) * c.rand(i, 2) + 12 * math.sin(k * _tau * 2 + i);
+    final x =
+        195 +
+        (_maxX - 195 - 40) * c.rand(i, 2) +
+        12 * math.sin(k * _tau * 2 + i);
     final y = _lerp(90, 462, k * (0.6 + 0.4 * k));
     final op = math.min(1.0, k * 8) * math.min(1.0, (1 - k) * 6);
-    _slice(cv, c, Offset(x, y), (0.17 + 0.07 * c.rand(i, 3)) * w,
-        k * _tau * (1.5 + c.rand(i, 4)) + i, op);
+    _slice(
+      cv,
+      c,
+      Offset(x, y),
+      (0.17 + 0.07 * c.rand(i, 3)) * w,
+      k * _tau * (1.5 + c.rand(i, 4)) + i,
+      op,
+    );
   }
 }
 
@@ -205,7 +278,13 @@ void limonLoop(Canvas cv, CelebrationContext c) {
     final k = _fract(l + j * 0.5);
     final x = (j == 0 ? 214.0 : 468.0) + 12 * math.sin(k * _tau);
     final y = _lerp(92, 462, k);
-    _slice(cv, c, Offset(x, y), (0.18 + 0.03 * j) * w, k * _tau + j * 2,
-        _hump(k) * 0.95);
+    _slice(
+      cv,
+      c,
+      Offset(x, y),
+      (0.18 + 0.03 * j) * w,
+      k * _tau + j * 2,
+      _hump(k) * 0.95,
+    );
   }
 }

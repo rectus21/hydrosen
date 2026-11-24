@@ -125,7 +125,11 @@ void _ball(
       for (var i = 0; i < 5; i++) {
         final a = -math.pi / 2 + i * _tau / 5;
         final d = Offset(math.cos(a), math.sin(a));
-        cv.drawLine(d * (r * 0.4), d * (r * 0.72), _line(c, 0x2C2C2A, r * 0.08, op));
+        cv.drawLine(
+          d * (r * 0.4),
+          d * (r * 0.72),
+          _line(c, 0x2C2C2A, r * 0.08, op),
+        );
         final a2 = a + _tau / 10;
         cv.drawCircle(
           Offset(math.cos(a2), math.sin(a2)) * (r * 1.0),
@@ -138,14 +142,22 @@ void _ball(
       cv.drawLine(Offset(-r, 0), Offset(r, 0), s);
       cv.drawLine(Offset(0, -r), Offset(0, r), s);
       cv.drawArc(
-        Rect.fromCenter(center: Offset(-r * 1.15, 0), width: r * 1.6, height: r * 2.4),
+        Rect.fromCenter(
+          center: Offset(-r * 1.15, 0),
+          width: r * 1.6,
+          height: r * 2.4,
+        ),
         -1.1,
         2.2,
         false,
         s,
       );
       cv.drawArc(
-        Rect.fromCenter(center: Offset(r * 1.15, 0), width: r * 1.6, height: r * 2.4),
+        Rect.fromCenter(
+          center: Offset(r * 1.15, 0),
+          width: r * 1.6,
+          height: r * 2.4,
+        ),
         math.pi - 1.1,
         2.2,
         false,
@@ -242,18 +254,21 @@ void _bubble(
   cv.drawRRect(body, _line(c, ink, 3));
   cv.drawPath(tail, _line(c, ink, 3));
   // Kuyruğun gövdeyle birleşen çizgisini sil.
-  cv.drawLine(
-    Offset(-6, h / 2),
-    Offset(6, h / 2),
-    _line(c, fillHex, 4),
-  );
+  cv.drawLine(Offset(-6, h / 2), Offset(6, h / 2), _line(c, fillHex, 4));
   tp.paint(cv, Offset(-tp.width / 2, -tp.height / 2));
   cv.restore();
 }
 
 /// Işın patlaması (vuruş/smaç anı).
-void _burst(Canvas cv, CelebrationContext c, Offset at, double k, int a, int b,
-    double size) {
+void _burst(
+  Canvas cv,
+  CelebrationContext c,
+  Offset at,
+  double k,
+  int a,
+  int b,
+  double size,
+) {
   if (k <= 0 || k >= 1) return;
   final e = _eo(k);
   for (var i = 0; i < 12; i++) {
@@ -265,11 +280,21 @@ void _burst(Canvas cv, CelebrationContext c, Offset at, double k, int a, int b,
       _line(c, i.isEven ? a : b, 4, 1 - k),
     );
   }
-  cv.drawCircle(at, size * 0.6 * e, _line(c, 0xFFFFFF, 4 * (1 - k), 0.9 * (1 - k)));
+  cv.drawCircle(
+    at,
+    size * 0.6 * e,
+    _line(c, 0xFFFFFF, 4 * (1 - k), 0.9 * (1 - k)),
+  );
 }
 
-void _glint(Canvas cv, CelebrationContext c, Offset p, double r, int hex,
-    double op) {
+void _glint(
+  Canvas cv,
+  CelebrationContext c,
+  Offset p,
+  double r,
+  int hex,
+  double op,
+) {
   if (op <= 0.03 || r <= 0.5) return;
   final q = r * 0.16;
   final path = Path()
@@ -318,8 +343,15 @@ CapPose _elmaPose(CelebrationContext c) {
 
 CapPose _elmaLoopPose(CelebrationContext c) => _loopBounce(c, 2, 9, 0.03);
 
-void _leaf(Canvas cv, CelebrationContext c, Offset p, double s, double rot,
-    int hex, double op) {
+void _leaf(
+  Canvas cv,
+  CelebrationContext c,
+  Offset p,
+  double s,
+  double rot,
+  int hex,
+  double op,
+) {
   if (op <= 0.02) return;
   cv.save();
   cv.translate(p.dx, p.dy);
@@ -329,7 +361,11 @@ void _leaf(Canvas cv, CelebrationContext c, Offset p, double s, double rot,
     ..quadraticBezierTo(0, -s * 0.8, s, 0)
     ..quadraticBezierTo(0, s * 0.8, -s, 0);
   cv.drawPath(path, _fill(c, hex, op));
-  cv.drawLine(Offset(-s, 0), Offset(s * 0.7, 0), _line(c, 0x2F6B1F, 1.8, 0.7 * op));
+  cv.drawLine(
+    Offset(-s, 0),
+    Offset(s * 0.7, 0),
+    _line(c, 0x2F6B1F, 1.8, 0.7 * op),
+  );
   cv.restore();
 }
 
@@ -350,8 +386,15 @@ void _elma(Canvas cv, CelebrationContext c) {
         ((y - _leafY0) / 24).clamp(0.0, 1.0),
         ((g.ground + 20 - y) / 40).clamp(0.0, 1.0),
       );
-      _leaf(cv, c, Offset(x, y), 12 + 5 * c.rand(i, 3),
-          tau * 2.5 + i + math.sin(tau * 4) * 0.5, _leafColors[i % 4], fade);
+      _leaf(
+        cv,
+        c,
+        Offset(x, y),
+        12 + 5 * c.rand(i, 3),
+        tau * 2.5 + i + math.sin(tau * 4) * 0.5,
+        _leafColors[i % 4],
+        fade,
+      );
     }
   }
   _appleDrop(cv, c, g, el);
@@ -380,8 +423,15 @@ void _appleDrop(Canvas cv, CelebrationContext c, _G g, double el) {
     }
     final roll = _eo((tau - fall) / 1.3) * 18 * d[2];
     final op = (tau / 0.12).clamp(0.0, 1.0);
-    _ball(cv, c, _Ball.apple, Offset(d[0] + roll, y), r,
-        rot: roll / r + (tau < fall ? tau * 4 * d[2] : 0), op: op);
+    _ball(
+      cv,
+      c,
+      _Ball.apple,
+      Offset(d[0] + roll, y),
+      r,
+      rot: roll / r + (tau < fall ? tau * 4 * d[2] : 0),
+      op: op,
+    );
   }
 }
 
@@ -392,16 +442,28 @@ void _elmaLoop(Canvas cv, CelebrationContext c) {
     final k = _fract(l + i / 10);
     final y = _leafY0 + k * (g.ground - _leafY0);
     final x = 190 + (i * 97 % 300) + 16 * math.sin(k * _tau * 2 + i);
-    _leaf(cv, c, Offset(x, y), 12 + (i % 3) * 2,
-        k * _tau * 1.5 + i + 0.5 * math.sin(k * _tau * 3),
-        _leafColors[i % 4], _hump(k) * 0.95);
+    _leaf(
+      cv,
+      c,
+      Offset(x, y),
+      12 + (i % 3) * 2,
+      k * _tau * 1.5 + i + 0.5 * math.sin(k * _tau * 3),
+      _leafColors[i % 4],
+      _hump(k) * 0.95,
+    );
   }
   final r = g.r * 0.8;
   final wob = math.sin(l * _tau) * 0.06;
   for (var i = 0; i < _elmaDrop.length; i++) {
     final d = _elmaDrop[i];
-    _ball(cv, c, _Ball.apple, Offset(d[0] + 18 * d[2], 470 - r), r,
-        rot: wob * d[2] * (i.isEven ? 1 : -1));
+    _ball(
+      cv,
+      c,
+      _Ball.apple,
+      Offset(d[0] + 18 * d[2], 470 - r),
+      r,
+      rot: wob * d[2] * (i.isEven ? 1 : -1),
+    );
   }
 }
 
@@ -410,7 +472,11 @@ void _elmaLoop(Canvas cv, CelebrationContext c) {
 CapPose _futbolPose(CelebrationContext c) {
   final a = _hump(_sp(c.t, 0.3, 0.46));
   final b = _hump(_sp(c.t, 0.44, 0.6));
-  return CapPose(dy: -10 * a - 6 * b, rotation: 0.06 * (a - b), scale: 1 - 0.03 * a);
+  return CapPose(
+    dy: -10 * a - 6 * b,
+    rotation: 0.06 * (a - b),
+    scale: 1 - 0.03 * a,
+  );
 }
 
 CapPose _futbolLoopPose(CelebrationContext c) => _loopBounce(c, 3, 15, 0.05);
@@ -418,7 +484,10 @@ CapPose _futbolLoopPose(CelebrationContext c) => _loopBounce(c, 3, 15, 0.05);
 void _futbol(Canvas cv, CelebrationContext c) {
   final g = _G(c);
   final t = _ti(c);
-  final hitP = Offset(g.head.dx - g.w * 0.5 - g.r * 0.5, g.head.dy + g.w * 0.05);
+  final hitP = Offset(
+    g.head.dx - g.w * 0.5 - g.r * 0.5,
+    g.head.dy + g.w * 0.05,
+  );
   const restX = 215.0;
   Offset p;
   var rot = 0.0;
@@ -463,8 +532,14 @@ void _futbol(Canvas cv, CelebrationContext c) {
 void _futbolLoop(Canvas cv, CelebrationContext c) {
   final g = _G(c);
   final b = _bounceH(_lp(c) * 3);
-  _ball(cv, c, _Ball.soccer, Offset(215, g.ground - 150 * b), g.r,
-      rot: _lp(c) * _tau * 3);
+  _ball(
+    cv,
+    c,
+    _Ball.soccer,
+    Offset(215, g.ground - 150 * b),
+    g.r,
+    rot: _lp(c) * _tau * 3,
+  );
 }
 
 double _back(double x) => Curves.easeOutBack.transform(x.clamp(0.0, 1.0));
@@ -545,8 +620,14 @@ void _basketLoop(Canvas cv, CelebrationContext c) {
   final g = _G(c);
   final l = _lp(c);
   final b = _bounceH(l * 2);
-  _ball(cv, c, _Ball.basket, Offset(220, g.ground - 140 * b), g.r * 1.05,
-      rot: l * _tau * 2);
+  _ball(
+    cv,
+    c,
+    _Ball.basket,
+    Offset(220, g.ground - 140 * b),
+    g.r * 1.05,
+    rot: l * _tau * 2,
+  );
 }
 
 // =============================================================== VOLEYBOL ===
@@ -605,8 +686,15 @@ void _voley(Canvas cv, CelebrationContext c) {
       }
     }
   }
-  _burst(cv, c, Offset(landX, g.ground), _sp(t, 0.46, 0.64), 0xF7C93A,
-      0x3DB3E8, g.r * 2.4);
+  _burst(
+    cv,
+    c,
+    Offset(landX, g.ground),
+    _sp(t, 0.46, 0.64),
+    0xF7C93A,
+    0x3DB3E8,
+    g.r * 2.4,
+  );
   _ball(cv, c, _Ball.volley, p, g.r, rot: rot);
   _bubble(
     cv,
@@ -634,8 +722,14 @@ void _voleyLoop(Canvas cv, CelebrationContext c) {
     final tw = 0.5 + 0.5 * math.sin(l * _tau + i * 1.7);
     final x = (g.head.dx + s[0] * g.w).clamp(_minX + 10, _maxX - 10);
     final y = math.max(_minY + 14, g.head.dy + s[1] * g.w);
-    _glint(cv, c, Offset(x, y), 9 + 6 * s[2] * tw,
-        i.isEven ? 0xF7C93A : 0xFFFFFF, 0.35 + 0.65 * tw);
+    _glint(
+      cv,
+      c,
+      Offset(x, y),
+      9 + 6 * s[2] * tw,
+      i.isEven ? 0xF7C93A : 0xFFFFFF,
+      0.35 + 0.65 * tw,
+    );
   }
 }
 
@@ -660,13 +754,17 @@ CapPose _karaLoopPose(CelebrationContext c) {
   return CapPose(scale: 1 + 0.025 * b, dy: -2 * b);
 }
 
-Offset _clampP(Offset p, [double m = 6]) => Offset(
-  p.dx.clamp(_minX + m, _maxX - m),
-  math.max(_minY + m, p.dy),
-);
+Offset _clampP(Offset p, [double m = 6]) =>
+    Offset(p.dx.clamp(_minX + m, _maxX - m), math.max(_minY + m, p.dy));
 
-void _glow(Canvas cv, CelebrationContext c, Offset p, double r, int hex,
-    double op) {
+void _glow(
+  Canvas cv,
+  CelebrationContext c,
+  Offset p,
+  double r,
+  int hex,
+  double op,
+) {
   if (op <= 0.02 || r <= 1) return;
   final o = (op * c.alpha).clamp(0.0, 1.0);
   cv.drawCircle(
@@ -699,10 +797,7 @@ void _kara(Canvas cv, CelebrationContext c) {
   if (life > 0.02) {
     // Sıcak ekran tonu (yanıp söner).
     final flick = c.reduceMotion ? 0.8 : 0.75 + 0.25 * math.sin(el * 38);
-    cv.drawRect(
-      designRectBig,
-      _fill(c, 0xF07A2A, 0.2 * life * flick),
-    );
+    cv.drawRect(designRectBig, _fill(c, 0xF07A2A, 0.2 * life * flick));
     _flameJet(cv, c, mouth, theta, 270 * life, el, 1.0);
   }
 
@@ -717,8 +812,11 @@ void _kara(Canvas cv, CelebrationContext c) {
       final d = k * 280 * life;
       final lat = (c.rand(i, 2) - 0.5) * (16 + d * 0.7);
       final p = _clampP(mouth + dir * d + perp * lat, 4);
-      cv.drawCircle(p, (2.5 + 3 * c.rand(i, 3)) * (1 - 0.5 * k),
-          _fill(c, i % 3 == 0 ? 0xFFF3B0 : 0xFFC145, (1 - k) * 0.95));
+      cv.drawCircle(
+        p,
+        (2.5 + 3 * c.rand(i, 3)) * (1 - 0.5 * k),
+        _fill(c, i % 3 == 0 ? 0xFFF3B0 : 0xFFC145, (1 - k) * 0.95),
+      );
     }
   }
 
@@ -738,8 +836,15 @@ void _kara(Canvas cv, CelebrationContext c) {
 const designRectBig = Rect.fromLTRB(-200, -200, 900, 900);
 
 /// Katmanlı alev konisi: koyu kırmızı kenar, turuncu, sarı, beyaz-sarı çekirdek.
-void _flameJet(Canvas cv, CelebrationContext c, Offset m, double th,
-    double len, double time, double k) {
+void _flameJet(
+  Canvas cv,
+  CelebrationContext c,
+  Offset m,
+  double th,
+  double len,
+  double time,
+  double k,
+) {
   if (len < 6) return;
   // Ağız ışıması.
   _glow(cv, c, m, len * 0.55, 0xF07A2A, 0.55);
@@ -753,13 +858,33 @@ void _flameJet(Canvas cv, CelebrationContext c, Offset m, double th,
   ];
   for (var li = 0; li < layers.length; li++) {
     final l = layers[li];
-    _flameLayer(cv, c, m, th, len * l[3].toDouble(), l[0].toDouble(), time, l[1].toInt(), l[2].toDouble(),
-        li * 1.7);
+    _flameLayer(
+      cv,
+      c,
+      m,
+      th,
+      len * l[3].toDouble(),
+      l[0].toDouble(),
+      time,
+      l[1].toInt(),
+      l[2].toDouble(),
+      li * 1.7,
+    );
   }
 }
 
-void _flameLayer(Canvas cv, CelebrationContext c, Offset m, double th,
-    double len, double widthK, double time, int hex, double op, double seed) {
+void _flameLayer(
+  Canvas cv,
+  CelebrationContext c,
+  Offset m,
+  double th,
+  double len,
+  double widthK,
+  double time,
+  int hex,
+  double op,
+  double seed,
+) {
   final dir = Offset(math.cos(th), math.sin(th));
   final perp = Offset(-dir.dy, dir.dx);
   const n = 30;
@@ -770,7 +895,8 @@ void _flameLayer(Canvas cv, CelebrationContext c, Offset m, double th,
     final d = f * len;
     final taper = 1 - f * f * f * f;
     final hw = (12 + d * 0.38) * widthK * taper;
-    final nz = math.sin(f * 13 - time * 26 + seed) * 0.22 +
+    final nz =
+        math.sin(f * 13 - time * 26 + seed) * 0.22 +
         math.sin(f * 29 - time * 41 + seed * 2) * 0.14;
     final wave = math.sin(f * 5 - time * 9 + seed) * len * 0.03 * f;
     final base = m + dir * d + perp * wave;
@@ -790,11 +916,19 @@ void _flameLayer(Canvas cv, CelebrationContext c, Offset m, double th,
 
 /// Arka plandaki yanardağ (sahne sol kenarında): krater ışıması, lav
 /// blokları, duman/kül sütunu, düşen közler. [intro] false ise sakin döngü.
-void _volcano(Canvas cv, CelebrationContext c, double el,
-    {required bool intro, double loop = 0}) {
+void _volcano(
+  Canvas cv,
+  CelebrationContext c,
+  double el, {
+  required bool intro,
+  double loop = 0,
+}) {
   // Kraterin sahne konumu (941x1672 görselde ~ (95, 1000)).
   final raw = c.sceneUv(130 / 941, 618 / 1672) ?? const Offset(190, 300);
-  final cr = Offset(raw.dx.clamp(_minX + 6, _maxX - 40), raw.dy.clamp(_minY + 40, 500.0));
+  final cr = Offset(
+    raw.dx.clamp(_minX + 6, _maxX - 40),
+    raw.dy.clamp(_minY + 40, 500.0),
+  );
   final reduce = c.reduceMotion;
   if (intro) {
     final t = _ti(c);
@@ -807,17 +941,29 @@ void _volcano(Canvas cv, CelebrationContext c, double el,
         final p = cr + Offset(18.0 * i - 8, -46.0 - 22 * (i % 2) - 6 * i);
         _lava(cv, c, _clampP(p, 8), 8 - i * 0.8, 1);
       }
-      cv.drawCircle(_clampP(cr + const Offset(14, -120), 16), 26,
-          _fill(c, 0x3A3338, 0.5));
+      cv.drawCircle(
+        _clampP(cr + const Offset(14, -120), 16),
+        26,
+        _fill(c, 0x3A3338, 0.5),
+      );
       return;
     }
     // Duman ve kül sütunu.
     for (var i = 0; i < 8; i++) {
       final k = (el - 0.45 - i * 0.17) / 1.8;
       if (k <= 0 || k >= 1) continue;
-      final p = cr + Offset(14 + 26 * k + 8 * math.sin(k * 6 + i), -10 - 190 * _eo(k));
-      cv.drawCircle(_clampP(p, 12), 14 + 34 * k,
-          _fill(c, i.isEven ? 0x3A3338 : 0x57505A, 0.62 * math.min(1.0, k * 6) * (1 - k)));
+      final p =
+          cr +
+          Offset(14 + 26 * k + 8 * math.sin(k * 6 + i), -10 - 190 * _eo(k));
+      cv.drawCircle(
+        _clampP(p, 12),
+        14 + 34 * k,
+        _fill(
+          c,
+          i.isEven ? 0x3A3338 : 0x57505A,
+          0.62 * math.min(1.0, k * 6) * (1 - k),
+        ),
+      );
     }
     // Lav blokları.
     for (var i = 0; i < 16; i++) {
@@ -839,8 +985,11 @@ void _volcano(Canvas cv, CelebrationContext c, double el,
       final y = -v0 * tau + 0.5 * 240 * tau * tau;
       final p = cr + Offset(vx * tau, y);
       final op = (1 - tau / 1.5);
-      cv.drawCircle(_clampP(p, 3), 2.4 + 2 * c.rand(i, 8),
-          _fill(c, i.isEven ? 0xFFC145 : 0xF07A2A, op));
+      cv.drawCircle(
+        _clampP(p, 3),
+        2.4 + 2 * c.rand(i, 8),
+        _fill(c, i.isEven ? 0xFFC145 : 0xF07A2A, op),
+      );
     }
   } else {
     final pulse = 0.5 + 0.5 * math.sin(loop * _tau);
@@ -851,19 +1000,28 @@ void _volcano(Canvas cv, CelebrationContext c, double el,
     for (var i = 0; i < 3; i++) {
       final k = _fract(loop + i / 3);
       final p = cr + Offset(12 + 14 * k, -10 - 110 * k);
-      cv.drawCircle(_clampP(p, 10), 10 + 18 * k,
-          _fill(c, 0x57505A, 0.45 * _hump(k)));
+      cv.drawCircle(
+        _clampP(p, 10),
+        10 + 18 * k,
+        _fill(c, 0x57505A, 0.45 * _hump(k)),
+      );
     }
     // Ara sıra küçük lav fışkırması (tur başına 2).
     for (var j = 0; j < 2; j++) {
-      final u = _fract(loop * 2 + j * 0.0) ;
+      final u = _fract(loop * 2 + j * 0.0);
       if (u > 0.55) continue;
       final tau = u / 0.55;
       for (var i = 0; i < 3; i++) {
         final h = 70 + 40 * c.rand(i + j * 3, 11);
         final vx = (0.1 + c.rand(i + j * 3, 12)) * 60;
         final y = -h * 4 * tau * (1 - tau);
-        _lava(cv, c, _clampP(cr + Offset(vx * tau * 1.4, y), 6), 5 + 2.5 * i % 3, 1);
+        _lava(
+          cv,
+          c,
+          _clampP(cr + Offset(vx * tau * 1.4, y), 6),
+          5 + 2.5 * i % 3,
+          1,
+        );
       }
     }
   }
@@ -874,7 +1032,11 @@ void _lava(Canvas cv, CelebrationContext c, Offset p, double r, double op) {
   cv.drawCircle(p, r * 2.2, _fill(c, 0xF07A2A, 0.28 * op));
   cv.drawCircle(p, r, _fill(c, 0xE8531F, op));
   cv.drawCircle(p, r * 0.6, _fill(c, 0xFFC145, op));
-  cv.drawCircle(p + Offset(-r * 0.15, -r * 0.2), r * 0.25, _fill(c, 0xFFF3B0, op));
+  cv.drawCircle(
+    p + Offset(-r * 0.15, -r * 0.2),
+    r * 0.25,
+    _fill(c, 0xFFF3B0, op),
+  );
 }
 
 void _karaLoop(Canvas cv, CelebrationContext c) {
@@ -891,14 +1053,25 @@ void _karaLoop(Canvas cv, CelebrationContext c) {
     final dir = u < 0.5 ? -1.0 : 1.0;
     for (var j = 0; j < 3; j++) {
       final k = _fract(l + j / 3);
-      final p = base + Offset(dir * (6 + 10 * k) + 7 * math.sin(k * _tau * 1.5), -k * g.w * 0.55);
-      cv.drawCircle(_clampP(p, 8), 5 + 13 * k,
-          _fill(c, 0x9A9AA4, 0.5 * _hump(k)));
+      final p =
+          base +
+          Offset(
+            dir * (6 + 10 * k) + 7 * math.sin(k * _tau * 1.5),
+            -k * g.w * 0.55,
+          );
+      cv.drawCircle(
+        _clampP(p, 8),
+        5 + 13 * k,
+        _fill(c, 0x9A9AA4, 0.5 * _hump(k)),
+      );
     }
   }
   for (var i = 0; i < 9; i++) {
     final k = _fract(l + i / 9);
-    final x = g.head.dx + (c.rand(i, 5) - 0.5) * g.w * 1.5 + 8 * math.sin(k * _tau + i);
+    final x =
+        g.head.dx +
+        (c.rand(i, 5) - 0.5) * g.w * 1.5 +
+        8 * math.sin(k * _tau + i);
     final y = g.head.dy + g.w * 0.75 - k * g.w * 0.9;
     final op = _hump(k) * 0.9;
     final q = _clampP(Offset(x, y), 5);
@@ -918,8 +1091,13 @@ CapPose _yarisPose(CelebrationContext c) {
 
 CapPose _yarisLoopPose(CelebrationContext c) => _loopBounce(c, 6, 3.5, 0.01);
 
-void _speedLines(Canvas cv, CelebrationContext c, _G g, double phase,
-    double op) {
+void _speedLines(
+  Canvas cv,
+  CelebrationContext c,
+  _G g,
+  double phase,
+  double op,
+) {
   final top = c.capImagePt(0.5, 0.4).dy;
   final bot = c.capImagePt(0.5, 0.92).dy;
   for (var i = 0; i < 12; i++) {
@@ -932,14 +1110,23 @@ void _speedLines(Canvas cv, CelebrationContext c, _G g, double phase,
     // Çizgiler arabanın gittiği yönün tersine akar (kenara doğru).
     final x0 = side ? _lerp(hi, lo, k) : _lerp(lo, hi, k);
     final x1 = side ? x0 + len : x0 - len;
-    final a = math.min(x0, x1).clamp(lo, hi), b = math.max(x0, x1).clamp(lo, hi);
-    cv.drawLine(Offset(a, math.max(_minY, y)), Offset(b, math.max(_minY, y)),
-        _line(c, i % 3 == 0 ? 0xD8282A : 0xFFFFFF, 3.5, op * _hump(k)));
+    final a = math.min(x0, x1).clamp(lo, hi),
+        b = math.max(x0, x1).clamp(lo, hi);
+    cv.drawLine(
+      Offset(a, math.max(_minY, y)),
+      Offset(b, math.max(_minY, y)),
+      _line(c, i % 3 == 0 ? 0xD8282A : 0xFFFFFF, 3.5, op * _hump(k)),
+    );
   }
 }
 
-void _tyreSmoke(Canvas cv, CelebrationContext c, double secs, double life,
-    double n) {
+void _tyreSmoke(
+  Canvas cv,
+  CelebrationContext c,
+  double secs,
+  double life,
+  double n,
+) {
   for (var s = 0; s < 2; s++) {
     final base = c.capImagePt(s == 0 ? 0.14 : 0.86, 0.94);
     for (var i = 0; i < n; i++) {
@@ -947,19 +1134,32 @@ void _tyreSmoke(Canvas cv, CelebrationContext c, double secs, double life,
       if (k <= 0 || k >= 1) continue;
       final dir = s == 0 ? -1.0 : 1.0;
       final p = base + Offset(dir * (6 + 22 * _eo(k)), -26 * _eo(k) + 6);
-      cv.drawCircle(_clampP(p, 10), 7 + 14 * k,
-          _fill(c, 0xE4E4EA, 0.75 * (1 - k)));
+      cv.drawCircle(
+        _clampP(p, 10),
+        7 + 14 * k,
+        _fill(c, 0xE4E4EA, 0.75 * (1 - k)),
+      );
     }
   }
 }
 
-void _flag(Canvas cv, CelebrationContext c, Offset pole, double top,
-    double pop, double phase) {
+void _flag(
+  Canvas cv,
+  CelebrationContext c,
+  Offset pole,
+  double top,
+  double pop,
+  double phase,
+) {
   if (pop <= 0.02) return;
   const cols = 5, rows = 3;
   const cell = 12.0;
   final base = _lerp(470, top, _eo(pop));
-  cv.drawLine(Offset(pole.dx, 470), Offset(pole.dx, base), _line(c, 0x3A3A40, 5));
+  cv.drawLine(
+    Offset(pole.dx, 470),
+    Offset(pole.dx, base),
+    _line(c, 0x3A3A40, 5),
+  );
   if (pop < 0.6) return;
   final fo = ((pop - 0.6) / 0.4).clamp(0.0, 1.0);
   for (var j = 0; j < cols; j++) {
@@ -967,12 +1167,19 @@ void _flag(Canvas cv, CelebrationContext c, Offset pole, double top,
     for (var r = 0; r < rows; r++) {
       final x = pole.dx - (j + 1) * cell * fo;
       final y = base + r * cell + wy;
-      cv.drawRect(Rect.fromLTWH(x, y, cell * fo + 0.6, cell + 0.6),
-          _fill(c, (j + r).isEven ? 0x2A2A30 : 0xFFFFFF));
+      cv.drawRect(
+        Rect.fromLTWH(x, y, cell * fo + 0.6, cell + 0.6),
+        _fill(c, (j + r).isEven ? 0x2A2A30 : 0xFFFFFF),
+      );
     }
   }
   cv.drawRect(
-    Rect.fromLTWH(pole.dx - cols * cell * fo, base, cols * cell * fo, rows * cell),
+    Rect.fromLTWH(
+      pole.dx - cols * cell * fo,
+      base,
+      cols * cell * fo,
+      rows * cell,
+    ),
     _line(c, 0x2A2A30, 1.5, 0.0),
   );
 }

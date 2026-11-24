@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/settings_repository.dart';
+import '../data/streak_repository.dart';
 import '../data/water_repository.dart';
 import '../features/home/home_screen.dart';
 import '../features/thermos/thermos_theme.dart';
@@ -8,11 +9,19 @@ import '../features/settings/settings_controller.dart';
 import 'app_look.dart';
 
 class HydroSenApp extends StatefulWidget {
-  const HydroSenApp({super.key, this.repository, this.settingsRepository});
+  const HydroSenApp({
+    super.key,
+    this.repository,
+    this.settingsRepository,
+    this.streakRepository,
+  });
 
   /// Verilmezse cihazda kalıcı depolama kullanılır; testler sahte bir depo verir.
   final WaterRepository? repository;
   final SettingsRepository? settingsRepository;
+
+  /// Verilmezse: depo de varsayılansa cihazda, değilse (test) bellekte tutulur.
+  final StreakRepository? streakRepository;
 
   @override
   State<HydroSenApp> createState() => _HydroSenAppState();
@@ -21,11 +30,17 @@ class HydroSenApp extends StatefulWidget {
 class _HydroSenAppState extends State<HydroSenApp> {
   late final SettingsController _settings;
   late final WaterRepository _repository;
+  late final StreakRepository _streakRepository;
 
   @override
   void initState() {
     super.initState();
     _repository = widget.repository ?? SharedPrefsWaterRepository();
+    _streakRepository =
+        widget.streakRepository ??
+        (widget.repository == null
+            ? SharedPrefsStreakRepository()
+            : InMemoryStreakRepository());
     _settings = SettingsController(
       repository: widget.settingsRepository ?? SharedPrefsSettingsRepository(),
     );
@@ -109,7 +124,11 @@ class _HydroSenAppState extends State<HydroSenApp> {
         theme: AppLook.of(_settings.theme).themeData,
         home: home,
       ),
-      child: HomeScreen(repository: _repository, settings: _settings),
+      child: HomeScreen(
+        repository: _repository,
+        streakRepository: _streakRepository,
+        settings: _settings,
+      ),
     );
   }
 }

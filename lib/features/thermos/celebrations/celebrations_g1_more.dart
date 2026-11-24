@@ -277,7 +277,8 @@ void _korsanTreasure(Canvas canvas, CelebrationContext ctx) {
     final em = emit(ctx, i, n, period: 1.15, start: 0.05, end: 0.84);
     if (!em.live) continue;
     // Paralar yüze düşmesin: kenarlara doğru fırlar.
-    final a = -math.pi / 2 + (i.isEven ? 1 : -1) * (0.7 + 0.6 * rr(ctx, i, em, 1));
+    final a =
+        -math.pi / 2 + (i.isEven ? 1 : -1) * (0.7 + 0.6 * rr(ctx, i, em, 1));
     final v = (150 + 70 * rr(ctx, i, em, 2)) * sz;
     final g = 480 * sz;
     final s = em.p * 1.5;

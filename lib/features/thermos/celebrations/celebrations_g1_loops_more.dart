@@ -267,7 +267,8 @@ void _korsanLoop(Canvas canvas, CelebrationContext ctx) {
     final e = lpEmit(ctx, i, n, 2);
     final s = e.seed;
     // Paralar yüze düşmesin: kenarlara doğru fırlar.
-    final a = -math.pi / 2 + (i.isEven ? 1 : -1) * (0.7 + 0.6 * lpRand(ctx, s, 1));
+    final a =
+        -math.pi / 2 + (i.isEven ? 1 : -1) * (0.7 + 0.6 * lpRand(ctx, s, 1));
     final v = (150 + 70 * lpRand(ctx, s, 2)) * sz;
     final g = 480 * sz;
     final tt = e.p * 1.5;

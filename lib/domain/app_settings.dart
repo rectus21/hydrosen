@@ -1,4 +1,5 @@
 import '../features/thermos/thermos_theme.dart';
+import 'bottle_name.dart';
 import 'saved_container.dart';
 
 /// Kullanıcının kalıcı tercihleri: termos biçimi, tema ve günlük hedef.
@@ -10,6 +11,7 @@ class AppSettings {
     this.glassMl = defaultGlassMl,
     this.animatedCelebrations = true,
     this.containers = defaultContainers,
+    this.bottleNames = const {},
   });
 
   /// Varsayılan kayıtlı kaplar.
@@ -44,6 +46,29 @@ class AppSettings {
   /// Kayıtlı kaplar (en az 1, en çok [maxContainers]).
   final List<SavedContainer> containers;
 
+  /// Tema kimliği -> kullanıcının verdiği matara/karakter adı. Yalnız özel
+  /// adlar saklanır; yoksa tema adı kullanılır.
+  final Map<String, String> bottleNames;
+
+  /// [theme] için kullanıcının verdiği ad; verilmediyse null.
+  String? customBottleName(ThermosTheme theme) => bottleNames[theme.id];
+
+  /// Matara/karakter adı: özel ad, yoksa tema adı.
+  String bottleName(ThermosTheme theme) =>
+      customBottleName(theme) ?? theme.name;
+
+  /// Saklanan adları süzer: geçersiz/uygunsuz/boş olanlar atılır.
+  static Map<String, String> sanitizeBottleNames(Map<String, Object?> raw) {
+    final out = <String, String>{};
+    raw.forEach((id, value) {
+      if (value is! String) return;
+      final r = BottleName.validate(value);
+      final name = r.name;
+      if (r.isOk && name != null && name.isNotEmpty) out[id] = name;
+    });
+    return out;
+  }
+
   /// Hedefi adıma yuvarlar ve sınırlara çeker.
   static int normalizeGoal(int ml) {
     final snapped = (ml / goalStepMl).round() * goalStepMl;
@@ -63,6 +88,7 @@ class AppSettings {
     int? glassMl,
     bool? animatedCelebrations,
     List<SavedContainer>? containers,
+    Map<String, String>? bottleNames,
   }) => AppSettings(
     shape: shape ?? this.shape,
     theme: theme ?? this.theme,
@@ -70,5 +96,6 @@ class AppSettings {
     glassMl: glassMl ?? this.glassMl,
     animatedCelebrations: animatedCelebrations ?? this.animatedCelebrations,
     containers: containers ?? this.containers,
+    bottleNames: bottleNames ?? this.bottleNames,
   );
 }
