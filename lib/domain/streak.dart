@@ -35,11 +35,12 @@ DateTime? parseDayKey(Object? v) {
   if (v is! String) return null;
   final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(v);
   if (m == null) return null;
-  return DateTime(
-    int.parse(m.group(1)!),
-    int.parse(m.group(2)!),
-    int.parse(m.group(3)!),
-  );
+  final y = int.parse(m.group(1)!);
+  final mo = int.parse(m.group(2)!);
+  final d = int.parse(m.group(3)!);
+  final dt = DateTime(y, mo, d);
+  if (dt.year != y || dt.month != mo || dt.day != d) return null;
+  return dt;
 }
 
 /// Kalıcı seri verisi. Biten günlerin sonucu: [start]..[through] arasında
@@ -262,7 +263,9 @@ abstract final class StreakEngine {
     }
 
     final todayMet = goalMl > 0 && (dailyCountedMl[today] ?? 0) >= goalMl;
-    final r = _replay(d.start, through, goalSet, todayMet ? today : null);
+    // Saat/saat dilimi geriye giderse bugünü iki kez sayma.
+    final replayThrough = through.isAfter(yesterday) ? yesterday : through;
+    final r = _replay(d.start, replayThrough, goalSet, todayMet ? today : null);
     final best = r.best > d.best ? r.best : d.best;
 
     // Rozetler: bir kez kazanılınca kalıcıdır (en uzun seri sayılır).

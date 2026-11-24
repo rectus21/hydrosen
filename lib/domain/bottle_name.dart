@@ -39,7 +39,7 @@ class BottleName {
     if (name.runes.length > maxLength) {
       return const BottleNameResult.fail(BottleNameError.tooLong);
     }
-    if (!_allowed.hasMatch(name)) {
+    if (!_allowed.hasMatch(name) || !_hasLetterOrDigit.hasMatch(name)) {
       return const BottleNameResult.fail(BottleNameError.invalidChars);
     }
     if (isInappropriate(name)) {
@@ -50,11 +50,11 @@ class BottleName {
 
   // Harf (her dil), rakam, boşluk ve birkaç sakin noktalama.
   static final _allowed = RegExp(r"^[\p{L}\p{N} .'\-]+$", unicode: true);
+  static final _hasLetterOrDigit = RegExp(r'[\p{L}\p{N}]', unicode: true);
 
-  /// Türkçe harfleri ASCII'ye indirir, yaygın "leet" yazımlarını çözer,
-  /// harf olmayanları atar ve tekrar eden harfleri teke düşürür.
-  /// Örn. "S.İ.K" ve "s1kt1r" aynı biçime gelir.
-  static String normalize(String input) {
+  /// Türkçe harfleri ASCII'ye indirir, yaygın "leet" yazımlarını çözer ve
+  /// harf olmayanları atar (tekrar eden harfleri korur).
+  static String _foldLetters(String input) {
     final b = StringBuffer();
     for (final r in input.runes) {
       final c = String.fromCharCode(r);
@@ -65,9 +65,17 @@ class BottleName {
         if (RegExp(r'[a-z]').hasMatch(leet)) b.write(leet);
       }
     }
+    return b.toString();
+  }
+
+  /// Türkçe harfleri ASCII'ye indirir, yaygın "leet" yazımlarını çözer,
+  /// harf olmayanları atar ve tekrar eden harfleri teke düşürür.
+  /// Örn. "S.İ.K" ve "s1kt1r" aynı biçime gelir.
+  static String normalize(String input) {
+    final folded = _foldLetters(input);
     final out = StringBuffer();
     String? prev;
-    for (final ch in b.toString().split('')) {
+    for (final ch in folded.split('')) {
       if (ch != prev) out.write(ch);
       prev = ch;
     }
@@ -163,9 +171,12 @@ class BottleName {
     'fuck',
     'bitch',
     'pussy',
-    'nigg',
     'porno',
   ].map(normalize).toList();
+
+  /// Tekrar harf sıkıştırılırsa masum Türkçe adlarla (örn. "Nigar", "Niğde")
+  /// çakışacak kalıplar; sıkıştırma öncesi katlanmış metinde aranır.
+  static const List<String> _foldedSubstrings = ['nigg'];
 
   /// Ad uygunsuz bir kelime içeriyor mu.
   static bool isInappropriate(String name) {
@@ -173,6 +184,10 @@ class BottleName {
     for (final w in words) {
       final n = normalize(w);
       if (n.isNotEmpty && _exactWords.contains(n)) return true;
+    }
+    final folded = _foldLetters(name);
+    for (final bad in _foldedSubstrings) {
+      if (folded.contains(bad)) return true;
     }
     final joined = normalize(name);
     for (final bad in _substrings) {

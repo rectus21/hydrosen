@@ -37,7 +37,8 @@ class SavedContainer {
   /// Boşlukları kırpar ve uzunluğu sınırlar.
   static String normalizeName(String name) {
     final t = name.trim();
-    return t.length > maxNameLength ? t.substring(0, maxNameLength) : t;
+    if (t.runes.length <= maxNameLength) return t;
+    return String.fromCharCodes(t.runes.take(maxNameLength));
   }
 
   @override

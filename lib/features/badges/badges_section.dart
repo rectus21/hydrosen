@@ -127,11 +127,7 @@ class BadgesPanel extends StatelessWidget {
                   earnedAt: earned[b.id],
                   remaining: b.days == null
                       ? null
-                      : (b.days! -
-                                (status.best > status.current
-                                    ? status.best
-                                    : status.current))
-                            .clamp(0, 1 << 20),
+                      : (b.days! - status.current).clamp(0, b.days!),
                 ),
             ],
           ),
