@@ -116,6 +116,81 @@ void main() {
     ], loopAfter: 'loop');
   }, skip: !_enabled);
 
+  testWidgets('kedi canli hareket', (tester) async {
+    const out =
+        r'C:\Users\PC\Documents\Obsidian Vault\HydroSen\02-Design\canli-hareket';
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(() async {
+      await _loadFonts();
+      await IllustratedArtwork.load();
+      await FxSprites.load();
+    });
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    final id = Platform.environment['CANLI_ID'] ?? 'kedi';
+    Directory('$out/gif_$id').createSync(recursive: true);
+    final theme = ThermosTheme.byId(id);
+    final shot = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: shot,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: ThemeScene(
+              theme: theme,
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 56),
+                    SizedBox(
+                      height: 560,
+                      child: ThermosView(
+                        progress: 0.6,
+                        goalMl: 2000,
+                        totalMl: 1200,
+                        theme: theme,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    for (var i = 0; i < 4; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    Future<void> snap(String name, double ratio) => tester.runAsync(() async {
+      final b =
+          shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final img = await b.toImage(pixelRatio: ratio);
+      final d = await img.toByteData(format: ui.ImageByteFormat.png);
+      File(name).writeAsBytesSync(d!.buffer.asUint8List());
+    });
+    var t = 0.0, waveN = 0, gif = 0;
+    for (var f = 0; f < 330; f++) {
+      await tester.pump(const Duration(milliseconds: 33));
+      t += 0.033;
+      if (f % 2 == 0) {
+        await snap(
+          '$out/gif_$id/f${(gif++).toString().padLeft(3, '0')}.png',
+          1,
+        );
+      }
+      if (id == 'kedi' && waveN < 4 && t >= waveN * 0.85) {
+        await snap('$out/dalga_${waveN++}.png', 2);
+      }
+    }
+  }, skip: !_enabled);
+
   testWidgets('pofuduk kareleri', (tester) async {
     await _run(tester, 'pofuduk', const [], rest: true);
     await _run(tester, 'pofuduk', const [
@@ -146,6 +221,12 @@ void main() {
       ('intro_065', 800),
       ('intro_080', 600),
     ], loopAfter: 'loop');
+  }, skip: !_enabled);
+
+  testWidgets('tanitim referanslari', (tester) async {
+    for (final id in ['kopek', 'tavsan', 'penguen', 'ayi', 'civciv']) {
+      await _run(tester, id, const [], rest: true);
+    }
   }, skip: !_enabled);
 
   testWidgets('yarisarabasi kareleri', (tester) async {
@@ -632,6 +713,9 @@ void _faz3Tests() {
     await tester.drag(find.byType(ListView).first, const Offset(0, 330));
     await tester.pumpAndSettle();
     await snap(tester, shot, 'rozetlerim_ust');
+    await tester.drag(find.byType(ListView).first, const Offset(0, 520));
+    await tester.pumpAndSettle();
+    await snap(tester, shot, 'rozetlerim_karisik');
   }, skip: !_enabled);
 
   testWidgets('faz3: tüm rozetler kazanılmış', (tester) async {

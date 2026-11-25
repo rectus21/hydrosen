@@ -327,3 +327,66 @@ class IllustratedArtwork {
     }
   }
 }
+
+/// Göz kırpma kapakları (`assets/caps/<id>_blink.png`). Açılışta yüklenmez:
+/// 49'u birden bellekte tutmak yerine yalnız ekrandaki temanın görseli, onu
+/// kullanan görünüm başladığında çözülür ve görünüm bitince ya da tema
+/// değişince bırakılır. Görseli olmayan temalar normal kapakla kalır.
+class BlinkArtwork {
+  BlinkArtwork._();
+
+  static final _images = <String, ui.Image>{};
+  static final _refs = <String, int>{};
+  static final _loading = <String, Future<ui.Image?>>{};
+  static final _absent = <String>{};
+
+  /// Yüklüyse [id] temasının gözleri kapalı kapağı, yoksa null.
+  static ui.Image? imageFor(String id) => _images[id];
+
+  /// [id] için kapağı ister (sayaç artar) ve yüklenince döner; görsel yoksa null.
+  /// Her [acquire] bir [release] ile eşlenmelidir.
+  static Future<ui.Image?> acquire(String id) {
+    if (_absent.contains(id)) return Future.value(null);
+    _refs[id] = (_refs[id] ?? 0) + 1;
+    final ready = _images[id];
+    if (ready != null) return Future.value(ready);
+    return _loading[id] ??= _load(id);
+  }
+
+  static void release(String id) {
+    final left = (_refs[id] ?? 0) - 1;
+    if (left > 0) {
+      _refs[id] = left;
+      return;
+    }
+    _refs.remove(id);
+    _images.remove(id)?.dispose();
+  }
+
+  static Future<ui.Image?> _load(String id) async {
+    ui.Image? image;
+    try {
+      final bytes = await rootBundle.load('assets/caps/${id}_blink.png');
+      final codec = await ui.instantiateImageCodec(
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+      );
+      try {
+        image = (await codec.getNextFrame()).image;
+      } finally {
+        codec.dispose();
+      }
+    } catch (_) {
+      // Bu temanın göz kırpma görseli yok: normal kapak kalır.
+      _absent.add(id);
+    } finally {
+      _loading.remove(id);
+    }
+    if (image == null) return null;
+    if ((_refs[id] ?? 0) <= 0) {
+      // Yüklenirken görünüm kapandı ya da tema değişti.
+      image.dispose();
+      return null;
+    }
+    return _images[id] = image;
+  }
+}

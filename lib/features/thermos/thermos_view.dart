@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -89,6 +90,7 @@ class _ThermosViewState extends State<ThermosView>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.of(context).disableAnimations;
+    _syncBlink();
     if (_reduceMotion) {
       _shown = widget.progress;
       // Sürekli titreşim yok: ticker yalnız su hareket ederken çalışır.
@@ -96,6 +98,68 @@ class _ThermosViewState extends State<ThermosView>
     } else {
       _wake();
     }
+  }
+
+  // --- Göz kırpması (kapalı gözlü kapağı olan temalar): 3-6 sn'de bir
+  // ~160 ms, ara sıra çift kırpma. Kapak yalnız etkin tema için yüklenir. ---
+  static const _blinkHold = Duration(milliseconds: 160);
+  static const _blinkGap = Duration(milliseconds: 110);
+  final _rng = math.Random();
+  Timer? _blinkTimer;
+  bool _blinking = false;
+
+  bool get _canBlink =>
+      !_reduceMotion && BlinkArtwork.imageFor(widget.theme.id) != null;
+
+  /// Göz kırpma kapağını tutan tema (yüklü ya da yükleniyor); yoksa null.
+  String? _blinkId;
+
+  /// Etkin tema için kapağı ister, önceki temanınkini bırakır; hareketi
+  /// azalt açıkken hiç yüklemez.
+  void _syncBlinkArt() {
+    final want = _reduceMotion ? null : widget.theme.id;
+    if (want == _blinkId) return;
+    final old = _blinkId;
+    _blinkId = want;
+    if (old != null) BlinkArtwork.release(old);
+    if (want != null) {
+      BlinkArtwork.acquire(want).then((_) {
+        if (mounted && _blinkId == want) _syncBlink();
+      });
+    }
+  }
+
+  void _syncBlink() {
+    _syncBlinkArt();
+    if (_canBlink) {
+      if (_blinkTimer == null && !_blinking) _scheduleBlink();
+    } else {
+      _blinkTimer?.cancel();
+      _blinkTimer = null;
+      _blinking = false;
+    }
+  }
+
+  void _scheduleBlink() {
+    _blinkTimer?.cancel();
+    _blinkTimer = Timer(
+      Duration(milliseconds: 3000 + _rng.nextInt(3001)),
+      () => _blinkOnce(double: _rng.nextInt(5) == 0),
+    );
+  }
+
+  void _blinkOnce({required bool double}) {
+    if (!mounted || !_canBlink) return;
+    setState(() => _blinking = true);
+    _blinkTimer = Timer(_blinkHold, () {
+      if (!mounted) return;
+      setState(() => _blinking = false);
+      if (double) {
+        _blinkTimer = Timer(_blinkGap, () => _blinkOnce(double: false));
+      } else {
+        _scheduleBlink();
+      }
+    });
   }
 
   void _wake() {
@@ -107,6 +171,7 @@ class _ThermosViewState extends State<ThermosView>
   @override
   void didUpdateWidget(ThermosView old) {
     super.didUpdateWidget(old);
+    _syncBlink();
     if (_reduceMotion) _shown = widget.progress;
     final now = widget.totalMl, before = old.totalMl;
     final deltaMl = now != null && before != null
@@ -174,6 +239,10 @@ class _ThermosViewState extends State<ThermosView>
 
   @override
   void dispose() {
+    _blinkTimer?.cancel();
+    final held = _blinkId;
+    _blinkId = null;
+    if (held != null) BlinkArtwork.release(held);
     _ticker.dispose();
     super.dispose();
   }
@@ -252,6 +321,8 @@ class _ThermosViewState extends State<ThermosView>
                 lemonade: lemonade,
                 umbrellaOn: umbrella,
                 umbrellaSway: sway,
+                idleWave: !_reduceMotion,
+                blink: _blinking && !widget.happy && ct == null && lp == null,
                 shape: widget.shape,
                 theme: widget.theme,
                 level: _shown,

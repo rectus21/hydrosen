@@ -27,7 +27,7 @@ abstract final class BadgeArt {
     }
   }
 
-  static bool hasPng(String id) => _png.contains(id);
+  static bool hasPng(String id) => _png.isEmpty || _png.contains(id);
 
   /// Testler için.
   static void debugSetPng(Set<String> ids) => _png = ids;
@@ -126,15 +126,18 @@ class BadgeMedallion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = size * aspect;
     final pal = _paletteFor(badge.tier, locked);
+    // Rozet resimleri kare; resim yoksa kodla çizilen madalyon (kurdeleli,
+    // daha uzun) yedek olarak kullanılır.
+    var height = size;
     Widget art;
     if (BadgeArt.hasPng(badge.id)) {
       art = Image.asset(
         BadgeArt.assetOf(badge.id),
         width: size,
-        height: height,
+        height: size,
         fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
         errorBuilder: (_, _, _) => _painted(pal),
       );
       if (locked) {
@@ -149,6 +152,7 @@ class BadgeMedallion extends StatelessWidget {
         );
       }
     } else {
+      height = size * aspect;
       art = _painted(pal);
     }
     return SizedBox(

@@ -87,7 +87,16 @@ class ThermosPainter extends CustomPainter {
     this.lemonade = 0,
     this.umbrellaOn = true,
     this.umbrellaSway = 0,
+    this.idleWave = false,
+    this.blink = false,
   });
+
+  /// Canlı bekleme hareketi (tüm temalar): yüzeyde iki katmanlı yumuşak dalga.
+  final bool idleWave;
+
+  /// Göz kırpma karesi (normal kapakta): kapalı gözlü kapak. Görseli olmayan
+  /// temalarda ([BlinkArtwork.imageFor] null) etkisizdir.
+  final bool blink;
 
   final ThermosShape shape;
   final ThermosTheme theme;
@@ -186,7 +195,8 @@ class ThermosPainter extends CustomPainter {
         return lvl -
             slope * u +
             wave * math.cos(k * u) +
-            math.sin(x / 18 + time * 2.5) * amp;
+            math.sin(x / 18 + time * 2.5) * amp +
+            (idleWave ? _idleWaveY(x, time) : 0);
       }
 
       final water = Path()..moveTo(220, waveY(220));
@@ -310,7 +320,9 @@ class ThermosPainter extends CustomPainter {
       canvas.clipRect(head);
       canvas.saveLayer(head, Paint());
       final lift = happy ? headLift.clamp(0.0, 1.0) : 0.0;
-      draw(artwork.normal, 1 - lift);
+      final head0 =
+          (blink ? BlinkArtwork.imageFor(theme.id) : null) ?? artwork.normal;
+      draw(head0, 1 - lift);
       if (lift > 0) draw(artwork.howl, lift, add: true);
       canvas.restore();
       canvas.restore();
@@ -322,7 +334,10 @@ class ThermosPainter extends CustomPainter {
         canvas.scale(chubbyCapScale);
         canvas.translate(-340, -208);
       }
-      final image = happy ? illustrated.happy : illustrated.normal;
+      final image = happy
+          ? illustrated.happy
+          : (blink ? BlinkArtwork.imageFor(theme.id) : null) ??
+                illustrated.normal;
       final rect = IllustratedArtwork.capDestinationRect(
         shape,
         id: theme.id,
@@ -352,6 +367,11 @@ class ThermosPainter extends CustomPainter {
     if (posed) canvas.restore();
     canvas.restore();
   }
+
+  /// İki katmanlı, çok yavaş sinüs dalgası (periyotlar ~3,4 sn ve ~4,3 sn).
+  static double _idleWaveY(double x, double t) =>
+      2.0 * math.sin(x / 24 - t * 2 * math.pi / 3.4) +
+      1.4 * math.sin(x / 14 + t * 2 * math.pi / 4.3 + 1.3);
 
   /// Limon kapağının sağ üstüne takılı kokteyl şemsiyesi (cap görseli
   /// koordinatlarında: sap ucu ~ (0.68, 0.2), 20 derece sağa yatık).
@@ -470,6 +490,8 @@ class ThermosPainter extends CustomPainter {
       old.lemonade != lemonade ||
       old.umbrellaOn != umbrellaOn ||
       old.umbrellaSway != umbrellaSway ||
+      old.idleWave != idleWave ||
+      old.blink != blink ||
       old.goalMl != goalMl ||
       old.sceneLuma != sceneLuma ||
       old.labelStyle != labelStyle;
