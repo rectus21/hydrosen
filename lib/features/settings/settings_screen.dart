@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../app/app_look.dart';
+import '../../app/frosted_panel.dart';
 import '../../domain/app_settings.dart';
 import '../thermos/thermos_theme.dart';
 import 'containers_section.dart';
@@ -15,6 +16,10 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return InkTheme(child: Builder(builder: (context) => _build(context)));
+  }
+
+  Widget _build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return ThemeBackdrop(
       child: Scaffold(
@@ -153,19 +158,19 @@ class _ThemeChoice extends StatelessWidget {
       excludeSemantics: true,
       onTap: onTap,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Container(
           key: ValueKey('theme-${theme.id}'),
           width: width,
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: selected ? scheme.primary : scheme.outlineVariant,
-              width: selected ? 3 : 1,
-            ),
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: clayShadows(context, scale: 0.3),
+            border: selected
+                ? Border.all(color: scheme.primary, width: 3)
+                : null,
           ),
           child: Column(
             children: [

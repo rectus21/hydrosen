@@ -29,11 +29,13 @@ class CharacterAvatar extends StatelessWidget {
             ? RawImage(
                 image: preloaded,
                 fit: BoxFit.contain,
+                alignment: Alignment.topCenter,
                 filterQuality: FilterQuality.medium,
               )
             : Image.asset(
                 'assets/caps/${theme.id}_normal.png',
                 fit: BoxFit.contain,
+                alignment: Alignment.topCenter,
                 filterQuality: FilterQuality.medium,
                 excludeFromSemantics: true,
                 errorBuilder: (_, _, _) => Center(

@@ -96,10 +96,7 @@ class _ReminderSectionState extends State<ReminderSection> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              'Su hatırlatıcısı',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            const SceneTitle('Su hatırlatıcısı'),
             const SizedBox(height: 12),
             FrostedPanel(
               child: Column(
@@ -265,7 +262,9 @@ class _ReminderSectionState extends State<ReminderSection> {
               child: Text(
                 'Hatırlatmalar uygulama açıkken görünür. Telefonda arka plan '
                 'bildirimi, uygulama telefona kurulunca eklenecek.',
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

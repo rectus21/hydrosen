@@ -128,6 +128,10 @@ class ReminderMessages {
       '{ad} susadı! Hu hu, bir yudum su ister misin?',
       '{ad}: "Bilge baykuş der ki: bir yudum su iç."',
     ],
+    'deve': [
+      '{ad} susadı! Çöl yolunda bir yudum su molası?',
+      '{ad}: "Yavaş yavaş gidelim, ama su içmeyi unutmayalım."',
+    ],
     'tilki': [
       '{ad} susadı! Kurnaz tilki bir yudum su istiyor.',
       '{ad}: "Küçük bir yudum, büyük bir ferahlık!"',

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../app/frosted_panel.dart';
 import '../../domain/widget_snapshot.dart';
 import '../reminder/character_avatar.dart';
 import '../thermos/illustrated_artwork.dart';
@@ -99,16 +100,9 @@ class WidgetPreview extends StatelessWidget {
         height: size.height,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(32),
           color: Color.lerp(Colors.white, theme.glass, 0.35),
-          border: Border.all(color: theme.edge.withValues(alpha: 0.35)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1F000000),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
+          boxShadow: clayShadows(context, scale: 0.5),
         ),
         child: Stack(
           fit: StackFit.expand,

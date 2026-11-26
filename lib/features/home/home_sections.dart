@@ -44,7 +44,7 @@ class ProfileSection extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Profil', style: Theme.of(context).textTheme.headlineSmall),
+          const SceneTitle('Profil'),
           const SizedBox(height: 12),
           BottleNameCard(settings: settings),
           const SizedBox(height: 12),

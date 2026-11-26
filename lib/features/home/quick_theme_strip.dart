@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_look.dart';
+import '../../app/frosted_panel.dart';
 import '../settings/settings_controller.dart';
 import '../thermos/thermos_theme.dart';
 
@@ -99,18 +100,18 @@ class _QuickThemeStripState extends State<QuickThemeStrip> {
               final face = themeTypefaces[t.id]?.headline ?? AppFont.nunito;
               return InkWell(
                 key: ValueKey('quick-theme-${t.id}'),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(16),
                 onTap: () => s.setTheme(t),
                 child: Container(
                   width: _itemW,
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: scheme.surface.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selected ? scheme.primary : scheme.outlineVariant,
-                      width: selected ? 3 : 1,
-                    ),
+                    color: scheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: clayShadows(context, scale: 0.3),
+                    border: selected
+                        ? Border.all(color: scheme.primary, width: 3)
+                        : null,
                   ),
                   child: Column(
                     children: [

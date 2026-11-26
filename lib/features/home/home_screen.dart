@@ -139,8 +139,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _openSettings() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            SettingsScreen(controller: widget.settings),
+        builder: (_) => SettingsScreen(controller: widget.settings),
       ),
     );
   }
@@ -179,7 +178,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   (Color, Color) _barForeground(BuildContext context) {
     final luma = IllustratedArtwork.topLuma[widget.settings.theme.id];
     if (luma == null) {
-      final c = Theme.of(context).colorScheme.onSurface;
+      final theme = Theme.of(context);
+      final c =
+          (theme.extension<ClayColors>()?.look.scheme ?? theme.colorScheme)
+              .onSurface;
       return (c, Colors.transparent);
     }
     return luma < 0.45
@@ -308,9 +310,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           'Kayıtlar cihaza saklanamadı; uygulamayı kapatırsan kaybolabilir.',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .error,
+                                            color:
+                                                (Theme.of(context)
+                                                            .extension<
+                                                              ClayColors
+                                                            >()
+                                                            ?.look
+                                                            .scheme ??
+                                                        Theme.of(context)
+                                                            .colorScheme)
+                                                    .error,
                                           ),
                                         ),
                                       ),
@@ -401,71 +410,67 @@ class _DailyControlCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final rawPercent = controller.goalMl == 0
         ? 0
         : (controller.totalMl / controller.goalMl * 100).round();
-    // Kart zemini yok: yazı rengi sahnenin alt bandının parlaklığına göre.
-    final luma = IllustratedArtwork.bottomLuma[themeId];
-    final Color fg, shadow, track, fill;
-    if (luma == null) {
-      fg = scheme.onSurface;
-      shadow = Colors.transparent;
-      track = scheme.onSurface.withValues(alpha: 0.16);
-      fill = scheme.primary;
-    } else if (luma < 0.45) {
-      fg = const Color(0xFFFFFFFF);
-      shadow = const Color(0xCC000000);
-      track = const Color(0x4DFFFFFF);
-      fill = Color.lerp(scheme.primary, Colors.white, 0.65)!;
-    } else {
-      fg = const Color(0xFF10223A);
-      shadow = const Color(0xAAFFFFFF);
-      track = const Color(0x2E000000);
-      fill = scheme.primary;
-    }
-    final shadows = [Shadow(color: shadow, blurRadius: 6)];
+    // Kart zemini yok: metin çıplak sahne üstünde, "mürekkep" temasıyla okunur.
+    // Düğmeler panel temasında kalır (reçine renkleri ona göre türetilir).
     return Padding(
       key: const ValueKey('daily-control-card'),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '${controller.totalMl} / ${controller.goalMl} ml',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: fg,
-              shadows: shadows,
-            ),
-          ),
-          const SizedBox(height: 1),
-          Text(
-            'Günlük hedefin %$rawPercent’i',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: fg,
-              shadows: shadows,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 2),
-          StreakLine(status: streak, fg: fg, shadows: shadows),
-          const SizedBox(height: 5),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(99),
-              boxShadow: [
-                BoxShadow(color: shadow.withValues(alpha: 0.25), blurRadius: 4),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: controller.progress,
-                minHeight: 7,
-                color: fill,
-                backgroundColor: track,
-              ),
+          InkTheme(
+            child: Builder(
+              builder: (context) {
+                final scheme = Theme.of(context).colorScheme;
+                // Sahnenin alt bandı koyuysa (ör. karaejderha) mürekkep teması
+                // okunmaz: açık yazı + koyu gölge; aksi halde mürekkep rengi.
+                final luma = IllustratedArtwork.bottomLuma[themeId];
+                final dark = luma != null && luma < 0.45;
+                final fg = dark ? const Color(0xFFFFFFFF) : scheme.onSurface;
+                final shadows = dark
+                    ? const [Shadow(color: Color(0xCC000000), blurRadius: 6)]
+                    : const <Shadow>[];
+                final fill = dark
+                    ? Color.lerp(scheme.primary, Colors.white, 0.65)!
+                    : scheme.primary;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${controller.totalMl} / ${controller.goalMl} ml',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: fg,
+                        shadows: shadows,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      'Günlük hedefin %$rawPercent’i',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: fg,
+                        fontWeight: FontWeight.w600,
+                        shadows: shadows,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    StreakLine(status: streak, fg: fg, shadows: shadows),
+                    const SizedBox(height: 5),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        value: controller.progress,
+                        minHeight: 7,
+                        color: fill,
+                        backgroundColor: fg.withValues(alpha: 0.16),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           const SizedBox(height: 6),
@@ -529,13 +534,41 @@ class _BottomTabs extends StatelessWidget {
     Icons.person,
   ];
 
+  /// Seçili sekme içeri basılmış (iç gölgeli) görünür; diğerleri düz.
+  Widget _tabBody(BuildContext context, int i) {
+    final scheme = Theme.of(context).colorScheme;
+    final sel = selected == i;
+    final fg = sel ? scheme.primary : scheme.onSurface;
+    final body = Container(
+      height: 58,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(sel ? _selectedIcons[i] : _icons[i], size: 22, color: fg),
+          const SizedBox(height: 2),
+          Text(
+            _labels[i],
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            // Küçük etiket kenar yumuşatmasıyla silikleşmesin: kalın yazı.
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: sel ? FontWeight.w800 : FontWeight.w700,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+    return sel ? ClaySurface(inset: true, radius: 14, child: body) : body;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+        padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
         child: FrostedPanel(
           key: const ValueKey('bottom-tabs'),
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
@@ -548,41 +581,9 @@ class _BottomTabs extends StatelessWidget {
                     button: true,
                     selected: selected == i,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(22),
                       onTap: () => onSelected(i),
-                      child: Container(
-                        height: 58,
-                        decoration: BoxDecoration(
-                          color: selected == i
-                              ? scheme.primaryContainer.withValues(alpha: 0.9)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              selected == i ? _selectedIcons[i] : _icons[i],
-                              size: 22,
-                              color: selected == i
-                                  ? scheme.onPrimaryContainer
-                                  : scheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _labels[i],
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: selected == i
-                                        ? scheme.onPrimaryContainer
-                                        : scheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _tabBody(context, i),
                     ),
                   ),
                 ),

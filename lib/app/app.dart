@@ -67,6 +67,7 @@ class _HydroSenAppState extends State<HydroSenApp> {
             'baykus',
             'tilki',
             'civciv',
+            'deve',
             'tavsan',
             'penguen',
             'ejderha',

@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 
+import 'blink_patch_offsets.dart';
 import 'thermos_theme.dart';
 
 /// Raster artwork for illustrated themes.
@@ -174,6 +175,7 @@ class IllustratedArtwork {
       'bulut': (427, 426),
       'cilek': (496, 496),
       'civciv': (500, 512),
+      'deve': (497, 497),
       'dondurma': (512, 512),
       'ejderha': (460, 475),
       // Görünür alt sınır gerçekte 438; eski 485 başı boyunun üstünde
@@ -277,6 +279,7 @@ class IllustratedArtwork {
       'yarisarabasi',
       'kedi',
       'pofuduk',
+      'deve',
     ]) {
       if (byId.containsKey(id)) continue;
       final images = <ui.Image>[];
@@ -363,18 +366,52 @@ class BlinkArtwork {
     _images.remove(id)?.dispose();
   }
 
+  static Future<ui.Image> _decode(String path) async {
+    final bytes = await rootBundle.load(path);
+    final codec = await ui.instantiateImageCodec(
+      bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+    );
+    try {
+      return (await codec.getNextFrame()).image;
+    } finally {
+      codec.dispose();
+    }
+  }
+
+  /// `<id>_blink.png` yalnız değişen göz yamasıdır; normal kapağın üzerine
+  /// (x, y) konumunda, kaynak piksellerle birebir yerleştirilip tam boy
+  /// kapak elde edilir (boyut ve piksel olarak eski tam görselle aynı).
+  static Future<ui.Image> _compose(String id) async {
+    final offset = kBlinkPatchOffsets[id];
+    if (offset == null) throw StateError('no blink patch: $id');
+    final normal = await _decode('assets/caps/${id}_normal.png');
+    ui.Image? patch;
+    try {
+      patch = await _decode('assets/caps/${id}_blink.png');
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(recorder);
+      canvas.drawImage(normal, ui.Offset.zero, ui.Paint());
+      canvas.drawImage(
+        patch,
+        ui.Offset(offset.x.toDouble(), offset.y.toDouble()),
+        ui.Paint()..blendMode = ui.BlendMode.src,
+      );
+      final picture = recorder.endRecording();
+      try {
+        return await picture.toImage(normal.width, normal.height);
+      } finally {
+        picture.dispose();
+      }
+    } finally {
+      normal.dispose();
+      patch?.dispose();
+    }
+  }
+
   static Future<ui.Image?> _load(String id) async {
     ui.Image? image;
     try {
-      final bytes = await rootBundle.load('assets/caps/${id}_blink.png');
-      final codec = await ui.instantiateImageCodec(
-        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
-      );
-      try {
-        image = (await codec.getNextFrame()).image;
-      } finally {
-        codec.dispose();
-      }
+      image = await _compose(id);
     } catch (_) {
       // Bu temanın göz kırpma görseli yok: normal kapak kalır.
       _absent.add(id);

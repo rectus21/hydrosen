@@ -55,6 +55,7 @@ class _ThemeSceneState extends State<ThemeScene>
           'baykus',
           'tilki',
           'civciv',
+          'deve',
           'tavsan',
           'penguen',
           'ejderha',

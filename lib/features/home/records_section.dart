@@ -100,10 +100,7 @@ class _RecordsSectionState extends State<RecordsSection> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
-            Text(
-              'Su kayıtları',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            const SceneTitle('Su kayıtları'),
             const SizedBox(height: 12),
             SegmentedButton<_RecordsPeriod>(
               key: const ValueKey('records-period-selector'),
@@ -560,21 +557,18 @@ class _MonthDay extends StatelessWidget {
           '${day.day} ${_monthNames[day.month - 1]}, $amountMl ml'
           '${isProtected ? ', korundu' : ''}',
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.fromLTRB(3, 5, 3, 4),
           decoration: BoxDecoration(
-            color: selected
-                ? scheme.primaryContainer
-                : scheme.surface.withValues(alpha: 0.32),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: selected
-                  ? scheme.primary
-                  : scheme.outlineVariant.withValues(alpha: 0.45),
-            ),
+            color: selected ? scheme.primaryContainer : scheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: selected ? null : clayShadows(context, scale: 0.2),
+            border: selected
+                ? Border.all(color: scheme.primary, width: 2)
+                : null,
           ),
           child: Stack(
             fit: StackFit.expand,

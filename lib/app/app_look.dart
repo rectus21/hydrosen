@@ -65,6 +65,7 @@ const Map<String, AppTypeface> themeTypefaces = {
   'baykus': _playful,
   'tilki': _playful,
   'civciv': _playful,
+  'deve': _playful,
   'kurt': _playful,
   'ayi': _playful,
   'kurbaga': _playful,
@@ -113,12 +114,30 @@ const Map<String, AppTypeface> themeTypefaces = {
 /// yazı tipleri. Termos renklerinden ve arka plan çiziminden otomatik
 /// türetilir; 28 temanın hiçbiri ayrıca ayar gerektirmez.
 class AppLook {
-  AppLook._(this.theme, this.typeface, this.backdrop, this.scheme);
+  AppLook._(
+    this.theme,
+    this.typeface,
+    this.backdrop,
+    this.scheme,
+    this.panelScheme,
+  );
+
+  /// Kabartma yüzeyin gölge rengi: panel renginin çok koyu hali.
+  Color get shade => Color.lerp(panelScheme.surface, Colors.black, 0.68)!;
 
   final ThermosTheme theme;
   final AppTypeface typeface;
   final BackdropColors backdrop;
+
+  /// Çıplak arka plan (sahne) üstündeki metin için renk şeması.
   final ColorScheme scheme;
+
+  /// Kabartma panelin (koyu, yumuşatılmış tema rengi) üstündeki açık metin
+  /// ve düğme renkleri. Uygulamanın varsayılan teması bunu kullanır.
+  final ColorScheme panelScheme;
+
+  /// Kabartma panel rengi.
+  Color get panel => panelScheme.surface;
 
   bool get isDark => scheme.brightness == Brightness.dark;
 
@@ -163,9 +182,13 @@ class AppLook {
     );
     final grounds = backdrop.surfaces;
 
+    // Yumuşak kabartma: panel opak ve pastel. Açık temada kenar renginin
+    // pastel tonu, koyu temada sahne gökünün cam rengine hafif kayması.
+    // Panel opak olduğu için metin kontrastı yalnız bu renge ve sahneye göre
+    // hesaplanır.
     final surface = dark
-        ? Color.lerp(top, Colors.white, 0.08)!
-        : Color.lerp(top, Colors.white, 0.75)!;
+        ? Color.lerp(top, t.glass, 0.22)!
+        : _pastel(t.edge, 0.93, 0.5);
     final onSurface = _push(
       t.label,
       [...grounds, surface],
@@ -183,12 +206,17 @@ class AppLook {
     // cam rengi (koyu yazı üzerinde).
     final Color primary, onPrimary;
     if (dark) {
-      primary = _push(t.glass, grounds, Colors.white, minContrast);
+      primary = _push(
+        t.glass,
+        [...grounds, surface],
+        Colors.white,
+        minContrast,
+      );
       onPrimary = _push(top, [primary], Colors.black, minContrast);
     } else {
       primary = _push(
         t.edge,
-        [Colors.white, ...grounds],
+        [Colors.white, ...grounds, surface],
         Colors.black,
         minContrast,
       );
@@ -229,19 +257,128 @@ class AppLook {
       surfaceContainerHigh: surface,
       surfaceContainerHighest: Color.lerp(surface, primary, 0.08),
       surfaceTint: Colors.transparent,
-      outline: _push(Color.lerp(primary, top, 0.35)!, grounds, toward, 3),
+      outline: _push(
+        Color.lerp(primary, top, 0.35)!,
+        [...grounds, surface],
+        toward,
+        3,
+      ),
       outlineVariant: Color.lerp(top, onSurface, 0.2),
       error: _push(seeded.error, [...grounds, surface], toward, minContrast),
     );
-    return AppLook._(t, themeTypefaces[t.id] ?? _defaultFace, backdrop, scheme);
+    final panelScheme = _panelScheme(t, art.sky, dark);
+    return AppLook._(
+      t,
+      themeTypefaces[t.id] ?? _defaultFace,
+      backdrop,
+      scheme,
+      panelScheme,
+    );
   }
 
-  ThemeData? _themeData;
+  /// Kabartma panel rengi: temanın ana tonu (sahne göğünün tonu) koyulaştırılıp
+  /// yumuşatılır (orta-koyu açıklık, ılımlı doygunluk); üstüne krem metin
+  /// konur. Metin kontrastı en az 6.5 olana dek panel koyulaştırılır.
+  static ColorScheme _panelScheme(ThermosTheme t, Color sky, bool darkScene) {
+    final skyHsl = HSLColor.fromColor(sky);
+    // Gökte renk yoksa (gri/beyaz) suyun rengine düş.
+    final src = skyHsl.saturation < 0.18 ? HSLColor.fromColor(t.water) : skyHsl;
+    var hue = src.hue;
+    // Sarı-hardal aralığı koyulaşınca çamurlaşır; bal-kehribara çekilir.
+    if (hue > 38 && hue < 70) hue = 40 + (hue - 38) * 0.2;
+    final sat = (src.saturation * 0.7).clamp(0.34, 0.5);
+    var light = darkScene ? 0.36 : 0.37;
+    HSLColor at(double l) => HSLColor.fromAHSL(1, hue, sat, l);
+    var panel = at(light).toColor();
+    final cream = HSLColor.fromAHSL(1, hue, 0.55, 0.95).toColor();
+    while (light > 0.2 && contrast(cream, panel) < 6.5) {
+      light -= 0.01;
+      panel = at(light).toColor();
+    }
 
-  ThemeData get themeData => _themeData ??= _buildTheme();
+    // Düğme vurgusu: baskın karakter/bant tonunun pastel hali.
+    final bandWeak = HSLColor.fromColor(t.band).saturation < 0.18;
+    final accentSrc = bandWeak ? t.water : t.band;
+    final ah = HSLColor.fromColor(accentSrc);
+    final primary = HSLColor.fromAHSL(
+      1,
+      ah.hue,
+      ah.saturation.clamp(0.5, 0.8),
+      0.78,
+    ).toColor();
+    final onPrimary = _push(
+      HSLColor.fromAHSL(1, ah.hue, 0.5, 0.12).toColor(),
+      [primary],
+      Colors.black,
+      minContrast,
+    );
+    final sh = HSLColor.fromColor(bandWeak ? t.glass : t.water);
+    final container = HSLColor.fromAHSL(
+      1,
+      sh.hue,
+      sh.saturation.clamp(0.35, 0.7),
+      0.88,
+    ).toColor();
+    final onContainer = _push(
+      HSLColor.fromAHSL(1, sh.hue, 0.5, 0.14).toColor(),
+      [container],
+      Colors.black,
+      minContrast,
+    );
+    final onVariant = _push(
+      Color.lerp(cream, panel, 0.2)!,
+      [panel],
+      Colors.white,
+      minContrast,
+    );
+    final primaryContainer = Color.lerp(panel, primary, 0.28)!;
+    final base = ColorScheme.fromSeed(
+      seedColor: primary,
+      brightness: Brightness.dark,
+    );
+    return base.copyWith(
+      primary: primary,
+      onPrimary: onPrimary,
+      primaryContainer: primaryContainer,
+      onPrimaryContainer: _push(cream, [primaryContainer], Colors.white, 6),
+      secondary: container,
+      onSecondary: onContainer,
+      secondaryContainer: container,
+      onSecondaryContainer: onContainer,
+      surface: panel,
+      onSurface: cream,
+      onSurfaceVariant: onVariant,
+      surfaceContainerLowest: Color.lerp(panel, Colors.black, 0.15),
+      surfaceContainerLow: panel,
+      surfaceContainer: panel,
+      surfaceContainerHigh: Color.lerp(panel, Colors.white, 0.05),
+      surfaceContainerHighest: Color.lerp(panel, Colors.white, 0.1),
+      surfaceTint: Colors.transparent,
+      outline: _push(
+        Color.lerp(primary, panel, 0.3)!,
+        [panel],
+        Colors.white,
+        3,
+      ),
+      outlineVariant: Color.lerp(panel, cream, 0.25),
+      error: const Color(0xFFFFB4A8),
+      onError: const Color(0xFF4A0A00),
+    );
+  }
 
-  ThemeData _buildTheme() {
-    final s = scheme;
+  ThemeData? _themeData, _inkThemeData;
+
+  /// Uygulamanın varsayılan teması: koyu kabartma panel şeması. Çıplak sahne
+  /// üstüne düşen metinler [inkThemeData] ile okunur.
+  ThemeData get themeData => _themeData ??= _buildTheme(panelScheme);
+
+  /// Çıplak sahne (panel dışı) üstündeki metin için tema.
+  ThemeData get inkThemeData => _inkThemeData ??= _buildTheme(scheme);
+
+  ThemeData _buildTheme(ColorScheme s) {
+    final isPanel = identical(s, panelScheme);
+    final ink = scheme;
+    final isDark = s.brightness == Brightness.dark;
     final base =
         (isDark
                 ? Typography.material2021().white
@@ -272,8 +409,8 @@ class AppLook {
       labelMedium: b(base.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
       labelSmall: b(base.labelSmall),
     );
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(18),
+    final clayShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(26),
     );
     final scrolled = backdrop.top.withValues(alpha: 0.94);
 
@@ -282,23 +419,33 @@ class AppLook {
       colorScheme: s,
       textTheme: text,
       scaffoldBackgroundColor: backdrop.top,
-      extensions: [backdrop],
+      extensions: [backdrop, ClayColors(this)],
+      // Alan altı yardım yazısı küçük ve ince; en koyu metin rengi + yarı kalın
+      // yazıyla silikleşmeden okunur (WCAG AA).
+      inputDecorationTheme: InputDecorationThemeData(
+        helperStyle: text.bodySmall?.copyWith(
+          color: s.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: WidgetStateColor.resolveWith(
           (states) => states.contains(WidgetState.scrolledUnder)
               ? scrolled
               : Colors.transparent,
         ),
-        foregroundColor: s.onSurface,
+        // Uygulama çubuğu çıplak sahne üstündedir: her zaman "mürekkep" rengi.
+        foregroundColor: ink.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        titleTextStyle: text.titleLarge,
+        titleTextStyle: text.titleLarge?.copyWith(color: ink.onSurface),
       ),
       cardTheme: CardThemeData(
-        color: s.surface.withValues(alpha: isDark ? 0.82 : 0.86),
-        elevation: 0,
-        shape: shape.copyWith(side: BorderSide(color: s.outlineVariant)),
+        color: s.surface,
+        elevation: 9,
+        shadowColor: shade.withValues(alpha: 0.7),
+        shape: clayShape,
         margin: EdgeInsets.zero,
       ),
       listTileTheme: ListTileThemeData(
@@ -309,22 +456,38 @@ class AppLook {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: s.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 12,
+        shadowColor: shade.withValues(alpha: 0.7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         titleTextStyle: text.headlineSmall,
         contentTextStyle: text.bodyMedium,
       ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: s.surface,
+        modalBackgroundColor: s.surface,
+        elevation: 12,
+        shadowColor: shade.withValues(alpha: 0.7),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+      ),
+      // Şişkin düğmeler: yumuşak, çift yönlü gölge ve tam yuvarlak uçlar.
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           textStyle: text.labelLarge,
+          shadowColor: shade.withValues(alpha: 0.6),
+          elevation: 4,
           shape: const StadiumBorder(),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           textStyle: text.labelLarge,
-          foregroundColor: s.primary,
-          backgroundColor: s.surface.withValues(alpha: 0.6),
-          side: BorderSide(color: s.outline),
+          foregroundColor: isPanel ? s.onSecondaryContainer : s.primary,
+          backgroundColor: isPanel ? s.secondaryContainer : s.surface,
+          side: BorderSide.none,
+          shadowColor: shade.withValues(alpha: 0.6),
+          elevation: 4,
           shape: const StadiumBorder(),
         ),
       ),
@@ -334,15 +497,19 @@ class AppLook {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
           textStyle: text.labelLarge,
-          backgroundColor: s.surface.withValues(alpha: 0.6),
+          backgroundColor: s.surface,
           selectedBackgroundColor: s.secondaryContainer,
           selectedForegroundColor: s.onSecondaryContainer,
-          side: BorderSide(color: s.outline),
+          side: BorderSide.none,
         ),
       ),
       sliderTheme: SliderThemeData(
         activeTrackColor: s.primary,
-        inactiveTrackColor: Color.lerp(s.primary, backdrop.top, 0.7),
+        inactiveTrackColor: Color.lerp(
+          s.primary,
+          isPanel ? s.surface : backdrop.top,
+          0.7,
+        ),
         thumbColor: s.primary,
         valueIndicatorColor: s.primary,
         valueIndicatorTextStyle: text.labelLarge?.copyWith(color: s.onPrimary),
@@ -351,6 +518,13 @@ class AppLook {
       iconTheme: IconThemeData(color: s.onSurface),
     );
   }
+
+  /// Tonu [c]'den, verilen açıklık/doygunlukta pastel renk.
+  static Color _pastel(Color c, double lightness, double saturation) =>
+      HSLColor.fromColor(c)
+          .withLightness(lightness)
+          .withSaturation(saturation)
+          .toColor();
 
   /// [fg]'yi [toward] yönüne (siyah/beyaz) kaydırarak her [bgs] üzerinde en
   /// az [min] kontrasta ulaştırır; rengin tonu olabildiğince korunur.
@@ -368,6 +542,33 @@ class AppLook {
     final la = a.computeLuminance(), lb = b.computeLuminance();
     final hi = la > lb ? la : lb, lo = la > lb ? lb : la;
     return (hi + 0.05) / (lo + 0.05);
+  }
+}
+
+/// Kabartma yüzeylerin renkleri ve iki tema yüzü (panel / çıplak sahne).
+/// [ClaySurface] içeriğini panel temasına sarar; çıplak sahne için
+/// [AppLook.inkThemeData] kullanılır.
+@immutable
+class ClayColors extends ThemeExtension<ClayColors> {
+  const ClayColors(this.look, [this._panel, this._shade]);
+
+  final AppLook look;
+  final Color? _panel, _shade;
+
+  Color get panel => _panel ?? look.panel;
+  Color get shade => _shade ?? look.shade;
+
+  @override
+  ClayColors copyWith() => this;
+
+  @override
+  ClayColors lerp(ClayColors? other, double t) {
+    if (other == null) return this;
+    return ClayColors(
+      t < 0.5 ? look : other.look,
+      Color.lerp(panel, other.panel, t),
+      Color.lerp(shade, other.shade, t),
+    );
   }
 }
 

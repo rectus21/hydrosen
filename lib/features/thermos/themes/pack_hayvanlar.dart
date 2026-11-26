@@ -1,5 +1,5 @@
 // Hayvanlar paketi temaları: Kedi, Köpek, Tavşan, Penguen, Koala, Baykuş, Tilki,
-// Kurt, Civciv.
+// Kurt, Civciv, Deve.
 //
 // Yeni tema eklerken: id benzersiz ASCII küçük harf; arka plan/kapak
 // fonksiyonları üst düzey (const liste), adları temaya özgü önekli olmalı.
@@ -204,6 +204,27 @@ const List<ThermosTheme> hayvanlarThemes = [
       0xFFF3A712,
       0xFFFFD75E,
       0xFFFFFF,
+    ]),
+  ),
+  ThermosTheme(
+    id: 'deve',
+    name: 'Deve',
+    glass: Color(0xFFFBE6C8),
+    edge: Color(0xFFA45C2E),
+    water: Color(0xFF2F8BC4),
+    deepWater: Color(0xFF14507F),
+    waterSurface: Color(0xFFBFE0F5),
+    mark: Color(0xFF4A2810),
+    label: Color(0xFF5A3014),
+    band: Color(0xFFB8683A),
+    bandLight: Color(0xFFF0B27A),
+    background: _deveBg,
+    capChubby: _deveA,
+    capSlim: _deveB,
+    celebration: CelebrationStyle(CelebrationKind.twinkles, [
+      0xFFE9A8,
+      0xF2A55A,
+      0xFFF6D8,
     ]),
   ),
 ];
@@ -1466,4 +1487,53 @@ void _civcivB(Art a, bool happy) {
   _civcivFace(a, happy, slim: true);
   a.o(310, 146, 9, 5, 0xED93B1, op: 0.22);
   a.o(370, 146, 9, 5, 0xED93B1, op: 0.22);
+}
+
+// --- Deve ------------------------------------------------------------------
+// Asıl görünüm assets/scenes/deve.png ve assets/caps/deve_*.png; buradaki
+// çizim görsel yüklenemezse devreye giren yedek ve panel renginin kaynağıdır
+// (ilk tam dolgu: toz terakota gök).
+
+void _deveBg(Art a) {
+  a.p(_full, 0xD79A70);
+  a.p('M120 8 H560 V200 H120 Z', 0xF3C9A0, op: 0.6);
+  a.c(486, 70, 34, 0xFFE9A8, op: 0.85);
+  a.p('M120 300 Q240 262 350 296 Q450 326 560 286 V512 H120 Z', 0xE8B27A);
+  a.p('M120 400 Q250 368 350 398 Q460 430 560 386 V512 H120 Z', 0xD99A5C);
+}
+
+void _deveFace(Art a, bool happy, {required bool slim}) {
+  final cy = slim ? 124.0 : 126.0;
+  final dx = slim ? 25.0 : 42.0;
+  final r = slim ? 7.0 : 11.0;
+  for (final d in const [-1, 1]) {
+    final x = 340 + d * dx;
+    if (happy) {
+      a.s('M${x - r} $cy Q$x ${cy - r} ${x + r} $cy', 0x4A2810, 3);
+    } else {
+      a.c(x, cy, r, 0x4A2810);
+      a.c(x - r * 0.3, cy - r * 0.35, r * 0.3, w);
+    }
+  }
+  a.o(340, slim ? 146.0 : 158.0, slim ? 14 : 22, slim ? 9 : 13, 0xF3CFA0);
+  if (happy) {
+    a.s(
+      'M322 ${slim ? 160 : 174} Q340 ${slim ? 172 : 192} 358 ${slim ? 160 : 174}',
+      0x7A3A1A,
+      3,
+    );
+  }
+}
+
+void _deveA(Art a, bool happy) {
+  a.dome(0xE6A55F, 0xF6C98E, 0xB8742F);
+  a.p('M300 54 Q330 24 372 50 Q350 62 300 54 Z', 0xB8662C);
+  _deveFace(a, happy, slim: false);
+  a.cheeks(172, happy ? 0.35 : 0.15);
+}
+
+void _deveB(Art a, bool happy) {
+  a.box(0xE6A55F, 0xF6C98E, 0xB8742F);
+  a.p('M322 92 Q340 74 360 92 Q342 100 322 92 Z', 0xB8662C);
+  _deveFace(a, happy, slim: true);
 }

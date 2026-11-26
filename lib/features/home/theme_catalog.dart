@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../settings/settings_controller.dart';
+import '../../app/frosted_panel.dart';
 import '../../domain/theme_categories.dart';
 import '../thermos/thermos_theme.dart';
 
@@ -276,7 +277,7 @@ class _ThemeCatalogState extends State<ThemeCatalog> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: Text(
+              child: SceneTitle(
                 'Tema seç',
                 style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),

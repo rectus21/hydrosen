@@ -120,7 +120,9 @@ void main() {
     ThemeData home() => Theme.of(tester.element(find.byType(HomeScreen)));
 
     expect(home().textTheme.bodyMedium!.fontFamily, contains('Nunito'));
-    expect(home().brightness, Brightness.light);
+    // Varsayılan tema koyu kabartma panel şemasıdır; sahne açık/koyu bilgisi
+    // arka plan şemasında (look.scheme) durur.
+    expect(home().extension<ClayColors>()!.look.isDark, isFalse);
 
     await tester.tap(find.byTooltip('Ayarlar'));
     await tester.pumpAndSettle();
@@ -135,8 +137,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final robot = AppLook.of(ThermosTheme.byId('robot'));
-    expect(home().brightness, Brightness.dark);
-    expect(home().colorScheme.primary, robot.scheme.primary);
+    expect(home().extension<ClayColors>()!.look.isDark, isTrue);
+    expect(home().colorScheme.primary, robot.panelScheme.primary);
     expect(
       home().textTheme.bodyMedium!.fontFamily,
       contains(_id(AppFont.chakraPetch)),

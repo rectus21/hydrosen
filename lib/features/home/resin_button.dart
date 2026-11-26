@@ -104,12 +104,13 @@ class ResinColors {
 
     final bandHsl = HSLColor.fromColor(band);
     final dominant = bandHsl.saturation < 0.18 ? water : band;
-    final shadow = clamp(deep, 0.12, 0.35, 0.2, 0.7);
+    final shadow = clamp(deep, 0.04, 0.2, 0.15, 0.6);
     switch (tone) {
       case ResinTone.primary:
-        final base = clamp(dominant, 0.36, 0.52, 0.45, 0.8);
-        final top = _shift(base, 0.14, 0);
-        final bottom = _shift(base, -0.1, 0.04);
+        // Koyu kabartma panelin üstünde: açık pastel, koyu yazılı şişkin düğme.
+        final base = clamp(dominant, 0.7, 0.8, 0.5, 0.85);
+        final top = _shift(base, 0.1, 0);
+        final bottom = _shift(base, -0.08, 0.04);
         final mid = Color.lerp(top, bottom, 0.5)!;
         return ResinColors(
           top: top,
@@ -119,9 +120,9 @@ class ResinColors {
         );
       case ResinTone.secondary:
         final seed = dominant == water ? glass : water;
-        final base = clamp(seed, 0.55, 0.72, 0.35, 0.75);
-        final top = _shift(base, 0.1, 0).withValues(alpha: 0.88);
-        final bottom = _shift(base, -0.06, 0.03).withValues(alpha: 0.92);
+        final base = clamp(seed, 0.84, 0.9, 0.35, 0.75);
+        final top = _shift(base, 0.06, 0);
+        final bottom = _shift(base, -0.06, 0.03);
         final mid = Color.lerp(top, bottom, 0.5)!;
         return ResinColors(
           top: top,
@@ -130,9 +131,9 @@ class ResinColors {
           text: readableOn(mid, backdrop: backdrop),
         );
       case ResinTone.glass:
-        final base = clamp(glass, 0.62, 0.82, 0.3, 0.7);
-        final top = _shift(base, 0.08, 0).withValues(alpha: 0.7);
-        final bottom = _shift(base, -0.05, 0.03).withValues(alpha: 0.82);
+        final base = clamp(glass, 0.9, 0.94, 0.3, 0.7);
+        final top = _shift(base, 0.04, 0).withValues(alpha: 0.96);
+        final bottom = _shift(base, -0.05, 0.03).withValues(alpha: 0.96);
         final h = HSLColor.fromColor(base);
         final text = h
             .withLightness(0.14)
@@ -160,14 +161,17 @@ class ResinColors {
     final theme = Theme.of(context);
     final backdropExt = theme.extension<BackdropColors>();
     final ThermosTheme? t = backdropExt?.scene;
-    final backdrop = backdropExt?.top ?? theme.colorScheme.surface;
+    // Düğmeler opak pastel panelin üstünde durur; metin kontrastı o yüzeye
+    // göre seçilir.
+    final backdrop = theme.colorScheme.surface;
     final scheme = theme.colorScheme;
     return derive(
       tone: tone,
       band: t?.band ?? scheme.primary,
       water: t?.water ?? scheme.primary,
       glass: t?.glass ?? scheme.primaryContainer,
-      deep: t?.deepWater ?? scheme.onSurface,
+      // Gölge, panel renginin koyusu: tutarlı, sert olmayan bir ton.
+      deep: Color.lerp(scheme.surface, Colors.black, 0.6)!,
       backdrop: backdrop,
     );
   }
@@ -217,7 +221,6 @@ class _ResinButtonState extends State<ResinButton> {
     final r = widget.circle ? w / 2 : (widget.radius ?? h / 2);
     final glassy = widget.tone == ResinTone.glass;
     final radius = BorderRadius.circular(r);
-    final shadowAlpha = glassy ? 0.28 : 0.45;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: enabled ? (_) => _set(true) : null,
@@ -236,13 +239,18 @@ class _ResinButtonState extends State<ResinButton> {
             height: h,
             decoration: BoxDecoration(
               borderRadius: radius,
+              // Yumuşak kabartma: sağ-altta koyu, sol-üstte açık gölge; basılınca
+              // ikisi de küçülür.
               boxShadow: [
                 BoxShadow(
-                  color: c.shadow.withValues(
-                    alpha: down ? shadowAlpha * 0.5 : shadowAlpha,
-                  ),
-                  blurRadius: down ? 4 : 13,
-                  offset: Offset(0, down ? 2 : 6),
+                  color: c.shadow.withValues(alpha: down ? 0.35 : 0.6),
+                  blurRadius: down ? 6 : 16,
+                  offset: down ? const Offset(2, 3) : const Offset(8, 10),
+                ),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: down ? 0.1 : 0.3),
+                  blurRadius: down ? 4 : 12,
+                  offset: down ? const Offset(-1, -1) : const Offset(-4, -4),
                 ),
               ],
             ),
@@ -268,7 +276,7 @@ class _ResinButtonState extends State<ResinButton> {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.white.withValues(alpha: 0.45),
+                            Colors.white.withValues(alpha: 0.6),
                             Colors.white.withValues(alpha: 0),
                           ],
                         ),
@@ -336,7 +344,7 @@ class _ResinPainter extends CustomPainter {
           end: Alignment.bottomCenter,
           colors: [
             c.shadow.withValues(alpha: 0),
-            c.shadow.withValues(alpha: glassy ? 0.10 : 0.22),
+            c.shadow.withValues(alpha: glassy ? 0.14 : 0.3),
           ],
           stops: const [0.6, 1],
         ).createShader(rect),

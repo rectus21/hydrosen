@@ -48,6 +48,7 @@ void main() {
   _faz2Tests();
   _faz3Tests();
   _faz4Tests();
+  _clayTests();
   testWidgets('karaejderha kareleri', (tester) async {
     await _run(tester, 'karaejderha', const [
       ('intro_015', 390),
@@ -1189,4 +1190,107 @@ void _faz4Tests() {
     await tester.pumpAndSettle();
     await snap(tester, shot, 'tema_izgara');
   }, skip: !_enabled);
+}
+
+// ---- Yumuşak kabartma arayüzü: tema başına ekran görüntüleri (390x844, 2x) --
+
+final _clayDir =
+    Platform.environment['CLAY_DIR'] ??
+    r'C:\Users\PC\Documents\Obsidian Vault\HydroSen\02-Design\arayuz-stilleri\uygulandi\ham';
+
+void _clayTests() {
+  const themes = [
+    'panda',
+    'kedi',
+    'penguen',
+    'tekboynuz',
+    'aslan',
+    'bulut',
+    'karpuz',
+    'okyanus',
+    'limon',
+    'gece',
+    'karaejderha',
+    'astronot',
+    'kamp',
+    'baykus',
+    'kurt',
+    'robot',
+    'korsan',
+    'rakun',
+    'yarisarabasi',
+    'deve',
+  ];
+  for (final themeId in themes) {
+    testWidgets('kabartma: $themeId', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await tester.runAsync(() async {
+        await _loadFazFonts();
+        await IllustratedArtwork.load();
+        await FxSprites.load();
+      });
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      tester.view.physicalSize = const Size(780, 1688);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(() {
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+        tester.view.reset();
+      });
+      Directory(_clayDir).createSync(recursive: true);
+      final shot = GlobalKey();
+      final now = DateTime.now();
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: shot,
+          child: HydroSenApp(
+            repository: InMemoryWaterRepository([
+              WaterEntry(
+                id: 1,
+                amountMl: 200,
+                time: now.subtract(const Duration(minutes: 10)),
+              ),
+            ]),
+            settingsRepository: InMemorySettingsRepository(
+              AppSettings(theme: ThermosTheme.byId(themeId)),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      Future<void> snap(String name) async {
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          final boundary =
+              shot.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final image = await boundary.toImage(pixelRatio: 1);
+          final data = await image.toByteData(format: ui.ImageByteFormat.png);
+          File('$_clayDir/${themeId}_$name.png')
+              .writeAsBytesSync(data!.buffer.asUint8List());
+        });
+      }
+
+      await snap('gunluk');
+      await tester.tap(find.text('Hatırlatıcı'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+      await snap('hatirlatici');
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+      for (final tab in const ['Kayıtlar', 'Tema', 'Profil']) {
+        await tester.tap(find.text(tab));
+        await tester.pumpAndSettle();
+        // Tema kapakları gerçek zamanlı çözülür.
+        for (var i = 0; i < 6; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 300)),
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await snap(tab.toLowerCase().replaceAll('ı', 'i'));
+      }
+    }, skip: !_enabled);
+  }
 }
