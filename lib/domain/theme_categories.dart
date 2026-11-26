@@ -26,6 +26,7 @@ const Map<String, String> kThemeCategoryOf = {
   'kurt': 'Hayvanlar',
   'civciv': 'Hayvanlar',
   'deve': 'Hayvanlar',
+  'zurafa': 'Hayvanlar',
   'aslan': 'Hayvanlar',
   'geyik': 'Hayvanlar',
   'inek': 'Hayvanlar',

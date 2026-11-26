@@ -1220,6 +1220,7 @@ void _clayTests() {
     'rakun',
     'yarisarabasi',
     'deve',
+    'zurafa',
   ];
   for (final themeId in themes) {
     testWidgets('kabartma: $themeId', (tester) async {

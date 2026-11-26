@@ -53,4 +53,5 @@ const Map<String, ({int x, int y})> kBlinkPatchOffsets = {
   'voleybol': (x: 91, y: 224),
   'yarisarabasi': (x: 180, y: 256),
   'yesilelma': (x: 108, y: 272),
+  'zurafa': (x: 110, y: 169),
 };

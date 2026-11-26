@@ -132,6 +132,10 @@ class ReminderMessages {
       '{ad} susadı! Çöl yolunda bir yudum su molası?',
       '{ad}: "Yavaş yavaş gidelim, ama su içmeyi unutmayalım."',
     ],
+    'zurafa': [
+      '{ad} susadı! Boynum uzun ama su çok uzakta kalmasın.',
+      '{ad}: "Yukarıdan bakınca bir yudum su zamanı görünüyor!"',
+    ],
     'tilki': [
       '{ad} susadı! Kurnaz tilki bir yudum su istiyor.',
       '{ad}: "Küçük bir yudum, büyük bir ferahlık!"',

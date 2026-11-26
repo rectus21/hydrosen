@@ -745,7 +745,11 @@ class _ThermosSectionState extends State<_ThermosSection> {
         // Termos büyütme katsayısı (Rectus, 2026-11-22): tuvalin kenar
         // boşlukları büyük olduğu için görsel yakınlaştırılır; yerleşim
         // yüksekliği de aynı oranda artar ki alttaki panel üstüne binmesin.
-        const zoom = kThermosZoom;
+        // Uzun boyunlu zürafa daha yüksek durur; başı kırpılmasın diye
+        // termos bu temada biraz küçülür.
+        final zoom = widget.theme.id == 'zurafa'
+            ? kZurafaThermosZoom
+            : kThermosZoom;
         return SizedBox(
           height: baseHeight,
           child: Center(
@@ -808,6 +812,9 @@ class _ThermosSectionState extends State<_ThermosSection> {
 
 /// Ana ekrandaki termosun büyütme katsayısı (1.0 = ChatGPT sürümünün ilk hâli).
 const double kThermosZoom = 1.375;
+
+/// Zürafa temasında termos büyütme katsayısı (uzun boyunlu kapak için).
+const double kZurafaThermosZoom = 1.15;
 
 /// Şişenin aşağı kayma oranı (taban yüksekliğinin kesri).
 const double kThermosDrop = 0.16;

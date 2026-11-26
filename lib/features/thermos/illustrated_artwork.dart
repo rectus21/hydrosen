@@ -118,6 +118,9 @@ class IllustratedArtwork {
     'limon': 0.94,
   };
 
+  /// Zürafa kapağının genişliği, kare kapak genişliğine oranı.
+  static const zurafaCapWidthFactor = 0.75;
+
   /// Ham kapak dikdörtgeni. Tombul termosun çizicisi bu dikdörtgeni daha
   /// sonra [chubbyCapScale] ile küçültür. Her iki şeklin de görsel bileziği
   /// cam gövdenin omzunda biter; böylece kapak ne gövdenin içine gömülür ne
@@ -133,6 +136,15 @@ class IllustratedArtwork {
         : const ui.Rect.fromLTWH(260, 18, 160, 160);
     if (id == null || image == null || id == 'panda' || id == 'baykus') {
       return base;
+    }
+    if (id == 'zurafa') {
+      // Uzun boyunlu kapak (512x768): boyun tabanı termos boynuna otursun;
+      // genişlik kare kapakların %75'i, yükseklik 1,5 katı. İki ifade aynı
+      // dikdörtgeni kullanır (baş ifadeler arasında kaymaz).
+      final w = base.width * zurafaCapWidthFactor;
+      final h = w * 1.5;
+      final bottom = base.bottom + h * (7 / 768);
+      return ui.Rect.fromLTWH(base.center.dx - w / 2, bottom - h, w, h);
     }
     final scale = capScaleOf[id] ?? 1.0;
     ui.Rect fit(ui.Rect r) {
@@ -280,6 +292,7 @@ class IllustratedArtwork {
       'kedi',
       'pofuduk',
       'deve',
+      'zurafa',
     ]) {
       if (byId.containsKey(id)) continue;
       final images = <ui.Image>[];

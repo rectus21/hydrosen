@@ -28,13 +28,15 @@ class CharacterAvatar extends StatelessWidget {
         child: preloaded != null
             ? RawImage(
                 image: preloaded,
-                fit: BoxFit.contain,
+                // Uzun boyunlu zürafada yalnız baş görünsün (üstten kırp).
+                fit: theme.id == 'zurafa' ? BoxFit.cover : BoxFit.contain,
                 alignment: Alignment.topCenter,
                 filterQuality: FilterQuality.medium,
               )
             : Image.asset(
                 'assets/caps/${theme.id}_normal.png',
-                fit: BoxFit.contain,
+                // Uzun boyunlu zürafada yalnız baş görünsün (üstten kırp).
+                fit: theme.id == 'zurafa' ? BoxFit.cover : BoxFit.contain,
                 alignment: Alignment.topCenter,
                 filterQuality: FilterQuality.medium,
                 excludeFromSemantics: true,

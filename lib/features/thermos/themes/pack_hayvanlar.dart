@@ -1,5 +1,5 @@
 // Hayvanlar paketi temaları: Kedi, Köpek, Tavşan, Penguen, Koala, Baykuş, Tilki,
-// Kurt, Civciv, Deve.
+// Kurt, Civciv, Deve, Zürafa.
 //
 // Yeni tema eklerken: id benzersiz ASCII küçük harf; arka plan/kapak
 // fonksiyonları üst düzey (const liste), adları temaya özgü önekli olmalı.
@@ -225,6 +225,27 @@ const List<ThermosTheme> hayvanlarThemes = [
       0xFFE9A8,
       0xF2A55A,
       0xFFF6D8,
+    ]),
+  ),
+  ThermosTheme(
+    id: 'zurafa',
+    name: 'Zürafa',
+    glass: Color(0xFFF3ECC4),
+    edge: Color(0xFF6E7A2E),
+    water: Color(0xFF2F8FC0),
+    deepWater: Color(0xFF14506E),
+    waterSurface: Color(0xFFC4E6F5),
+    mark: Color(0xFF3A4A18),
+    label: Color(0xFF3A4A18),
+    band: Color(0xFFC98A2E),
+    bandLight: Color(0xFFF0CF7A),
+    background: _zurafaBg,
+    capChubby: _zurafaA,
+    capSlim: _zurafaB,
+    celebration: CelebrationStyle(CelebrationKind.fallingLeaves, [
+      0x7FB03A,
+      0xB5D15A,
+      0xE0A83A,
     ]),
   ),
 ];
@@ -1536,4 +1557,69 @@ void _deveB(Art a, bool happy) {
   a.box(0xE6A55F, 0xF6C98E, 0xB8742F);
   a.p('M322 92 Q340 74 360 92 Q342 100 322 92 Z', 0xB8662C);
   _deveFace(a, happy, slim: true);
+}
+
+// --- Zürafa ----------------------------------------------------------------
+// Asıl görünüm assets/scenes/zurafa.png ve assets/caps/zurafa_*.png; yedek
+// çizim ve panel rengi kaynağı zeytin yeşili savan göğüdür.
+
+void _zurafaBg(Art a) {
+  a.p(_full, 0x8DA85A);
+  a.p('M120 8 H560 V190 H120 Z', 0xBCD0E8, op: 0.55);
+  a.c(486, 70, 34, 0xFFF2B8, op: 0.8);
+  a.p('M120 330 Q240 300 350 326 Q450 350 560 316 V512 H120 Z', 0xA9C65E);
+  a.p('M120 420 Q250 392 350 418 Q460 446 560 408 V512 H120 Z', 0x7FA33F);
+}
+
+void _zurafaFace(Art a, bool happy, {required bool slim}) {
+  final cy = slim ? 124.0 : 126.0;
+  final dx = slim ? 25.0 : 42.0;
+  final r = slim ? 7.0 : 11.0;
+  for (final d in const [-1, 1]) {
+    final x = 340 + d * dx;
+    if (happy) {
+      a.s('M${x - r} $cy Q$x ${cy - r} ${x + r} $cy', 0x4A2810, 3);
+    } else {
+      a.c(x, cy, r, 0x4A2810);
+      a.c(x - r * 0.3, cy - r * 0.35, r * 0.3, w);
+    }
+  }
+  a.o(340, slim ? 146.0 : 160.0, slim ? 14 : 24, slim ? 9 : 14, 0xF7D9A4);
+  if (happy) {
+    a.s(
+      'M322 ${slim ? 160 : 176} Q340 ${slim ? 172 : 194} 358 ${slim ? 160 : 176}',
+      0x7A3A1A,
+      3,
+    );
+  }
+}
+
+void _zurafaSpots(Art a, bool slim) {
+  final k = slim ? 0.6 : 1.0;
+  for (final p in const [
+    [280, 100, 12.0],
+    [400, 96, 11.0],
+    [262, 150, 10.0],
+    [418, 152, 10.0],
+    [300, 60, 8.0],
+  ]) {
+    a.c(340 + (p[0] - 340) * k, p[1], p[2] * k, 0xB9682C, op: 0.85);
+  }
+}
+
+void _zurafaA(Art a, bool happy) {
+  a.dome(0xF0C264, 0xFFE29A, 0xC98A2E);
+  _zurafaSpots(a, false);
+  a.c(300, 30, 11, 0x6B3A18);
+  a.c(380, 30, 11, 0x6B3A18);
+  _zurafaFace(a, happy, slim: false);
+  a.cheeks(172, happy ? 0.35 : 0.15);
+}
+
+void _zurafaB(Art a, bool happy) {
+  a.box(0xF0C264, 0xFFE29A, 0xC98A2E);
+  _zurafaSpots(a, true);
+  a.c(326, 84, 7, 0x6B3A18);
+  a.c(354, 84, 7, 0x6B3A18);
+  _zurafaFace(a, happy, slim: true);
 }

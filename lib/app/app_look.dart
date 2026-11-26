@@ -66,6 +66,7 @@ const Map<String, AppTypeface> themeTypefaces = {
   'tilki': _playful,
   'civciv': _playful,
   'deve': _playful,
+  'zurafa': _playful,
   'kurt': _playful,
   'ayi': _playful,
   'kurbaga': _playful,

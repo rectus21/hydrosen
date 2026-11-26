@@ -56,6 +56,10 @@ Future<_CapImage?> _loadCapUncached(String id) async {
       }
     }
     if (maxX < 0) return _CapImage(img, Offset.zero & _sizeOf(img));
+    // Uzun boyunlu zürafada küçük resimde yalnız baş (genişlik kadar yükseklik).
+    if (id == 'zurafa') {
+      maxY = math.min(maxY, minY + ((maxX - minX) * 1.05).round());
+    }
     return _CapImage(
       img,
       Rect.fromLTRB(minX.toDouble(), minY.toDouble(), maxX + 1.0, maxY + 1.0),
